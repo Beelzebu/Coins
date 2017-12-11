@@ -24,9 +24,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -345,32 +343,7 @@ public class SQLite implements Database {
         }
         return false;
     }
-
-    @Override
-    public List<String> getTop(int top) {
-        List<String> toplist = new ArrayList<>();
-        try (Connection c = ds.getConnection()) {
-            ResultSet res = null;
-            try {
-                res = Utils.generatePreparedStatement(c, SQLQuery.SELECT_TOP, top).executeQuery();
-                while (res.next()) {
-                    String playername = res.getString("nick");
-                    int coins = (int) res.getDouble("balance");
-                    toplist.add(playername + ", " + coins);
-                }
-            } finally {
-                if (res != null) {
-                    res.close();
-                }
-                c.close();
-            }
-        } catch (SQLException ex) {
-            core.log("&cAn internal error has occurred generating the toplist");
-            core.debug(ex);
-        }
-        return toplist;
-    }
-
+    
     @Override
     public Map<String, Double> getTopPlayers(int top) {
         Map<String, Double> topplayers = new HashMap<>();

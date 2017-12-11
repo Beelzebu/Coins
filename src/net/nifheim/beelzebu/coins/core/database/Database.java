@@ -23,7 +23,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -60,9 +59,6 @@ public interface Database {
     void setCoins(UUID player, Double coins);
 
     boolean isindb(UUID player);
-
-    @Deprecated
-    List<String> getTop(int top);
 
     Map<String, Double> getTopPlayers(int top);
 

@@ -25,9 +25,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.nifheim.beelzebu.coins.CoinsAPI;
@@ -250,7 +248,7 @@ public class MySQL implements Database {
                 core.updateCache(core.getUUID(player), 0D);
             } else {
                 Utils.generatePreparedStatement(c, SQLQuery.UPDATE_COINS_OFFLINE, beforeCoins - coins, player).executeUpdate();
-                core.updateCache(core.getUUID(player), getCoins(player));
+                core.updateCache(core.getUUID(player), beforeCoins - coins);
             }
             core.getMethods().callCoinsChangeEvent(core.getUUID(player), beforeCoins, beforeCoins - coins);
         } catch (SQLException ex) {
@@ -344,7 +342,7 @@ public class MySQL implements Database {
                 core.updateCache(player, 0D);
             } else {
                 Utils.generatePreparedStatement(c, SQLQuery.UPDATE_COINS_ONLINE, beforeCoins - coins, player).executeUpdate();
-                core.updateCache(player, getCoins(player));
+                core.updateCache(player, beforeCoins - coins);
             }
             core.getMethods().callCoinsChangeEvent(player, beforeCoins, beforeCoins - coins);
         } catch (SQLException ex) {
@@ -394,31 +392,6 @@ public class MySQL implements Database {
             core.debug(ex);
         }
         return false;
-    }
-
-    @Override
-    public List<String> getTop(int top) {
-        List<String> toplist = new ArrayList<>();
-        try (Connection c = ds.getConnection()) {
-            ResultSet res = null;
-            try {
-                res = Utils.generatePreparedStatement(c, SQLQuery.SELECT_TOP, top).executeQuery();
-                while (res.next()) {
-                    String playername = res.getString("nick");
-                    int coins = (int) res.getDouble("balance");
-                    toplist.add(playername + ", " + coins);
-                }
-            } finally {
-                if (res != null) {
-                    res.close();
-                }
-                c.close();
-            }
-        } catch (SQLException ex) {
-            core.log("&cAn internal error has occurred generating the toplist");
-            core.debug(ex);
-        }
-        return toplist;
     }
 
     @Override

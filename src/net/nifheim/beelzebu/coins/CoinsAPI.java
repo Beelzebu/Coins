@@ -20,7 +20,6 @@ package net.nifheim.beelzebu.coins;
 
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.nifheim.beelzebu.coins.core.Core;
@@ -92,34 +91,6 @@ public class CoinsAPI {
         } else {
             return "This player isn't in the database";
         }
-    }
-
-    /**
-     * Add coins to a player by his name.
-     *
-     * @param p The player to add the coins.
-     * @param coins The coins to add.
-     * @deprecated This should not be used.
-     * @see
-     * {@link CoinsAPI#addCoins(java.lang.String, java.lang.Double, java.lang.Boolean)}
-     */
-    @Deprecated
-    public static void addCoins(String p, double coins) {
-        addCoins(p, coins, false);
-    }
-
-    /**
-     * Add coins to a player by his UUID.
-     *
-     * @param p The player to add the coins.
-     * @param coins The coins to add.
-     * @deprecated This should not be used.
-     * @see
-     * {@link CoinsAPI#addCoins(java.util.UUID, java.lang.Double, java.lang.Boolean)}
-     */
-    @Deprecated
-    public static void addCoins(UUID p, double coins) {
-        addCoins(p, coins, false);
     }
 
     /**
@@ -241,7 +212,7 @@ public class CoinsAPI {
     public static boolean payCoins(String from, String to, double amount) {
         if (getCoins(from) >= amount) {
             takeCoins(from, amount);
-            addCoins(to, amount);
+            addCoins(to, amount, false);
             return true;
         }
         return false;
@@ -258,7 +229,7 @@ public class CoinsAPI {
     public static boolean payCoins(UUID from, UUID to, double amount) {
         if (getCoins(from) >= amount) {
             takeCoins(from, amount);
-            addCoins(to, amount);
+            addCoins(to, amount, false);
             return true;
         }
         return false;
@@ -289,20 +260,6 @@ public class CoinsAPI {
             return true;
         }
         return core.getDatabase().isindb(uuid);
-    }
-
-    /**
-     * Get the top players in coins data.
-     *
-     * @param top The lenght of the top list, for example 5 will get a max of 5
-     * users for the top.
-     * @return The ordered top list of players and his balance, separated by a
-     * separated by a comma and space. ", "
-     * @deprecated see {@link #getTopPlayers(int)}
-     */
-    @Deprecated
-    public static List<String> getTop(int top) {
-        return core.getDatabase().getTop(top);
     }
 
     /**

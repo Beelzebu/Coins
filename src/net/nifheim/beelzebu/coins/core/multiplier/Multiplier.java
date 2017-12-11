@@ -188,21 +188,6 @@ public final class Multiplier {
     }
 
     /**
-     * Create a multiplier for a player with the server for this multiplier.
-     *
-     * @param uuid The player to create the multiplier.
-     * @param multiplier The multiplier.
-     * @param minutes The time for the multiplier.
-     * @deprecated
-     * @see
-     * {@link #createMultiplier(java.util.UUID, java.lang.int, java.lang.int, java.lang.String)}
-     */
-    @Deprecated
-    public void createMultiplier(UUID uuid, int multiplier, int minutes) {
-        createMultiplier(uuid, multiplier, minutes, server);
-    }
-
-    /**
      * Create a multiplier for a player with the specified time.
      *
      * @param uuid The player to create the multiplier.
@@ -294,20 +279,6 @@ public final class Multiplier {
             core.debug(ex);
         }
         return false;
-    }
-
-    /**
-     * Get the time of the multiplier for the specific server.
-     *
-     * @param server The server to check.
-     * @return The millis for the multiplier.
-     * @deprecated will be removed in future updates, is better create a new
-     * instance of multiplier to check the time.
-     * @see {@link #checkTime()}
-     */
-    @Deprecated
-    public Long getMultiplierTime(String server) {
-        return checkMultiplierTime(server);
     }
 
     private Long checkMultiplierTime(String server) {
