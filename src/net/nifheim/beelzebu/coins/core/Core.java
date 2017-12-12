@@ -32,12 +32,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.nifheim.beelzebu.coins.bukkit.utils.bungee.PluginMessage;
 import net.nifheim.beelzebu.coins.bungee.BungeeMethods;
 import net.nifheim.beelzebu.coins.bungee.listener.PluginMessageListener;
-import net.nifheim.beelzebu.coins.core.database.*;
 import net.nifheim.beelzebu.coins.core.executor.ExecutorManager;
 import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 import net.nifheim.beelzebu.coins.core.multiplier.MultiplierData;
@@ -46,6 +46,7 @@ import net.nifheim.beelzebu.coins.core.utils.CoinsConfig;
 import net.nifheim.beelzebu.coins.core.utils.FileManager;
 import net.nifheim.beelzebu.coins.core.utils.IMethods;
 import net.nifheim.beelzebu.coins.core.utils.MessagesManager;
+import net.nifheim.beelzebu.coins.database.*;
 
 /**
  *
@@ -56,9 +57,10 @@ public class Core {
     private static Core instance;
     private IMethods mi;
     private FileManager fileUpdater;
-    private Database db;
+    private CoinsDatabase db;
+    @Getter
+    private StorageType storageType;
     private ExecutorManager executorManager;
-    private boolean mysql;
     private HashMap<String, MessagesManager> messagesMap;
 
     public static Core getInstance() {
@@ -78,8 +80,13 @@ public class Core {
 
     public void start() {
         fileUpdater.updateFiles();
-        mysql = getConfig().getBoolean("MySQL.Use");
-        if (!mysql && isBungee()) {
+        try {
+            storageType = StorageType.valueOf(getConfig().getString("Storage Type", "SQLITE"));
+        } catch (Exception ex) { // invalid storage type
+            storageType = StorageType.SQLITE;
+            log("Invalid Storage Type selected in the config, possible values: " + Arrays.toString(StorageType.values()));
+        }
+        if (!storageType.equals(StorageType.SQLITE) && isBungee()) {
             log(" ");
             log("    WARNING");
             log(" ");
@@ -113,11 +120,7 @@ public class Core {
             if (getConfig().getBoolean("Debug", false)) {
                 log("Debug mode is enabled.");
             }
-            if (isMySQL()) {
-                log("Enabled to use MySQL.");
-            } else {
-                log("Enabled to use SQLite.");
-            }
+            log("Using " + storageType + " for storage.");
         }
     }
 
@@ -171,19 +174,23 @@ public class Core {
         return mi.getUUID(player) != null ? mi.getUUID(player) : getDatabase().getUUID(player);
     }
 
-    public Database getDatabase() {
-        if (mysql) {
-            return db == null ? db = new MySQL(this) : db;
-        } else {
-            return db == null ? db = new SQLite(this) : db;
+    public CoinsDatabase getDatabase() {
+        switch (storageType) {
+            case MYSQL:
+                return db == null ? db = new NewMySQL() : db;
+            case SQLITE:
+                return db == null ? db = new NewSQLite() : db;
+            case REDIS:
+                return db == null ? db = new NewRedis() : db;
+            default:
+                return null;
         }
     }
 
-    public boolean isMySQL() {
-        return mysql;
-    }
-
     public String rep(String msg) {
+        if (msg == null) {
+            return "";
+        }
         String message = msg;
         if (getConfig() != null) {
             message = message.replaceAll("%prefix%", getConfig().getString("Prefix"));
@@ -252,8 +259,7 @@ public class Core {
         try {
             return rep(getMessages(lang).getString(path));
         } catch (NullPointerException ex) {
-            mi.log("The string " + path + " does not exists in the messages_" + lang.split("_")[0] + ".yml file, please add this manually.");
-            mi.log("If you belive that this is an error please contact to the developer.");
+            mi.log("The string " + path + " does not exists in the messages_" + lang.split("_")[0] + ".yml file.");
             debug(ex);
             return rep(getMessages("").getString(path));
         }

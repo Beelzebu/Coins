@@ -45,9 +45,11 @@ public class CacheManager {
         return -1D;
     }
 
-    public static void updateCoins(UUID uuid, Double coins) {
+    public static void updateCoins(UUID uuid, double coins) {
         synchronized (playersData) {
-            playersData.put(uuid, coins);
+            if (coins > -1) {
+                playersData.put(uuid, coins);
+            }
         }
     }
 

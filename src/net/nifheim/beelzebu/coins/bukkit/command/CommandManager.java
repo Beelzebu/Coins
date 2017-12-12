@@ -44,7 +44,7 @@ public class CommandManager {
 
             unregisterCommand();
             cmd = new CoinsCommand(core.getConfig().getString("General.Command.Name", "coins"), commandDescription, commandUsage, commandPermission, core.getConfig().getStringList("General.Command.Aliases"));
-            commandMap.register(core.getConfig().getString("General.Command.Name", "coins"), cmd);
+            commandMap.register("coins", cmd);
 
         } catch (SecurityException | IllegalArgumentException | NoSuchFieldException | IllegalAccessException ex) {
             core.getMethods().log("An internal error has ocurred while registering the command for the plugin.");

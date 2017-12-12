@@ -18,6 +18,9 @@
  */
 package net.nifheim.beelzebu.coins.core.importer;
 
+import net.nifheim.beelzebu.coins.database.SQLite;
+import net.nifheim.beelzebu.coins.database.Database;
+import net.nifheim.beelzebu.coins.database.MySQL;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
@@ -29,7 +32,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.nifheim.beelzebu.coins.CoinsAPI;
 import net.nifheim.beelzebu.coins.core.Core;
-import net.nifheim.beelzebu.coins.core.database.*;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;

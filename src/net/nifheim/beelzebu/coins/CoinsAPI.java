@@ -18,10 +18,10 @@
  */
 package net.nifheim.beelzebu.coins;
 
-import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.UUID;
+import net.nifheim.beelzebu.coins.CoinsResponse.CoinsResponseType;
 import net.nifheim.beelzebu.coins.core.Core;
 import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 import net.nifheim.beelzebu.coins.core.utils.CacheManager;
@@ -100,22 +100,29 @@ public class CoinsAPI {
      * @param player The player to add the coins.
      * @param coins The coins to add.
      * @param multiply Multiply coins if there are any active multipliers
+     * @return the response from the database.
      */
-    public static void addCoins(String player, double coins, boolean multiply) {
+    public static CoinsResponse addCoins(String player, double coins, boolean multiply) {
+        if (!isindb(player)) {
+            return new CoinsResponse(CoinsResponseType.FAILED, "The player " + player + " isn't in the database.");
+        }
+        double finalCoins = coins;
         if (multiply) {
-            coins *= getMultiplier().getAmount();
+            finalCoins *= getMultiplier().getAmount();
             for (String perm : core.getMethods().getPermissions(core.getUUID(player))) {
                 if (perm.startsWith("coins.multiplier.x")) {
                     try {
                         int i = Integer.parseInt(perm.split("coins.multiplier.x")[1]);
-                        coins *= i;
+                        finalCoins *= i;
                         break;
                     } catch (NumberFormatException ignore) {
                     }
                 }
             }
         }
-        core.getDatabase().addCoins(player, coins);
+        finalCoins += getCoins(player);
+        core.getDatabase().setCoins(player, finalCoins);
+        return new CoinsResponse(CoinsResponseType.SUCCESS, "");
     }
 
     /**
@@ -125,8 +132,13 @@ public class CoinsAPI {
      * @param uuid The player to add the coins.
      * @param coins The coins to add.
      * @param multiply Multiply coins if there are any active multipliers
+     * @return the response from the database.
      */
-    public static void addCoins(UUID uuid, double coins, boolean multiply) {
+    public static CoinsResponse addCoins(UUID uuid, double coins, boolean multiply) {
+        if (!isindb(uuid)) {
+            return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the database.");
+        }
+        double finalCoins = coins;
         if (multiply) {
             coins *= getMultiplier().getAmount();
             for (String perm : core.getMethods().getPermissions(uuid)) {
@@ -140,45 +152,62 @@ public class CoinsAPI {
                 }
             }
         }
-        core.getDatabase().addCoins(uuid, coins);
+        finalCoins += getCoins(uuid);
+        core.getDatabase().setCoins(uuid, finalCoins);
+        return new CoinsResponse(CoinsResponseType.SUCCESS, "");
     }
 
     /**
      * Take coins of a player by his name.
      *
-     * @param p
+     * @param name The name of the player to take the coins.
      * @param coins
      */
-    public static void takeCoins(String p, double coins) {
-        core.getDatabase().takeCoins(p, coins);
+    public static void takeCoins(String name, double coins) {
+        double finalCoins = getCoins(name) - coins;
+        core.getDatabase().setCoins(name, finalCoins);
     }
 
     /**
      * Take coins of a player by his UUID.
      *
-     * @param p
+     * @param uuid The UUID of the player to take the coins.
      * @param coins
      */
-    public static void takeCoins(UUID p, double coins) {
-        core.getDatabase().takeCoins(p, coins);
+    public static void takeCoins(UUID uuid, double coins) {
+        double finalCoins = getCoins(uuid) - coins;
+        core.getDatabase().setCoins(uuid, finalCoins);
+        core.getDatabase().setCoins(uuid, coins);
     }
 
     /**
      * Reset the coins of a player by his name.
      *
-     * @param p
+     * @param name The name of the player to reset the coins.
+     * @return The response from the Database.
      */
-    public static void resetCoins(String p) {
-        core.getDatabase().resetCoins(p);
+    public static CoinsResponse resetCoins(String name) {
+        if (isindb(name)) {
+            core.getDatabase().setCoins(name, core.getConfig().getDouble("General.Starting Coins", 0));
+            return new CoinsResponse(CoinsResponseType.SUCCESS, "");
+        } else {
+            return new CoinsResponse(CoinsResponseType.FAILED, "The player " + name + " isn't in the database.");
+        }
     }
 
     /**
      * Reset the coins of a player by his UUID.
      *
-     * @param p
+     * @param uuid The UUID of the player to reset the coins.
+     * @return The response from the Database.
      */
-    public static void resetCoins(UUID p) {
-        core.getDatabase().resetCoins(p);
+    public static CoinsResponse resetCoins(UUID uuid) {
+        if (isindb(uuid)) {
+            core.getDatabase().setCoins(uuid, core.getConfig().getDouble("General.Starting Coins", 0));
+            return new CoinsResponse(CoinsResponseType.SUCCESS, "");
+        } else {
+            return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the database.");
+        }
     }
 
     /**
@@ -209,13 +238,13 @@ public class CoinsAPI {
      * @param amount The amount of coins to pay.
      * @return true or false if the transaction is completed.
      */
-    public static boolean payCoins(String from, String to, double amount) {
+    public static CoinsResponse payCoins(String from, String to, double amount) {
         if (getCoins(from) >= amount) {
             takeCoins(from, amount);
             addCoins(to, amount, false);
-            return true;
+            return new CoinsResponse(CoinsResponseType.SUCCESS, "");
         }
-        return false;
+        return new CoinsResponse(CoinsResponseType.FAILED, "The user from doesn't have enought coins.");
     }
 
     /**
@@ -224,15 +253,15 @@ public class CoinsAPI {
      * @param from The player to get the coins.
      * @param to The player to pay.
      * @param amount The amount of coins to pay.
-     * @return true or false if the transaction is completed.
+     * @return the response from the database.
      */
-    public static boolean payCoins(UUID from, UUID to, double amount) {
+    public static CoinsResponse payCoins(UUID from, UUID to, double amount) {
         if (getCoins(from) >= amount) {
             takeCoins(from, amount);
             addCoins(to, amount, false);
-            return true;
+            return new CoinsResponse(CoinsResponseType.SUCCESS, "");
         }
-        return false;
+        return new CoinsResponse(CoinsResponseType.FAILED, "The user from doesn't have sufficient coins.");
     }
 
     /**
@@ -291,12 +320,7 @@ public class CoinsAPI {
      * @param balance The balance of the user.
      */
     public static void createPlayer(String nick, UUID uuid, double balance) {
-        try {
-            core.getDatabase().createPlayer(core.getDatabase().getConnection(), nick, uuid, balance);
-        } catch (SQLException ex) {
-            core.log("An error has ocurred while creating a player in the database from the API.");
-            core.debug(ex);
-        }
+        core.getDatabase().createPlayer(uuid, nick, balance);
     }
 
     /**

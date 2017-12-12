@@ -32,15 +32,15 @@ import net.nifheim.beelzebu.coins.core.importer.ImportManager;
 import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 import net.nifheim.beelzebu.coins.core.utils.CacheManager;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
 
 /**
  *
  * @author Beelzebu
  */
-public class CoinsCommand extends BukkitCommand {
+public class CoinsCommand extends Command {
 
     private final Core core = Core.getInstance();
     private final Main plugin = Main.getInstance();
@@ -469,7 +469,7 @@ public class CoinsCommand extends BukkitCommand {
             sender.sendMessage("");
             sender.sendMessage(core.rep(" &cVersion:&7 " + core.getMethods().getVersion()));
             sender.sendMessage(core.rep(" &cExecutors:&7 " + core.getExecutorManager().getExecutors().size()));
-            sender.sendMessage(core.rep(" &cMySQL:&7 " + core.isMySQL()));
+            sender.sendMessage(core.rep(" &cStorage Type:&7 " + core.getStorageType()));
             sender.sendMessage(core.rep(" &cMultipliers in cache:&7 " + CacheManager.getMultipliersData().keySet()));
             sender.sendMessage("");
         }

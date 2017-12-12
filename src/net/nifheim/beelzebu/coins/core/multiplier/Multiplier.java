@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import net.nifheim.beelzebu.coins.core.Core;
+import net.nifheim.beelzebu.coins.database.StorageType;
 
 /**
  * Handle Coins multipliers.
@@ -35,7 +36,7 @@ import net.nifheim.beelzebu.coins.core.Core;
 public final class Multiplier {
 
     private final Core core = Core.getInstance();
-    private final String prefix = core.isMySQL() ? core.getConfig().getString("MySQL.Prefix") : "";
+    private final String prefix = core.getStorageType().equals(StorageType.MYSQL) ? core.getConfig().getString("MySQL.Prefix") : "";
     private final String server;
     private String enabler = null;
     private Boolean enabled = false;
@@ -44,7 +45,8 @@ public final class Multiplier {
     private int id;
 
     private Connection getConnection() throws SQLException {
-        return core.getDatabase().getConnection();
+        return null;
+        //return core.getDatabase().getConnection();
     }
 
     public Multiplier(String server) {

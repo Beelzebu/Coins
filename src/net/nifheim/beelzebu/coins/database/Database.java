@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.nifheim.beelzebu.coins.core.database;
+package net.nifheim.beelzebu.coins.database;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -34,7 +34,7 @@ import net.nifheim.beelzebu.coins.core.Core;
  */
 public interface Database {
 
-    String prefix = Core.getInstance().isMySQL() ? Core.getInstance().getConfig().getString("MySQL.Prefix") : "";
+    String prefix = ""; //Core.getInstance().isMySQL() ? Core.getInstance().getConfig().getString("MySQL.Prefix") : "";
 
     Double getCoins(String player);
 
