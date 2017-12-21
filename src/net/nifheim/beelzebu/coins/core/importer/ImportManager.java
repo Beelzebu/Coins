@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -18,9 +18,6 @@
  */
 package net.nifheim.beelzebu.coins.core.importer;
 
-import net.nifheim.beelzebu.coins.database.SQLite;
-import net.nifheim.beelzebu.coins.database.Database;
-import net.nifheim.beelzebu.coins.database.MySQL;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
@@ -32,6 +29,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.nifheim.beelzebu.coins.CoinsAPI;
 import net.nifheim.beelzebu.coins.core.Core;
+import net.nifheim.beelzebu.coins.core.database.CoinsDatabase;
+import net.nifheim.beelzebu.coins.core.database.MySQL;
+import net.nifheim.beelzebu.coins.core.database.Redis;
+import net.nifheim.beelzebu.coins.core.database.SQLite;
+import net.nifheim.beelzebu.coins.core.database.StorageType;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -145,14 +147,15 @@ public class ImportManager {
     public void importFromStorage(StorageType storage) {
         switch (storage) {
             case MYSQL:
-                Database mysql = new MySQL(core);
-                if (core.getDatabase() instanceof MySQL) {
+                if (core.getStorageType().equals(StorageType.MYSQL)) {
                     core.log("You can't migrate information from the same database that you are using.");
                     return;
                 }
+                CoinsDatabase mysql = new MySQL();
+                mysql.setup();
                 Map<String, Double> mysqlData = mysql.getAllPlayers();
                 if (!mysqlData.isEmpty()) {
-                    core.log("Starting the migration from SQLite, this may take a moment.");
+                    core.log("Starting the migration from MySQL, this may take a moment.");
                     mysqlData.entrySet().forEach(entry -> {
                         String nick = null;
                         UUID uuid = null;
@@ -174,13 +177,12 @@ public class ImportManager {
                 mysql.shutdown();
                 break;
             case SQLITE:
-                Database sqlite = new SQLite(core);
-                if (core.getDatabase() instanceof SQLite) {
-                    if (core.getDatabase() instanceof MySQL) {
-                        core.log("You can't migrate information from the same database that you are using.");
-                        return;
-                    }
+                if (core.getStorageType().equals(StorageType.SQLITE)) {
+                    core.log("You can't migrate information from the same database that you are using.");
+                    return;
                 }
+                CoinsDatabase sqlite = new SQLite();
+                sqlite.setup();
                 Map<String, Double> sqliteData = sqlite.getAllPlayers();
                 if (!sqliteData.isEmpty()) {
                     core.log("Starting the migration from SQLite, this may take a moment.");
@@ -204,6 +206,36 @@ public class ImportManager {
                 }
                 sqlite.shutdown();
                 break;
+            case REDIS:
+                if (core.getStorageType().equals(StorageType.REDIS)) {
+                    core.log("You can't migrate information from the same database that you are using.");
+                    return;
+                }
+                CoinsDatabase redis = new Redis();
+                redis.setup();
+                Map<String, Double> redisData = redis.getAllPlayers();
+                if (!redisData.isEmpty()) {
+                    core.log("Starting the migration from Redis, this may take a moment.");
+                    redisData.entrySet().forEach(entry -> {
+                        String nick = null;
+                        UUID uuid = null;
+                        try {
+                            nick = entry.getKey().split(",")[0];
+                            uuid = UUID.fromString(entry.getKey().split(",")[1]);
+                            double balance = entry.getValue();
+                            CoinsAPI.createPlayer(nick, uuid, balance);
+                            core.debug("Migrated the data for: " + uuid);
+                        } catch (Exception ex) {
+                            core.log("An error has ocurred while migrating the data for: " + nick + " (" + uuid + ")");
+                            core.debug(ex);
+                        }
+                    });
+                    core.log("The migration has completed, check the plugin logs for more information.");
+                } else {
+                    core.log("There are no users to migrate in the database.");
+                }
+                redis.shutdown();
+                break;
             default:
                 break;
         }
@@ -211,10 +243,5 @@ public class ImportManager {
 
     public enum PluginToImport {
         PLAYER_POINTS;
-    }
-
-    public enum StorageType {
-        MYSQL,
-        SQLITE;
     }
 }

@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -22,8 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.nifheim.beelzebu.coins.CoinsAPI;
 import net.nifheim.beelzebu.coins.core.Core;
-import net.nifheim.beelzebu.coins.core.multiplier.MultiplierData;
-import net.nifheim.beelzebu.coins.core.multiplier.MultiplierType;
+import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -40,13 +39,13 @@ import org.bukkit.potion.PotionEffectType;
 public class ConfirmGUI extends BaseGUI {
 
     private final Core core = Core.getInstance();
-    private final MultiplierData multiplierData;
+    private final Multiplier multiplier;
     private final Player p;
 
-    public ConfirmGUI(Player player, String name, MultiplierData data) {
+    public ConfirmGUI(Player player, String name, Multiplier data) {
         super(9, name);
         p = player;
-        multiplierData = data;
+        multiplier = data;
         setItems();
     }
 
@@ -60,7 +59,7 @@ public class ConfirmGUI extends BaseGUI {
             meta.setDisplayName(core.getString("Multipliers.Menu.Confirm.Accept", p.spigot().getLocale()));
             is.setItemMeta(meta);
             setItem(2, is, player -> {
-                if (CoinsAPI.getMultiplier().useMultiplier(multiplierData.getID(), MultiplierType.SERVER)) {
+                if (CoinsAPI.useMultiplier(multiplier)) {
                     try {
                         player.playSound(player.getLocation(), Sound.valueOf(core.getConfig().getString("Multipliers.GUI.Use.Sound")), 10, 2);
                     } catch (IllegalStateException ex) {
@@ -96,10 +95,10 @@ public class ConfirmGUI extends BaseGUI {
             PotionMeta meta = (PotionMeta) is.getItemMeta();
             meta.setMainEffect(PotionEffectType.FIRE_RESISTANCE);
             meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
-            meta.setDisplayName(rep(core.getString("Multipliers.Menu.Multipliers.Name", p.spigot().getLocale()), multiplierData));
+            meta.setDisplayName(rep(core.getString("Multipliers.Menu.Multipliers.Name", p.spigot().getLocale()), multiplier));
             List<String> lore = new ArrayList<>();
             core.getMessages(p.spigot().getLocale()).getStringList("Multipliers.Menu.Multipliers.Lore").forEach(line -> {
-                lore.add(rep(line, multiplierData));
+                lore.add(rep(line, multiplier));
             });
             meta.setLore(lore);
             is.setItemMeta(meta);
@@ -117,13 +116,13 @@ public class ConfirmGUI extends BaseGUI {
         }
     }
 
-    private String rep(String str, MultiplierData data) {
+    private String rep(String str, Multiplier data) {
         return core.rep(
                 str
-                        .replaceAll("%amount%", String.valueOf(data.getAmount()))
+                        .replaceAll("%amount%", String.valueOf(data.getBaseData().getAmount()))
                         .replaceAll("%server%", data.getServer())
-                        .replaceAll("%minutes%", String.valueOf(data.getMinutes()))
-                        .replaceAll("%id%", String.valueOf(data.getID()))
+                        .replaceAll("%minutes%", String.valueOf(data.getBaseData().getMinutes()))
+                        .replaceAll("%id%", String.valueOf(data.getId()))
         );
     }
 }

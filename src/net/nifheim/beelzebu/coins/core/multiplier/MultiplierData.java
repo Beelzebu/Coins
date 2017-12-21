@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -18,30 +18,19 @@
  */
 package net.nifheim.beelzebu.coins.core.multiplier;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  *
  * @author Beelzebu
  */
 @Getter
-public abstract class MultiplierData {
+@Setter
+@AllArgsConstructor
+public class MultiplierData {
 
-    private final String server;
-    private final String enabler;
-    private final boolean enabled;
-    private final int amount;
-    private final int minutes;
-    private final int ID;
-    private final boolean queue;
-
-    MultiplierData(String server, String enabler, boolean enabled, int amount, int minutes, int id, boolean queue) {
-        this.server = server;
-        this.enabler = enabler;
-        this.enabled = enabled;
-        this.amount = amount;
-        this.minutes = minutes;
-        this.ID = id;
-        this.queue = queue;
-    }
+    private int amount;
+    private int minutes;
 }

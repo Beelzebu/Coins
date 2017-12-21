@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -18,33 +18,32 @@
  */
 package net.nifheim.beelzebu.coins.bukkit.listener;
 
-import net.nifheim.beelzebu.coins.CoinsAPI;
-import net.nifheim.beelzebu.coins.bukkit.Main;
 import net.nifheim.beelzebu.coins.bukkit.events.MultiplierEnableEvent;
 import net.nifheim.beelzebu.coins.core.Core;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  *
  * @author Beelzebu
  */
 public class InternalListener implements Listener {
-    
+
     private final Core core = Core.getInstance();
 
     @EventHandler
     public void onMultiplierUse(MultiplierEnableEvent e) {
         core.debug("Started multiplier check task");
+        /*
         (new BukkitRunnable() {
             @Override
-	    public void run() {
+            public void run() {
                 if (CoinsAPI.getMultiplier(e.getData().getServer()).checkTime() <= 0) {
                     core.debug("Canceling the multiplier check task");
                     cancel();
                 }
             }
         }).runTaskTimerAsynchronously(Main.getInstance(), 0, 20);
+*/
     }
 }

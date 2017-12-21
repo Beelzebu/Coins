@@ -3,7 +3,7 @@
 # the official github repo https://github.com/Beelzebu/Coins/issues/
 
 # The version of the config, don't touch!
-version: 11
+version: 13
 
 # This is the prefix used in all the messages.
 Prefix: '&c&lCoins &6&l>&7'
@@ -24,9 +24,32 @@ Vault:
     Singular: 'Coin'
     Plural: 'Coins'
 
+# Wich storage method the plugin should use.
+#
+# Available options:
+#  -> sqlite    data is stored locally and can't be shared with other servers.
+#  -> mysql     data is stored on a mysql server and can be shared by several servers.
+#  -> redis     data is stored on a redis server and can be shared by several servers.
+Storage Type: sqlite
+
+# Don't touch this setting, this is only for internal usage to auto update the
+# database when something changes.
+Database Version: 2
+
+# Settings for messaging service
+# If enabled and configured, Coins will use the messaging service to inform other
+# connected servers of changes.
+#
+# Available options:
+#  -> bungeecord   uses the plugin messaging channels. You must enable bungeecord
+#                  in spigot.yml and install the plugin in BungeeCord to work.
+#  -> redis        uses redis pub sub to push changes. You redis server must be
+#                  configured below.
+#  -> none         nothing.
+Messaging Service: none
+
 # Here are the MySQL server settings.
 MySQL:
-  Use: false
   Host: 'localhost'
   Port: '3306'
   Database: 'minecraft'
@@ -34,6 +57,14 @@ MySQL:
   Password: 'S3CUR3P4SSW0RD'
   Prefix: 'Coins_'
   Connection Interval: 5
+  # Don't change this value if you don't know what it does.
+  Connection Pool: 8
+  
+# Here are the Redis server settings.
+Redis:
+  Host: 'localhost'
+  Port: 6379
+  Password: 'S3CUR3P4SSW0RD'
 
 # Plugin general configurations.
 General:
@@ -60,6 +91,10 @@ General:
     '2': '%executor_displayname%'
     '3': '%ececutor_cost%'
     '4': ''
+  # If you want the users to be created when they join to the server, enable this,
+  # otherwise the players will be created when his coins are modified or consulted
+  # to the database for the first time (recommended for big servers).
+  Create Join: false
 
 # Here you can define a cost to use a specific command.
 Command Cost:
@@ -91,7 +126,7 @@ Command executor:
     # The "broadcast:" command broadcast a message to the server.
     Command:
     - 'message: You win 100 $'
-    - 'broadcast: %player% winned 100 $'
+    - 'broadcast: %player% won 100 $'
     - 'eco give %player% 100'
     Cost: 10
   # This example executor is to be used with signs, for signs you can add the 'Displayname'
@@ -101,7 +136,7 @@ Command executor:
     Displayname: '&lNormal Key'
     Command:
     - 'crate givekey %player% 1 normal'
-    - 'message:Here are your key!'
+    - 'message: Here is your key!'
     Cost: 2
 Multipliers:
   # Here you can configure some aspects of the GUI of multipliers
@@ -121,8 +156,8 @@ Multipliers:
       Sound: 'ENTITY_PLAYER_LEVELUP'
       Pitch: '2'
       Fail:
-    Sound: 'ENTITY_VILLAGER_NO'
-    Pitch: '1'
+        Sound: 'ENTITY_VILLAGER_NO'
+        Pitch: '1'
   # This is the server identifier, is used only if you have MySQL enabled, when a player enables a multiplier in
   # this server, this is also enabled in all the other servers that has this identifier.
   Server: 'default'

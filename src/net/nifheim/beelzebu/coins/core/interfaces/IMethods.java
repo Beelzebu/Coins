@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -16,13 +16,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.nifheim.beelzebu.coins.core.utils;
+package net.nifheim.beelzebu.coins.core.interfaces;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
-import net.nifheim.beelzebu.coins.core.multiplier.MultiplierData;
+import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
+import net.nifheim.beelzebu.coins.core.utils.CoinsConfig;
+import net.nifheim.beelzebu.coins.core.utils.MessagesManager;
 
 /**
  *
@@ -31,7 +33,7 @@ import net.nifheim.beelzebu.coins.core.multiplier.MultiplierData;
 public interface IMethods {
 
     Object getPlugin();
-    
+
     CoinsConfig getConfig();
 
     MessagesManager getMessages(String lang);
@@ -56,7 +58,9 @@ public interface IMethods {
 
     String getVersion();
 
-    Boolean isOnline(UUID uuid);
+    boolean isOnline(UUID uuid);
+
+    boolean isOnline(String name);
 
     /**
      * Get the UUID of a online player by his name.
@@ -75,10 +79,10 @@ public interface IMethods {
      * @throws NullPointerException if the player with that uuid is offline.
      */
     String getName(UUID uuid) throws NullPointerException;
-    
+
     void callCoinsChangeEvent(UUID uuid, double oldCoins, double newCoins);
-    
-    void callMultiplierEnableEvent(UUID uuid, MultiplierData multiplierData);
-    
+
+    void callMultiplierEnableEvent(Multiplier multiplier);
+
     List<String> getPermissions(UUID uuid);
 }

@@ -19,9 +19,13 @@
  */
 package net.nifheim.beelzebu.coins.core.utils;
 
-import java.util.HashSet;
-import java.util.Set;
-import net.nifheim.beelzebu.coins.core.executor.Executor;
+import java.util.Collections;
+import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
+import net.nifheim.beelzebu.coins.core.Core;
+import net.nifheim.beelzebu.coins.core.database.StorageType;
+import net.nifheim.beelzebu.coins.core.interfaces.IConfiguration;
 import org.bukkit.Bukkit;
 
 /**
@@ -30,17 +34,9 @@ import org.bukkit.Bukkit;
  */
 public abstract class CoinsConfig implements IConfiguration {
 
-    private final Set<Executor> executors = new HashSet<>();
-
-    public void loadExecutors() {
-        getConfigurationSection("Command executor").forEach((id) -> {
-            executors.add(new Executor(id, getString("Command executor." + id + ".Displayname", id), getDouble("Command executor." + id + ".Cost", 0), getStringList("Command executor." + id + ".Command")));
-        });
-    }
-
-    public Set<Executor> getExecutors() {
-        return executors;
-    }
+    @Getter
+    @Setter
+    private MessagingService messagingService;
 
     // #EasterEgg
     public boolean vaultMultipliers() {
@@ -49,9 +45,21 @@ public abstract class CoinsConfig implements IConfiguration {
 
     public boolean useBungee() {
         try {
-            return Bukkit.spigot().getConfig().getBoolean("settings.bungeecord");
+            return Bukkit.spigot().getConfig().getBoolean("settings.bungeecord") && !Core.getInstance().getStorageType().equals(StorageType.REDIS);
         } catch (Exception ex) {
             return false;
         }
+    }
+
+    public boolean isOnline() {
+        return getBoolean("Online Mode", true);
+    }
+
+    public List<String> getCommandAliases() {
+        return getStringList("General.Command.Aliases", Collections.emptyList());
+    }
+
+    public String getCommand() {
+        return getString("General.Command.Name", "coins");
     }
 }

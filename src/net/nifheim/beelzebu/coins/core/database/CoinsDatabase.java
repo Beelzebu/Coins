@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -16,12 +16,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.nifheim.beelzebu.coins.database;
+package net.nifheim.beelzebu.coins.core.database;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import net.nifheim.beelzebu.coins.CoinsResponse;
 import net.nifheim.beelzebu.coins.core.Core;
+import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
+import net.nifheim.beelzebu.coins.core.multiplier.MultiplierType;
 
 /**
  *
@@ -30,7 +33,7 @@ import net.nifheim.beelzebu.coins.core.Core;
 public interface CoinsDatabase {
 
     public final Core core = Core.getInstance();
-    public final String prefix = core.getConfig().getString("MySQL.Prefix");
+    public static final String prefix = core.getConfig().getString("MySQL.Prefix");
 
     void setup();
 
@@ -48,9 +51,25 @@ public interface CoinsDatabase {
 
     void createPlayer(UUID uuid, String name, double balance);
     
+    void updatePlayer(UUID uuid, String name);
+    
     Map<String, Double> getTopPlayers(int top);
     
     String getNick(UUID uuid);
     
     UUID getUUID(String name);
+    
+    void createMultiplier(UUID uuid, int amount, int minutes, String server, MultiplierType type);
+    
+    void deleteMultiplier(Multiplier multiplier);
+    
+    void enableMultiplier(Multiplier multiplier);
+    
+    Set<Multiplier> getMultipliers(UUID uuid, boolean server);
+    
+    Multiplier getMultiplier(int id);
+    
+    Map<String, Double> getAllPlayers();
+    
+    void shutdown();
 }

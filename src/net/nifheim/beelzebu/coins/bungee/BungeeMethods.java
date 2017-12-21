@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -29,12 +29,13 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.plugin.Plugin;
-import net.nifheim.beelzebu.coins.bungee.events.*;
+import net.nifheim.beelzebu.coins.bungee.events.CoinsChangeEvent;
+import net.nifheim.beelzebu.coins.bungee.events.MultiplierEnableEvent;
 import net.nifheim.beelzebu.coins.bungee.utils.Messages;
 import net.nifheim.beelzebu.coins.core.Core;
-import net.nifheim.beelzebu.coins.core.multiplier.MultiplierData;
+import net.nifheim.beelzebu.coins.core.interfaces.IMethods;
+import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 import net.nifheim.beelzebu.coins.core.utils.CoinsConfig;
-import net.nifheim.beelzebu.coins.core.utils.IMethods;
 import net.nifheim.beelzebu.coins.core.utils.MessagesManager;
 
 /**
@@ -112,11 +113,19 @@ public class BungeeMethods implements IMethods {
     }
 
     @Override
-    public Boolean isOnline(UUID uuid) {
+    public boolean isOnline(UUID uuid) {
         if (plugin.useRedis()) {
             return RedisBungee.getApi().isPlayerOnline(uuid);
         }
-        return ProxyServer.getInstance().getPlayer(uuid).isConnected();
+        return ProxyServer.getInstance().getPlayer(uuid) != null;
+    }
+
+    @Override
+    public boolean isOnline(String name) {
+        if (plugin.useRedis()) {
+            return RedisBungee.getApi().isPlayerOnline(RedisBungee.getApi().getUuidFromName(name));
+        }
+        return ProxyServer.getInstance().getPlayer(name) != null;
     }
 
     @Override
@@ -141,8 +150,8 @@ public class BungeeMethods implements IMethods {
     }
 
     @Override
-    public void callMultiplierEnableEvent(UUID uuid, MultiplierData multiplierData) {
-        ProxyServer.getInstance().getPluginManager().callEvent(new MultiplierEnableEvent(uuid, multiplierData));
+    public void callMultiplierEnableEvent(Multiplier multiplier) {
+        ProxyServer.getInstance().getPluginManager().callEvent(new MultiplierEnableEvent(multiplier));
     }
 
     @Override

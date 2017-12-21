@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.nifheim.beelzebu.coins.database;
+package net.nifheim.beelzebu.coins.core.database;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import net.nifheim.beelzebu.coins.core.Core;
-import static net.nifheim.beelzebu.coins.database.Database.prefix;
+import static net.nifheim.beelzebu.coins.core.database.CoinsDatabase.prefix;
 
 /**
  *
@@ -45,7 +45,9 @@ public class DatabaseUtils {
             if (parameters.length > 0) {
                 for (int i = 1; i <= parameters.length; i++) {
                     Object parameter = parameters[i - 1];
-                    if (parameter instanceof String) {
+                    if (parameter == null) {
+                        ps.setObject(i, null);
+                    } else if (parameter instanceof String) {
                         ps.setString(i, parameter.toString().toLowerCase());
                     } else if (parameter instanceof UUID) {
                         ps.setString(i, parameter.toString());

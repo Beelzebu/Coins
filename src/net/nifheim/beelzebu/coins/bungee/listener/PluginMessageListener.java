@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -21,17 +21,16 @@ package net.nifheim.beelzebu.coins.bungee.listener;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import com.imaginarycode.minecraft.redisbungee.RedisBungee;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
-import net.nifheim.beelzebu.coins.core.utils.CacheManager;
+import net.nifheim.beelzebu.coins.core.CacheManager;
 
 /**
  *
@@ -79,7 +78,6 @@ public class PluginMessageListener extends CoinsBungeeListener implements Listen
                 break;
             }
             case "Multiplier":
-                List<String> multiplierData = new ArrayList<>();
                 String input = in.readUTF();
                 if (input.startsWith("get ")) { // update the multiplier for the specified server
                     Multiplier multiplier = CacheManager.getMultiplier(input.split(" ")[1]);
@@ -87,7 +85,7 @@ public class PluginMessageListener extends CoinsBungeeListener implements Listen
                         core.updateMultiplier(multiplier);
                     }
                 } else if (input.equals("getAllMultipliers")) { // update all multipliers
-                    Iterator<String> it = CacheManager.getMultipliersData().keySet().iterator();
+                    Iterator<String> it = CacheManager.getMultipliersData().asMap().keySet().iterator();
                     while (it.hasNext()) {
                         String server = it.next();
                         core.updateMultiplier(CacheManager.getMultiplier(server));
@@ -98,30 +96,22 @@ public class PluginMessageListener extends CoinsBungeeListener implements Listen
                         if (plugin.useRedis()) {
                             RedisBungee.getApi().sendChannelMessage("Multiplier", input);
                         } else {
-                            multiplier.setEnabled(false);
+                            multiplier.disable();
                         }
                     }
                 } else { // store the data
-                    multiplierData.add(input);
-                    for (int i = 0; i < 4; i++) {
-                        multiplierData.add(in.readUTF());
-                    }
-                    if (multiplierData.size() == 5) {
-                        Multiplier multiplier = new Multiplier(multiplierData.get(0), multiplierData.get(2), Boolean.valueOf(multiplierData.get(1)), Integer.valueOf(multiplierData.get(3)), Long.valueOf(multiplierData.get(4)));
-                        if (plugin.useRedis()) { // update in all servers if use redis
-                            String multiplierString = "";
-                            multiplierString = multiplierData.stream().map((str) -> str + "|||").reduce(multiplierString, String::concat);
-                            RedisBungee.getApi().sendChannelMessage("Multiplier", multiplierString.substring(0, multiplierString.length() - 3));
-                        } else { // just upadte this
-                            CacheManager.addMultiplier(multiplierData.get(0), multiplier);
-                            if (multiplier.isEnabled()) {
-                                core.getMethods().callMultiplierEnableEvent(core.getUUID(multiplier.getEnabler()), multiplier.getData());
-                            }
+                    Multiplier multiplier = Multiplier.fromJson(input);
+                    if (plugin.useRedis()) { // update in all servers if use redis
+                        RedisBungee.getApi().sendChannelMessage("Multiplier", input);
+                    } else { // just upadte this
+                        CacheManager.addMultiplier(multiplier.getServer(), multiplier);
+                        if (multiplier.isEnabled()) {
+                            core.getMethods().callMultiplierEnableEvent(multiplier);
                         }
-                        ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                            sendToBukkit("Multiplier", multiplierData, ProxyServer.getInstance().getServerInfo(server), false);
-                        });
                     }
+                    ProxyServer.getInstance().getServers().keySet().forEach(server -> {
+                        sendToBukkit("Multiplier", Collections.singletonList(multiplier.toString()), ProxyServer.getInstance().getServerInfo(server), false);
+                    });
                 }
                 break;
             default:

@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -23,12 +23,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import net.nifheim.beelzebu.coins.bukkit.events.*;
+import net.nifheim.beelzebu.coins.bukkit.events.CoinsChangeEvent;
+import net.nifheim.beelzebu.coins.bukkit.events.MultiplierEnableEvent;
 import net.nifheim.beelzebu.coins.bukkit.utils.Messages;
 import net.nifheim.beelzebu.coins.core.Core;
-import net.nifheim.beelzebu.coins.core.multiplier.MultiplierData;
+import net.nifheim.beelzebu.coins.core.interfaces.IMethods;
+import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 import net.nifheim.beelzebu.coins.core.utils.CoinsConfig;
-import net.nifheim.beelzebu.coins.core.utils.IMethods;
 import net.nifheim.beelzebu.coins.core.utils.MessagesManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -109,8 +110,13 @@ public class BukkitMethods implements IMethods {
     }
 
     @Override
-    public Boolean isOnline(UUID uuid) {
-        return Bukkit.getPlayer(uuid) != null && Bukkit.getPlayer(uuid).isOnline();
+    public boolean isOnline(UUID uuid) {
+        return Bukkit.getPlayer(uuid) != null;
+    }
+
+    @Override
+    public boolean isOnline(String name) {
+        return Bukkit.getPlayer(name) != null;
     }
 
     @Override
@@ -131,9 +137,9 @@ public class BukkitMethods implements IMethods {
     }
 
     @Override
-    public void callMultiplierEnableEvent(UUID uuid, MultiplierData multiplierData) {
+    public void callMultiplierEnableEvent(Multiplier multiplier) {
         Bukkit.getScheduler().runTask(plugin, () -> {
-            Bukkit.getPluginManager().callEvent(new MultiplierEnableEvent(uuid, multiplierData));
+            Bukkit.getPluginManager().callEvent(new MultiplierEnableEvent(multiplier));
         });
     }
 

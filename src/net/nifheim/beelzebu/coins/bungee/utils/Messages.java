@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -40,11 +40,7 @@ public class Messages extends MessagesManager {
 
     public Messages(String lang) {
         super(lang);
-        langFile = new File(Core.getInstance().getDataFolder() + "/messages", "messages_" + lang + ".yml");
-        if (!langFile.exists()) {
-            langFile = new File(Core.getInstance().getDataFolder() + "/messages", "messages.yml");
-        }
-        load(langFile);
+        load(new File(Core.getInstance().getDataFolder() + "/messages", "messages" + lang + ".yml"));
         reload();
     }
 

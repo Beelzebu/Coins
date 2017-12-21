@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -33,7 +33,9 @@ public enum Dependency {
     HIKARI("com.zaxxer", "HikariCP", "2.7.3"),
     SLF4J_SIMPLE("org.slf4j", "slf4j-simple", "1.7.25"),
     SLF4J_API("org.slf4j", "slf4j-api", "1.7.25"),
-    COMMONS_IO("commons-io", "commons-io", "2.5");
+    COMMONS_IO("commons-io", "commons-io", "2.5"),
+    JEDIS("redis.clients", "jedis", "2.9.0"),
+    COMMONS_POOL("org.apache.commons", "commons-pool2", "2.4.2");
 
     private final String url;
     private final String version;

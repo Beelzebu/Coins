@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Set;
 import lombok.experimental.UtilityClass;
 import net.nifheim.beelzebu.coins.core.Core;
+import net.nifheim.beelzebu.coins.core.database.StorageType;
 
 /**
  * Responsible for loading runtime dependencies.
@@ -74,6 +75,12 @@ public class DependencyManager {
         }
         if (classExists("org.apache.commons.io.FileUtils")) {
             dependencies.remove(Dependency.COMMONS_IO);
+        }
+        if (!core.getStorageType().equals(StorageType.REDIS)) {
+            dependencies.remove(Dependency.COMMONS_POOL);
+            dependencies.remove(Dependency.JEDIS);
+        } else {
+            dependencies.remove(Dependency.HIKARI);
         }
         if (!dependencies.isEmpty()) {
             loadDependencies(dependencies);

@@ -1,7 +1,7 @@
-    /**
+/**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -30,7 +30,7 @@ import net.nifheim.beelzebu.coins.bukkit.Main;
 import net.nifheim.beelzebu.coins.core.Core;
 import net.nifheim.beelzebu.coins.core.executor.Executor;
 import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
-import net.nifheim.beelzebu.coins.core.utils.CacheManager;
+import net.nifheim.beelzebu.coins.core.CacheManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -91,10 +91,10 @@ public class PluginMessage implements PluginMessageListener {
                 for (int i = 0; i < 5; i++) {
                     multiplierData.add(in.readUTF());
                 }
-                Multiplier multiplier = new Multiplier(multiplierData.get(0), multiplierData.get(2), Boolean.valueOf(multiplierData.get(1)), Integer.valueOf(multiplierData.get(3)), Long.parseLong(multiplierData.get(4)));
-                if (multiplier.isEnabled() && multiplier.getID() != CoinsAPI.getMultiplier().getID()) {
+                Multiplier multiplier = Multiplier.fromJson(in.readUTF());
+                if (multiplier.isEnabled() && multiplier.getId() != CoinsAPI.getMultiplier().getId()) {
                     CacheManager.addMultiplier(multiplierData.get(0), multiplier);
-                    core.getMethods().callMultiplierEnableEvent(core.getUUID(multiplier.getEnabler()), multiplier.getData());
+                    core.getMethods().callMultiplierEnableEvent(multiplier);
                 }
                 break;
             default:
@@ -108,7 +108,11 @@ public class PluginMessage implements PluginMessageListener {
         out.writeUTF(message);
         Player p = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
         if (p != null) {
-            p.sendPluginMessage(Main.getInstance(), "Coins", out.toByteArray());
+            try {
+                p.sendPluginMessage(Main.getInstance(), "Coins", out.toByteArray());
+            } catch (Exception ex) {
+                core.log("Hey, you need to install the plugin in BungeeCord if you have bungeecord enabled in spigot.yml!");
+            }
         }
     }
 
@@ -120,7 +124,11 @@ public class PluginMessage implements PluginMessageListener {
         });
         Player p = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
         if (p != null) {
-            p.sendPluginMessage(Main.getInstance(), "Coins", out.toByteArray());
+            try {
+                p.sendPluginMessage(Main.getInstance(), "Coins", out.toByteArray());
+            } catch (Exception ex) {
+                core.log("Hey, you need to install the plugin in BungeeCord if you have bungeecord enabled in spigot.yml!");
+            }
         }
     }
 }

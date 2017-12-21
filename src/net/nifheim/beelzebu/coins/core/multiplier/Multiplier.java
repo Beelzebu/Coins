@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -18,145 +18,58 @@
  */
 package net.nifheim.beelzebu.coins.core.multiplier;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashSet;
+import com.google.gson.JsonObject;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import net.nifheim.beelzebu.coins.core.CacheManager;
 import net.nifheim.beelzebu.coins.core.Core;
-import net.nifheim.beelzebu.coins.database.StorageType;
+import org.apache.commons.lang.Validate;
 
 /**
  * Handle Coins multipliers.
  *
  * @author Beelzebu
  */
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class Multiplier {
 
     private final Core core = Core.getInstance();
-    private final String prefix = core.getStorageType().equals(StorageType.MYSQL) ? core.getConfig().getString("MySQL.Prefix") : "";
-    private final String server;
-    private String enabler = null;
-    private Boolean enabled = false;
-    private int amount = 1;
-    private Long endTime = 0L;
+    @Getter
+    @Setter
+    private MultiplierData baseData;
+    @Getter
+    @Setter(AccessLevel.PACKAGE)
     private int id;
+    @Getter
+    @Setter
+    private String server;
+    @Getter
+    @Setter
+    private MultiplierType type;
+    @Getter
+    @Setter
+    private String enablerName = null;
+    @Getter
+    @Setter
+    private UUID enablerUUID = null;
+    @Getter
+    private boolean enabled = false;
+    @Getter
+    @Setter(AccessLevel.PACKAGE)
+    private boolean queue = false;
+    @Getter
+    @Setter
+    public Set<MultiplierData> extradata;
+    private long endTime;
 
-    private Connection getConnection() throws SQLException {
-        return null;
-        //return core.getDatabase().getConnection();
-    }
-
-    public Multiplier(String server) {
+    public Multiplier(String server, MultiplierData baseData) {
+        this.baseData = baseData;
         this.server = server;
-        enabler = getEnabler(server);
-        enabled = isEnabled(server);
-        amount = getAmount(server);
-        id = getID(server);
-        endTime = checkMultiplierTime(server);
-    }
-
-    public Multiplier(String server, String enabler, boolean enabled, int amount, long endTime) {
-        this.server = server;
-        this.enabler = enabler;
-        this.enabled = enabled;
-        this.amount = amount;
-        this.id = -1;
-        this.endTime = endTime;
-        checkMultiplierTime(server);
-    }
-
-    /**
-     * Get the nick of the player who enabled this multiplier.
-     *
-     * @return The nick of the player.
-     */
-    public String getEnabler() {
-        return enabler;
-    }
-
-    /**
-     * Set the enabler for this multiplier instance.
-     *
-     * @param enabler The new enabler for this multiplier.
-     */
-    public void setEnabler(String enabler) {
-        this.enabler = enabler;
-        id = -1;
-    }
-
-    /**
-     * Return <i>true</i> if the server has a multiplier enabled and
-     * <i>false</i> if not.
-     *
-     * @return
-     */
-    public Boolean isEnabled() {
-        return enabled;
-    }
-
-    /**
-     * Set the state of this multiplier instance.
-     *
-     * @param enabled The new status for this multiplier.
-     */
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
-        id = -1;
-    }
-
-    /**
-     * Get the the amount of the multiplier enabled in this server.
-     *
-     * @return
-     */
-    public int getAmount() {
-        return amount;
-    }
-
-    /**
-     * Set the amout for this multiplier instance. If it is below 2, it will be
-     * set to 2.
-     *
-     * @param amount The new amount for the multiplier.
-     */
-    public void setAmount(int amount) {
-        if (amount < 2) {
-            this.amount = 2;
-        } else {
-            this.amount = amount;
-        }
-        id = -1;
-    }
-
-    /**
-     * Set the endtime for this multiplier instance.
-     *
-     * @param endtime The new end time.
-     */
-    public void setEndTime(Long endtime) {
-        endTime = endtime;
-        id = -1;
-    }
-
-    /**
-     * Get the multiplier ID for this server.
-     *
-     * @return
-     */
-    public int getID() {
-        return id;
-    }
-
-    /**
-     * Get the name of the server for this multiplier.
-     *
-     * @return The name of the server.
-     */
-    public String getServer() {
-        return server;
     }
 
     /**
@@ -167,331 +80,64 @@ public final class Multiplier {
     }
 
     /**
-     * Get the real data for this multiplier.
+     * Enable this multiplier with the specified UUID and Name.
      *
-     * @return The multiplier data direct from the database.
+     * @param enablerUUID the UUID of the enabler.
+     * @param enablerName the name of the enabler, can't be null.
+     * @param queue if the multiplier should be queued or inmediatly enabled.
      */
-    public MultiplierData getData() {
-        if (id == -1) {
-            return new MultiplierData(server, enabler, enabled, amount, (int) (checkTime() / 60000), id, false) {
-            };
+    public void enable(UUID enablerUUID, String enablerName, boolean queue) {
+        Validate.notNull(enablerName, "The enabler name can't be null");
+        this.enablerUUID = enablerUUID;
+        this.enablerName = enablerName;
+        this.enabled = true;
+        this.queue = queue;
+        endTime = System.currentTimeMillis() + baseData.getMinutes() * 60000;
+        if (!queue) {
+            core.getDatabase().enableMultiplier(this);
+            CacheManager.getMultipliersData().invalidate(server);
+            CacheManager.getMultipliersData().put(server, this);
         } else {
-            return getDataByID(id);
+            CacheManager.getQueuedMultipliers().add(this);
         }
     }
 
     /**
-     * Check for the time of this multiplier, and disable it if is expired.
-     *
-     * @return the remaining millis of this multiplier.
+     * Disable and then delete this multiplier from the database.
      */
-    public Long checkTime() {
-        return checkMultiplierTime(server);
+    public void disable() {
+        enabled = false;
+        CacheManager.getQueuedMultipliers().remove(this);
+        CacheManager.getMultipliersData().invalidate(server);
+        delete();
     }
 
-    /**
-     * Create a multiplier for a player with the specified time.
-     *
-     * @param uuid The player to create the multiplier.
-     * @param multiplier The multiplier.
-     * @param minutes The time for the multiplier.
-     * @param server The server to create the multiplier, if is null, we use the
-     * server specified in the config.
-     */
-    public void createMultiplier(UUID uuid, int multiplier, int minutes, String server) {
-        try (Connection c = getConnection()) {
-            try {
-                c.prepareStatement("INSERT INTO " + prefix + "Multipliers VALUES(NULL, '" + uuid + "', " + multiplier + ", -1, " + minutes + ", 0, " + "'" + (server != null ? server : this.server) + "'" + ", false);").executeUpdate();
-            } finally {
-                c.close();
-            }
-        } catch (SQLException ex) {
-            core.log("&cSomething was wrong when creating a multiplier for " + core.getNick(uuid));
-            core.debug("The error code is: " + ex.getErrorCode());
-            core.debug(ex.getMessage());
+    public long checkMultiplierTime() {
+        long endtime = endTime - System.currentTimeMillis();
+        if (endtime <= 0) {
+            disable();
         }
+        return endtime >= 0 ? endtime : 0;
     }
 
-    /**
-     * Get the active multiplier countdown time formated in "days,
-     * hours:minutes:seconds" Ex: 10, 03:59:30
-     *
-     * @return The multiplier time formated.
-     */
     public String getMultiplierTimeFormated() {
-        return formatTime(checkMultiplierTime(server));
+        return formatTime(checkMultiplierTime());
     }
 
-    /**
-     * Get the multipliers of a player in this server.
-     * <p>
-     * If the server is set to null it shows all the multipliers for this
-     * player.
-     * </p>
-     *
-     * @param uuid The player to get the multipliers.
-     * @param all If is false, only return the multipliers by the server that
-     * the player is.
-     * @return
-     */
-    public Set<Integer> getMultipliersFor(UUID uuid, boolean all) {
-        return getMultipliersFor(uuid, server, all);
+    public void addExtraData(MultiplierData data) {
+        extradata.add(data);
     }
 
-    /**
-     * Use the multiplier of a player in the server by the multiplier id.
-     *
-     * @param id The id of the multiplier.
-     * @param type The type of the multiplier.
-     * @return <i>true</i> if the multiplier was enabled and <i>false</i> if
-     * not.
-     */
-    public boolean useMultiplier(final int id, final MultiplierType type) {
-        try (Connection c = getConnection()) {
-            ResultSet res = null;
-            try {
-                res = c.prepareStatement("SELECT * FROM " + prefix + "Multipliers WHERE id = " + id + ";").executeQuery();
-                if (!isEnabled(getDataByID(id).getServer())) {
-                    if (res.next()) {
-                        Long minutes = res.getLong("minutes");
-                        Long endtime = System.currentTimeMillis() + (minutes * 60000);
-                        c.prepareStatement("UPDATE " + prefix + "Multipliers SET endtime = " + endtime + ", enabled = true WHERE id = " + id + ";").executeUpdate();
-                        enabled = true;
-                        amount = getAmount(res.getString("server"));
-                        enabler = core.getNick(UUID.fromString(res.getString("uuid")));
-                        endTime = endtime;
-                        core.updateMultiplier(new Multiplier(res.getString("server")));
-                        return true;
-                    }
-                } else {
-                    res = c.prepareStatement("SELECT * FROM " + prefix + "Multipliers WHERE server = '" + server + "' ORDER BY queue DESC;").executeQuery();
-                    if (res.next()) {
-                        c.prepareStatement("UPDATE " + prefix + "Multipliers SET queue = " + (res.getInt("queue") + 1) + " WHERE id = " + id + ";").executeUpdate();
-                        return false;
-                    }
-                }
-            } finally {
-                if (res != null) {
-                    res.close();
-                }
-                c.close();
-            }
-        } catch (SQLException ex) {
-            core.log("&cSomething was wrong when using a multiplier with the id: '" + id + "'");
-            core.debug(ex);
+    public int getAmount() {
+        int amount = baseData.getAmount();
+        if (!extradata.isEmpty()) {
+            amount = extradata.stream().map(edata -> edata.getAmount()).reduce(amount, Integer::sum);
         }
-        return false;
+        return amount;
     }
 
-    private Long checkMultiplierTime(String server) {
-        if (id == -1) { // this multiplier is fake
-            if ((endTime - System.currentTimeMillis()) > 0) {
-                return endTime - System.currentTimeMillis();
-            } else {
-                amount = 1;
-                enabled = false;
-                enabler = null;
-                endTime = 0L;
-                return 0L;
-            }
-        } else if (endTime > 0 && (endTime - System.currentTimeMillis()) > 0) { // this is the cached time of a real multiplier
-            return endTime - System.currentTimeMillis();
-        } else { // we don't know about any multiplier :/
-            try (Connection c = getConnection()) {
-                ResultSet res = null;
-                try {
-                    res = c.prepareStatement("SELECT * FROM " + prefix + "Multipliers WHERE server = '" + server + "' AND enabled = true;").executeQuery();
-                    if (res.next()) {
-                        endTime = res.getLong("endtime");
-                        if ((endTime - System.currentTimeMillis()) > 0) {
-                            return (endTime - System.currentTimeMillis());
-                        } else {
-                            c.prepareStatement("DELETE FROM " + prefix + "Multipliers WHERE server = '" + server + "' AND enabled = true;").executeUpdate();
-                            amount = 1;
-                            enabled = false;
-                            enabler = null;
-                            endTime = 0L;
-                            res = c.prepareStatement("SELECT * FROM " + prefix + "Multipliers WHERE server = '" + server + "' AND enabled = false AND queue > -1 ORDER BY queue ASC;").executeQuery();
-                            if (res.next()) {
-                                useMultiplier(res.getInt("id"), MultiplierType.SERVER);
-                            }
-                        }
-                    }
-                } finally {
-                    if (res != null) {
-                        res.close();
-                    }
-                    c.close();
-                }
-            } catch (SQLException ex) {
-                core.log("&cSomething was wrong when we're getting the multiplier time for " + server);
-                core.debug("The error code is: " + ex.getErrorCode());
-                core.debug(ex.getMessage());
-            }
-        }
-        return 0L;
-    }
-
-    private Set<Integer> getMultipliersFor(UUID uuid, String server, boolean all) {
-        Set<Integer> multipliers = new HashSet<>();
-        try (Connection c = getConnection()) {
-            ResultSet res = null;
-            try {
-                String query = "SELECT * FROM " + prefix + "Multipliers WHERE uuid = '" + uuid + "' AND enabled = false AND queue = -1";
-                if (server != null && all == false) {
-                    query += " AND server = '" + server + "'";
-                }
-                res = c.prepareStatement(query + ";").executeQuery();
-                while (res.next()) {
-                    multipliers.add(res.getInt("id"));
-                }
-            } finally {
-                if (res != null) {
-                    res.close();
-                }
-                c.close();
-            }
-        } catch (SQLException ex) {
-            core.log("&cSomething was wrong when getting the multipliers for " + core.getNick(uuid));
-            core.debug("The error code is: " + ex.getErrorCode());
-            core.debug(ex.getMessage());
-        }
-        return multipliers;
-    }
-
-    private String getEnabler(String server) {
-        try (Connection c = getConnection()) {
-            ResultSet res = null;
-            try {
-                res = c.prepareStatement("SELECT * FROM " + prefix + "Multipliers WHERE enabled = true AND server = '" + server + "';").executeQuery();
-                if (res.next()) {
-                    core.log(core.getNick(UUID.fromString(res.getString("uuid"))));
-                    return core.getNick(UUID.fromString(res.getString("uuid")));
-                }
-            } finally {
-                if (res != null) {
-                    res.close();
-                }
-                c.close();
-            }
-        } catch (SQLException ex) {
-            core.log("&cSomething was wrong where getting the enabler for " + server);
-            core.debug("The error code is: " + ex.getErrorCode());
-            core.debug(ex.getMessage());
-        }
-        return null;
-    }
-
-    private Boolean isEnabled(String server) {
-        try (Connection c = getConnection()) {
-            ResultSet res = null;
-            try {
-                res = c.prepareStatement("SELECT * FROM " + prefix + "Multipliers WHERE enabled = true AND server = '" + server + "';").executeQuery();
-                if (res.next()) {
-                    return true;
-                }
-            } finally {
-                if (res != null) {
-                    res.close();
-                }
-                c.close();
-            }
-        } catch (SQLException ex) {
-            core.log("&cSomething was wrong where getting if the server " + server + " has a multiplier enabled.");
-            core.debug("The error code is: " + ex.getErrorCode());
-            core.debug(ex);
-        }
-        return false;
-    }
-
-    private int getAmount(String server) {
-        try (Connection c = getConnection()) {
-            ResultSet res = null;
-            try {
-                res = c.prepareStatement("SELECT * FROM " + prefix + "Multipliers WHERE enabled = true AND server = '" + server + "';").executeQuery();
-                if (res.next()) {
-                    return res.getInt("multiplier");
-                }
-            } finally {
-                if (res != null) {
-                    res.close();
-                }
-                c.close();
-            }
-        } catch (SQLException ex) {
-            core.log("&cSomething was wrong where getting the multiplier amount for " + server);
-            core.debug("The error code is: " + ex.getErrorCode());
-            core.debug(ex.getMessage());
-        }
-        return 1;
-    }
-
-    private int getID(String server) {
-        try (Connection c = getConnection()) {
-            ResultSet res = null;
-            try {
-                res = c.prepareStatement("SELECT * FROM " + prefix + "Multipliers WHERE server = '" + server + "' AND enabled = true;").executeQuery();
-                if (res.next()) {
-                    return res.getInt("id");
-                }
-            } finally {
-                if (res != null) {
-                    res.close();
-                }
-                c.close();
-            }
-        } catch (SQLException ex) {
-
-        }
-        return -1;
-    }
-
-    private static class Builder {
-
-        private final String server;
-        private final String enabler;
-        private int amount = 1;
-        private boolean enabled = false;
-        private int minutes = 0;
-        private final int id;
-        private final boolean queue;
-
-        public Builder(String server, String enabler, int id, int amount, boolean enabled, int minutes, boolean queue) {
-            this.server = server;
-            this.enabler = enabler;
-            this.id = id;
-            this.amount = amount;
-            this.enabled = enabled;
-            this.minutes = minutes;
-            this.queue = queue;
-        }
-
-        public MultiplierData create() {
-            return new MultiplierData(server, enabler, enabled, amount, minutes, id, queue) {
-            };
-        }
-    }
-
-    public MultiplierData getDataByID(int id) {
-        try (Connection c = getConnection()) {
-            ResultSet res = null;
-            try {
-                res = c.prepareStatement("SELECT * FROM " + prefix + "Multipliers WHERE id = " + id + ";").executeQuery();
-                if (res.next()) {
-                    return new Builder(res.getString("server"), core.getNick(UUID.fromString(res.getString("uuid"))), id, res.getInt("multiplier"), res.getBoolean("enabled"), res.getInt("minutes"), res.getBoolean("queue")).create();
-                }
-            } finally {
-                if (res != null) {
-                    res.close();
-                }
-                c.close();
-            }
-        } catch (SQLException ex) {
-            core.log("&cSomething was wrong generating the data for the multiplier with the id: '" + id + "'");
-            core.debug("The error code is: " + ex.getErrorCode());
-            core.debug(ex.getMessage());
-        }
-        return null;
+    public int getMinutes() {
+        return baseData.getMinutes();
     }
 
     private String formatTime(final long millis) {
@@ -511,5 +157,56 @@ public final class Multiplier {
         b.append(":");
         b.append(seconds == 0 ? "00" : seconds < 10 ? "0" + seconds : seconds);
         return b.toString();
+    }
+
+    /**
+     * Delete this multiplier from the database.
+     */
+    private void delete() {
+        queue = false;
+        baseData = null;
+        enablerName = null;
+        enablerUUID = null;
+        server = null;
+        core.getDatabase().deleteMultiplier(this);
+    }
+
+    public JsonObject toJson() {
+        JsonObject multiplier = new JsonObject();
+        multiplier.addProperty("id", getId());
+        multiplier.addProperty("server", getServer());
+        multiplier.addProperty("type", getType().toString());
+        multiplier.addProperty("amount", getAmount());
+        multiplier.addProperty("minutes", getMinutes());
+        multiplier.addProperty("enabler", getEnablerName());
+        multiplier.addProperty("enableruuid", getEnablerUUID().toString());
+        multiplier.addProperty("enabled", isEnabled());
+        multiplier.addProperty("queue", isQueue());
+        return multiplier;
+    }
+
+    public static Multiplier fromJson(JsonObject multiplier) {
+        return fromJson(multiplier.toString());
+    }
+
+    public static Multiplier fromJson(String multiplier) {
+        JsonObject mult = Core.getInstance().getGson().fromJson(multiplier, JsonObject.class);
+        Multiplier multi = MultiplierBuilder.newBuilder()
+                .setServer(mult.get("server").getAsString())
+                .setType(MultiplierType.valueOf(mult.get("type").getAsString()))
+                .setData(new MultiplierData(mult.get("amount").getAsInt(), mult.get("minutes").getAsInt()))
+                .setID(mult.get("id").getAsInt())
+                .setEnablerName(mult.get("enabler").getAsString())
+                .setEnablerUUID(UUID.fromString(mult.get("enableruuid").getAsString()))
+                .setEnabled(mult.get("enabled").getAsBoolean())
+                .setQueue(mult.get("queue").getAsBoolean())
+                .build();
+        CacheManager.addMultiplier(multi.getServer(), multi);
+        return multi;
+    }
+
+    @Override
+    public String toString() {
+        return toJson().toString();
     }
 }

@@ -39,24 +39,11 @@ Coins is the most complete and efficient plugin to manage a secondary economy in
  - /coins reload - Reload the config and all loaded messages files.
  - /coins multipliers help - Show some commands about multipliers.
  
-## Permissions:
- - coins.admin - Give access to all admin commands.
- - coins.multiplier.x<2-100> - Permission for personal multipliers, this can be between 2 to 100.
-
 ## Requisites:
  - Java 8
  - PlaceholderAPI (optional, used for the placeholders).
  - Vault (optional, used if you make this the primary economy).
 
-## Languages:
-These languages are built-in, but you can add more if you want, just create a messages\_<lang>.yml and the plugin will use it for players with that language, see [https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) for the lang code (ISO 639-1).
-
- - English
- - Spanish
- - Chinese
- 
-If you want to translate the plugin to another language, please send a PR with your translation.
-
-## ToDo:
- - Add a way to import data from similar plugins like PlayerPoints.
- - Add support for Redis storage.
+## Installation:
+ - Put the jar in your plugins folder
+ - If you need the plugin in multiple servers connected through BungeeCord and don't have a redis database to use redis pub/sub install the plugin in BungeeCord.

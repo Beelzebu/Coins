@@ -1,4 +1,5 @@
 name: Coins
+loadbefore: [Vault]
 softdepend: [PlaceholderAPI, Vault, LeaderHeads]
 main: net.nifheim.beelzebu.coins.bukkit.Main
 version: ${project.version}

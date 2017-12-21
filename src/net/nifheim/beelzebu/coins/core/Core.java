@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -18,6 +18,7 @@
  */
 package net.nifheim.beelzebu.coins.core;
 
+import com.google.gson.Gson;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -27,6 +28,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -38,15 +40,20 @@ import net.md_5.bungee.api.ProxyServer;
 import net.nifheim.beelzebu.coins.bukkit.utils.bungee.PluginMessage;
 import net.nifheim.beelzebu.coins.bungee.BungeeMethods;
 import net.nifheim.beelzebu.coins.bungee.listener.PluginMessageListener;
+import net.nifheim.beelzebu.coins.core.database.CoinsDatabase;
+import net.nifheim.beelzebu.coins.core.database.MySQL;
+import net.nifheim.beelzebu.coins.core.database.Redis;
+import net.nifheim.beelzebu.coins.core.database.SQLite;
+import net.nifheim.beelzebu.coins.core.database.StorageType;
 import net.nifheim.beelzebu.coins.core.executor.ExecutorManager;
+import net.nifheim.beelzebu.coins.core.interfaces.IMethods;
 import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
-import net.nifheim.beelzebu.coins.core.multiplier.MultiplierData;
-import net.nifheim.beelzebu.coins.core.utils.CacheManager;
 import net.nifheim.beelzebu.coins.core.utils.CoinsConfig;
 import net.nifheim.beelzebu.coins.core.utils.FileManager;
-import net.nifheim.beelzebu.coins.core.utils.IMethods;
 import net.nifheim.beelzebu.coins.core.utils.MessagesManager;
-import net.nifheim.beelzebu.coins.database.*;
+import net.nifheim.beelzebu.coins.core.utils.MessagingService;
+import net.nifheim.beelzebu.coins.core.utils.dependencies.DependencyManager;
+import redis.clients.jedis.Jedis;
 
 /**
  *
@@ -56,12 +63,16 @@ public class Core {
 
     private static Core instance;
     private IMethods mi;
+    @Getter
     private FileManager fileUpdater;
     private CoinsDatabase db;
+    private Redis redis;
     @Getter
     private StorageType storageType;
     private ExecutorManager executorManager;
     private HashMap<String, MessagesManager> messagesMap;
+    @Getter
+    private final Gson gson = new Gson();
 
     public static Core getInstance() {
         return instance == null ? instance = new Core() : instance;
@@ -72,6 +83,18 @@ public class Core {
         fileUpdater = new FileManager(this);
         fileUpdater.copyFiles();
         messagesMap = new HashMap<>();
+        fileUpdater.updateFiles();
+        try {
+            if (getConfig().getBoolean("MySQL.Use")) {
+                storageType = StorageType.MYSQL;
+            } else {
+                storageType = StorageType.valueOf(getConfig().getString("Storage Type", "SQLITE").toUpperCase());
+            }
+        } catch (Exception ex) { // invalid storage type
+            storageType = StorageType.SQLITE;
+            log("Invalid Storage Type selected in the config, possible values: " + Arrays.toString(StorageType.values()));
+        }
+        DependencyManager.loadAllDependencies();
     }
 
     public void shutdown() {
@@ -79,13 +102,6 @@ public class Core {
     }
 
     public void start() {
-        fileUpdater.updateFiles();
-        try {
-            storageType = StorageType.valueOf(getConfig().getString("Storage Type", "SQLITE"));
-        } catch (Exception ex) { // invalid storage type
-            storageType = StorageType.SQLITE;
-            log("Invalid Storage Type selected in the config, possible values: " + Arrays.toString(StorageType.values()));
-        }
         if (!storageType.equals(StorageType.SQLITE) && isBungee()) {
             log(" ");
             log("    WARNING");
@@ -96,8 +112,17 @@ public class Core {
             log(" ");
             return;
         }
+        getConfig().reload();
         motd(true);
-        getDatabase();
+        if (getConfig().getMessagingService().equals(MessagingService.REDIS)) {
+            if (storageType.equals(StorageType.REDIS)) {
+                redis = (Redis) getDatabase();
+            } else {
+                redis = new Redis();
+                redis.setup();
+            }
+        }
+        getDatabase().setup();
         executorManager = new ExecutorManager();
     }
 
@@ -129,16 +154,21 @@ public class Core {
     }
 
     public void debug(Object msg) {
-        if (getConfig().getBoolean("Debug")) {
-            mi.sendMessage(mi.getConsole(), (rep("&8[&cCoins&8] &cDebug: &7" + msg)));
+        if (true) {// (getConfig().getBoolean("Debug")) {
+            mi.sendMessage(mi.getConsole(), rep("&8[&cCoins&8] &cDebug: &7" + msg));
         }
         logToFile(msg);
     }
 
     public void debug(SQLException ex) {
-        debug("SQLException: ");
+        debug("SQLException:");
         debug("   Database state: " + ex.getSQLState());
         debug("   Error code: " + ex.getErrorCode());
+        debug("   Error message: " + ex.getMessage());
+    }
+
+    public void debug(Exception ex) {
+        debug("Unknown Exception:");
         debug("   Error message: " + ex.getMessage());
     }
 
@@ -150,6 +180,13 @@ public class Core {
     private void logToFile(Object msg) {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
         File log = new File(getDataFolder(), "/logs/latest.log");
+        if (!log.exists()) {
+            try {
+                log.createNewFile();
+            } catch (IOException ex) {
+                Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(log, true))) {
             try {
                 writer.write("[" + sdf.format(System.currentTimeMillis()) + "] " + removeColor(msg.toString()));
@@ -162,26 +199,46 @@ public class Core {
         }
     }
 
-    public Boolean isOnline(UUID uuid) {
+    public boolean isOnline(UUID uuid) {
         return mi.isOnline(uuid);
     }
 
-    public String getNick(UUID uuid) {
-        return mi.getName(uuid) != null ? mi.getName(uuid) : getDatabase().getNick(uuid);
+    public boolean isOnline(String name) {
+        return mi.isOnline(name);
     }
 
-    public UUID getUUID(String player) {
-        return mi.getUUID(player) != null ? mi.getUUID(player) : getDatabase().getUUID(player);
+    @Deprecated
+    public String getNick(UUID uuid) {
+        return getNick(uuid, false);
+    }
+
+    public String getNick(UUID uuid, boolean fromdb) {
+        if (!fromdb && mi.getName(uuid) != null) {
+            return mi.getName(uuid);
+        }
+        return getDatabase().getNick(uuid);
+    }
+
+    @Deprecated
+    public UUID getUUID(String name) {
+        return getUUID(name, false);
+    }
+
+    public UUID getUUID(String name, boolean fromdb) {
+        if (!fromdb && mi.getUUID(name) != null) {
+            return mi.getUUID(name);
+        }
+        return getDatabase().getUUID(name.toLowerCase());
     }
 
     public CoinsDatabase getDatabase() {
         switch (storageType) {
             case MYSQL:
-                return db == null ? db = new NewMySQL() : db;
+                return db == null ? db = new MySQL() : db;
             case SQLITE:
-                return db == null ? db = new NewSQLite() : db;
+                return db == null ? db = new SQLite() : db;
             case REDIS:
-                return db == null ? db = new NewRedis() : db;
+                return db == null ? db = new Redis() : db;
             default:
                 return null;
         }
@@ -198,15 +255,15 @@ public class Core {
         return message.replaceAll("&", "§");
     }
 
-    public String rep(String msg, MultiplierData multiplierData) {
+    public String rep(String msg, Multiplier multiplierData) {
         String string = msg;
         if (multiplierData != null) {
             string = msg
-                    .replaceAll("%enabler%", multiplierData.getEnabler())
+                    .replaceAll("%enabler%", multiplierData.getEnablerName())
                     .replaceAll("%server%", multiplierData.getServer())
-                    .replaceAll("%amount%", String.valueOf(multiplierData.getAmount()))
-                    .replaceAll("%minutes%", String.valueOf(multiplierData.getMinutes()))
-                    .replaceAll("%id%", String.valueOf(multiplierData.getID()));
+                    .replaceAll("%amount%", String.valueOf(multiplierData.getBaseData().getAmount()))
+                    .replaceAll("%minutes%", String.valueOf(multiplierData.getBaseData().getMinutes()))
+                    .replaceAll("%id%", String.valueOf(multiplierData.getId()));
         }
         return rep(string);
     }
@@ -219,7 +276,7 @@ public class Core {
         return message;
     }
 
-    public List<String> rep(List<String> msgs, MultiplierData multiplierData) {
+    public List<String> rep(List<String> msgs, Multiplier multiplierData) {
         List<String> message = new ArrayList<>();
         msgs.forEach(msg -> {
             message.add(rep(msg, multiplierData));
@@ -249,8 +306,11 @@ public class Core {
         }
         lang = lang.split("_")[0];
         if (!messagesMap.containsKey(lang)) {
-            messagesMap.put(lang, mi.getMessages(lang));
-            return mi.getMessages(lang);
+            if (new File(getDataFolder() + "/messages", "messages_" + lang + ".yml").exists()) {
+                messagesMap.put(lang, mi.getMessages("_" + lang));
+            } else {
+                messagesMap.put(lang, mi.getMessages(""));
+            }
         }
         return messagesMap.get(lang);
     }
@@ -273,35 +333,41 @@ public class Core {
         return mi instanceof BungeeMethods;
     }
 
-    public void updateCache(UUID player, Double coins) {
-        CacheManager.updateCoins(player, coins);
-        if (isBungee()) {
-            ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                PluginMessageListener pml = new PluginMessageListener();
-                pml.sendToBukkit("Update", Arrays.asList(player + " " + coins), ProxyServer.getInstance().getServerInfo(server), false);
-            });
-        } else if (getConfig().useBungee()) {
-            PluginMessage pm = new PluginMessage();
-            pm.sendToBungeeCord("Update", "updateCache " + player + " " + coins);
+    public void updateCache(UUID uuid, double amount) {
+        if (storageType.equals(StorageType.REDIS) || getConfig().getMessagingService().equals(MessagingService.REDIS)) { // Update using redis pub/sub
+            try (Jedis jedis = redis.getPool().getResource()) {
+                jedis.publish("coins-data-update", uuid + " " + amount);
+            }
+        } else if (getConfig().getMessagingService().equals(MessagingService.BUNGEECORD)) {
+            CacheManager.updateCoins(uuid, amount);
+            if (isBungee()) { // Update using bungee or redisbungee if is present.
+                ProxyServer.getInstance().getServers().keySet().forEach(server -> {
+                    PluginMessageListener pml = new PluginMessageListener();
+                    pml.sendToBukkit("Update", Collections.singletonList(uuid + " " + amount), ProxyServer.getInstance().getServerInfo(server), false);
+                });
+            } else if (getConfig().useBungee()) { // Update using plugin message
+                PluginMessage pm = new PluginMessage();
+                pm.sendToBungeeCord("Update", "updateCache " + uuid + " " + amount);
+            }
         }
     }
 
     public void updateMultiplier(Multiplier multiplier) {
-        CacheManager.addMultiplier(multiplier.getServer(), multiplier);
-        List<String> message = new ArrayList<>();
-        message.add(multiplier.getServer());
-        message.add(String.valueOf(multiplier.isEnabled()));
-        message.add(multiplier.getEnabler());
-        message.add(String.valueOf(multiplier.getAmount()));
-        message.add(String.valueOf(System.currentTimeMillis() + multiplier.checkTime()));
-        if (isBungee()) {
-            ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                PluginMessageListener pml = new PluginMessageListener();
-                pml.sendToBukkit("Multiplier", message, ProxyServer.getInstance().getServerInfo(server), false);
-            });
-        } else if (getConfig().useBungee()) {
-            PluginMessage pm = new PluginMessage();
-            pm.sendToBungeeCord("Multiplier", message);
+        if (storageType.equals(StorageType.REDIS) || getConfig().getMessagingService().equals(MessagingService.REDIS)) { // Update using redis pub/sub
+            try (Jedis jedis = redis.getPool().getResource()) {
+                jedis.publish("coins-multiplier", multiplier.toJson().toString());
+            }
+        } else if (getConfig().getMessagingService().equals(MessagingService.BUNGEECORD)) {
+            CacheManager.addMultiplier(multiplier.getServer(), multiplier);
+            if (isBungee()) {
+                ProxyServer.getInstance().getServers().keySet().forEach(server -> {
+                    PluginMessageListener pml = new PluginMessageListener();
+                    pml.sendToBukkit("Multiplier", Collections.singletonList(multiplier.toString()), ProxyServer.getInstance().getServerInfo(server), false);
+                });
+            } else if (getConfig().useBungee()) {
+                PluginMessage pm = new PluginMessage();
+                pm.sendToBungeeCord("Multiplier", multiplier.toString());
+            }
         }
     }
 

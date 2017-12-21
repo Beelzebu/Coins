@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -19,9 +19,7 @@
 package net.nifheim.beelzebu.coins.bukkit.listener;
 
 import net.nifheim.beelzebu.coins.CoinsAPI;
-import net.nifheim.beelzebu.coins.bukkit.Main;
 import net.nifheim.beelzebu.coins.core.Core;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -32,20 +30,22 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
  */
 public class CommandListener implements Listener {
 
-    private final Main plugin = Main.getInstance();
-    private final FileConfiguration config = plugin.getConfig();
+    private final Core core = Core.getInstance();
 
     @EventHandler
     public void onCommandEvent(PlayerCommandPreprocessEvent e) {
-        // TODO: may be log the commands of the plugin and the command costs.
         String msg = e.getMessage().toLowerCase();
         Core.getInstance().getMethods().runAsync(() -> {
-            if (config.getDouble("Command Cost." + msg) != 0) {
-                if (CoinsAPI.getCoins(e.getPlayer().getUniqueId()) < config.getDouble("Command Cost." + msg)) {
+            if (msg.replaceFirst("/", "").startsWith(core.getConfig().getCommand()) || core.getConfig().getCommandAliases().contains(msg.split(" ")[0].replaceFirst("/", ""))) {
+                core.debug(e.getPlayer().getName() + " issued command: " + msg);
+            }
+            if (core.getConfig().getDouble("Command Cost." + msg) != 0) {
+                if (CoinsAPI.getCoins(e.getPlayer().getUniqueId()) < core.getConfig().getDouble("Command Cost." + msg)) {
                     e.setCancelled(true);
                     e.getPlayer().sendMessage(Core.getInstance().rep(Core.getInstance().getMessages(e.getPlayer().spigot().getLocale()).getString("Errors.No Coins")));
                 } else {
-                    CoinsAPI.takeCoins(e.getPlayer().getName(), config.getDouble("Command Cost." + msg));
+                    core.debug("Applied command cost for " + e.getPlayer().getName() + " in command: " + msg);
+                    CoinsAPI.takeCoins(e.getPlayer().getName(), core.getConfig().getDouble("Command Cost." + msg));
                 }
             }
         });

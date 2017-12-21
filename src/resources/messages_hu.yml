@@ -45,8 +45,8 @@ Help:
   - '&8&m+-------------------------------------------------+'
 Errors:
   No permissions: '%prefix% &cNincs jogod ehhez.'
-  Unknow command: '%prefix% &cIsmeretlen parnacs, próbáld &f/coins help &caz összes elérhető parancs megjelenítéséhez.'
-  Unknow player: '%prefix% &cA(z) %target% játékos nem található az adatbázisban.'
+  Unknown command: '%prefix% &cIsmeretlen parnacs, próbáld &f/coins help &caz összes elérhető parancs megjelenítéséhez.'
+  Unknown player: '%prefix% &cA(z) %target% játékos nem található az adatbázisban.'
   Console: '%prefix% &cJátékosnak kell lenned.'
   No Negative: '%prefix% &cNem helyezhet negatív érméket!'
   No Zero: '%prefix% &cAz összeg nem lehet nulla.'

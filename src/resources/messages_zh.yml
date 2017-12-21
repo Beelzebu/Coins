@@ -42,8 +42,8 @@ Help:
   - '&8&m+-------------------------------------------------+'
 Errors:
   No permissions: '%prefix% &c你没有权限.'
-  Unknow command: '%prefix% &c未知命令，请使用 &f/coins help &c查看上面可用的命令.'
-  Unknow player: '%prefix% &c玩家在 %target% ''在数据库中找不到.'
+  Unknown command: '%prefix% &c未知命令，请使用 &f/coins help &c查看上面可用的命令.'
+  Unknown player: '%prefix% &c玩家在 %target% ''在数据库中找不到.'
   Console: '%prefix% &c你需要一个玩家.'
   No Negative: '%prefix% &c你不能将钱设置为负数!'
   No Zero: '%prefix% &c将钱 数量 设置为0.'

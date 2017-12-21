@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -30,7 +30,6 @@ public class CoinsResponse {
 
     public enum CoinsResponseType {
         SUCCESS,
-        SUCCESS_WITH_ERRORS,
         FAILED,
         NOT_IMPLEMENTED;
     }

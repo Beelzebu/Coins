@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -22,12 +22,14 @@ import com.imaginarycode.minecraft.redisbungee.RedisBungee;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.nifheim.beelzebu.coins.CoinsAPI;
+import net.nifheim.beelzebu.coins.CoinsResponse.CoinsResponseType;
 import net.nifheim.beelzebu.coins.bungee.listener.PluginMessageListener;
 import net.nifheim.beelzebu.coins.bungee.listener.PubSubMessageListener;
 import net.nifheim.beelzebu.coins.bungee.utils.Configuration;
 import net.nifheim.beelzebu.coins.core.Core;
+import net.nifheim.beelzebu.coins.core.executor.Executor;
 import net.nifheim.beelzebu.coins.core.utils.CoinsConfig;
-import net.nifheim.beelzebu.coins.core.utils.dependencies.DependencyManager;
 
 /**
  *
@@ -48,7 +50,6 @@ public class Main extends Plugin {
     public void onLoad() {
         instance = this;
         core.setup(new BungeeMethods());
-        DependencyManager.loadAllDependencies();
     }
 
     @Override
@@ -71,7 +72,10 @@ public class Main extends Plugin {
     }
 
     public void execute(String executorid, ProxiedPlayer p) {
-        // TODO: finish command executors for bungeecord and command cost
+        Executor executor = core.getExecutorManager().getExecutor(executorid);
+        if (CoinsAPI.getCoins(p.getUniqueId()) >= executor.getCost() && CoinsAPI.takeCoins(p.getUniqueId(), executor.getCost()).getResponse().equals(CoinsResponseType.SUCCESS)) {
+            core.getExecutorManager().getExecutor(executorid).getCommands().forEach(cmd -> ProxyServer.getInstance().getPluginManager().dispatchCommand(p, cmd));
+        }
     }
 
     public CoinsConfig getConfiguration() {

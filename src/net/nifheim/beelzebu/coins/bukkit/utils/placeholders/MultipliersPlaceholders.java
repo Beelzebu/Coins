@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -43,7 +43,7 @@ public class MultipliersPlaceholders extends EZPlaceholderHook {
         }
         String[] server = coins.split("_");
         if (coins.startsWith("enabler_")) {
-            String enabler = CoinsAPI.getMultiplier(server[1]).getEnabler();
+            String enabler = CoinsAPI.getMultiplier(server[1]).getEnablerName();
             if (enabler == null || enabler.equals("")) {
                 return core.getString("Multipliers.Placeholders.Enabler.Anyone", p.spigot().getLocale());
             } else {
@@ -51,10 +51,10 @@ public class MultipliersPlaceholders extends EZPlaceholderHook {
             }
         }
         if (coins.startsWith("amount_")) {
-            return String.valueOf(CoinsAPI.getMultiplier(server[1]).getAmount());
+            return String.valueOf(CoinsAPI.getMultiplier(server[1]).getBaseData().getAmount());
         }
         if (coins.startsWith("time_")) {
-            return CoinsAPI.getMultiplier(server[1]).getMultiplierTimeFormated();
+            //return CoinsAPI.getMultiplier(server[1]).getMultiplierTimeFormated();
         }
         return "";
     }

@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import net.nifheim.beelzebu.coins.core.Core;
-import net.nifheim.beelzebu.coins.core.utils.IConfiguration;
+import net.nifheim.beelzebu.coins.core.interfaces.IConfiguration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -117,7 +117,7 @@ public abstract class BaseGUI {
                 meta.setDisplayName(core.rep(config.getString(path + ".Name")));
             }
             if (data.equals("Lore")) {
-                meta.setLore(core.rep(config.getStringList(path  + ".Lore")));
+                meta.setLore(core.rep(config.getStringList(path + ".Lore")));
             }
             if (data.equals("Amount")) {
                 is.setAmount(config.getInt(path + ".Amount"));

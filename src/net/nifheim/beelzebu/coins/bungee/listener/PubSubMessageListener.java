@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -20,12 +20,11 @@ package net.nifheim.beelzebu.coins.bungee.listener;
 
 import com.imaginarycode.minecraft.redisbungee.events.PubSubMessageEvent;
 import java.util.Arrays;
-import java.util.List;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
-import net.nifheim.beelzebu.coins.core.utils.CacheManager;
+import net.nifheim.beelzebu.coins.core.CacheManager;
 
 /**
  *
@@ -52,13 +51,12 @@ public class PubSubMessageListener extends CoinsBungeeListener implements Listen
                 break;
             case "Multiplier":
                 if (e.getMessage().startsWith("disable ")) {
-                    CacheManager.getMultiplier(e.getMessage().split(" ")[1]).setEnabled(false);
+                    CacheManager.getMultiplier(e.getMessage().split(" ")[1]).disable();
                 } else {
-                    List<String> multiplierData = Arrays.asList(e.getMessage().split("\\|\\|\\|"));
-                    Multiplier multiplier = new Multiplier(multiplierData.get(0), multiplierData.get(2), Boolean.valueOf(multiplierData.get(1)), Integer.valueOf(multiplierData.get(3)), Long.valueOf(multiplierData.get(4)));
-                    CacheManager.addMultiplier(multiplierData.get(0), multiplier);
+                    Multiplier multiplier = Multiplier.fromJson(e.getMessage());
+                    CacheManager.addMultiplier(multiplier.getEnablerName(), multiplier);
                     if (multiplier.isEnabled()) {
-                        core.getMethods().callMultiplierEnableEvent(core.getUUID(multiplier.getEnabler()), multiplier.getData());
+                        core.getMethods().callMultiplierEnableEvent(multiplier);
                     }
                 }
                 break;

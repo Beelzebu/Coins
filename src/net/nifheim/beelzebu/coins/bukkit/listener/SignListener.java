@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -80,7 +80,7 @@ public class SignListener implements Listener {
                     e.getPlayer().sendMessage(core.rep("%prefix% An error has ocurred while saving the signs.yml file, please check the console"));
                 }
             } else {
-                e.setLine(1, "Unknow Executor");
+                e.setLine(1, "Unknown Executor");
                 e.setLine(2, "");
                 e.setLine(3, "");
             }

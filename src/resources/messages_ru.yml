@@ -49,8 +49,8 @@ Help:
   - '&8&m+-------------------------------------------------+'
 Errors:
   No permissions: '%prefix% &cУ вас нет разрешения.'
-  Unknow command: '%prefix% &cНеизвестная команда, используйте &f/coins help&c, чтобы просмотреть все доступные команды.'
-  Unknow player: '%prefix% &cИгрок %target% не найден в базе данных.'
+  Unknown command: '%prefix% &cНеизвестная команда, используйте &f/coins help&c, чтобы просмотреть все доступные команды.'
+  Unknown player: '%prefix% &cИгрок %target% не найден в базе данных.'
   Console: '%prefix% &cВы должны быть игроком.'
   No Negative: '%prefix% &cВы не можете установить отрицательные монеты!'
   No Zero: '%prefix% &cСумма не может быть равна нулю.'
@@ -93,7 +93,7 @@ Multipliers:
       Lore:
       - ''
       - '&7Вы можете купить множители в нашем магазине'
-      - '&6&nwww.TomatoMC.ru'
+      - '&6&nstore.servername.net'
   Placeholders:
     Enabler:
       Message: '&8➠ Множитель был переключен на &a%enabler%'

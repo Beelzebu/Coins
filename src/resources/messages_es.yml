@@ -49,8 +49,8 @@ Help:
   - '&8&m+-------------------------------------------------+'
 Errors:
   No permissions: '%prefix% &cNo tienes permisos.'
-  Unknow command: '%prefix% &cComando desconocido, usa &f/coins ayuda &cpara ver todos los comandos disponibles.'
-  Unknow player: '%prefix% &cEl jugador %target% no existe en la base de datos.'
+  Unknown command: '%prefix% &cComando desconocido, usa &f/coins ayuda &cpara ver todos los comandos disponibles.'
+  Unknown player: '%prefix% &cEl jugador %target% no existe en la base de datos.'
   Console: '%prefix% &cDebes ser un jugador.'
   No Negative: '%prefix% &cNo puedes establecer coins negativas!'
   No Zero: '%prefix% &cLa cantidad no puede ser cero.'

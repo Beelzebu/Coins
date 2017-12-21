@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.nifheim.beelzebu.coins.CoinsAPI;
 import net.nifheim.beelzebu.coins.core.Core;
-import net.nifheim.beelzebu.coins.core.multiplier.MultiplierData;
+import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -51,24 +51,23 @@ public class MultipliersGUI extends BaseGUI {
         if (p == null) {
             return;
         }
-        if (CoinsAPI.getMultiplier().getMultipliersFor(p.getUniqueId(), true).size() > 0) {
+        if (CoinsAPI.getMultipliersFor(p.getUniqueId(), true).size() > 0) {
             int pos = -1;
-            for (int j : CoinsAPI.getMultiplier().getMultipliersFor(p.getUniqueId(), true)) {
+            for (Multiplier multiplier : CoinsAPI.getMultipliersFor(p.getUniqueId(), true)) {
                 pos++;
-                MultiplierData multiplierData = CoinsAPI.getMultiplier().getDataByID(j);
                 ItemStack item = new ItemStack(Material.POTION);
                 PotionMeta meta = (PotionMeta) item.getItemMeta();
                 meta.setMainEffect(PotionEffectType.FIRE_RESISTANCE);
                 meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
-                meta.setDisplayName(rep(core.getString("Multipliers.Menu.Multipliers.Name", p.spigot().getLocale()), multiplierData));
+                meta.setDisplayName(rep(core.getString("Multipliers.Menu.Multipliers.Name", p.spigot().getLocale()), multiplier));
                 List<String> lore = new ArrayList<>();
                 core.getMessages(p.spigot().getLocale()).getStringList("Multipliers.Menu.Multipliers.Lore").forEach(line -> {
-                    lore.add(rep(line, multiplierData));
+                    lore.add(rep(line, multiplier));
                 });
                 meta.setLore(lore);
                 item.setItemMeta(meta);
                 setItem(pos, item, player -> {
-                    new ConfirmGUI(player, core.getString("Multipliers.Menu.Confirm.Title", player.spigot().getLocale()), multiplierData).open(player);
+                    new ConfirmGUI(player, core.getString("Multipliers.Menu.Confirm.Title", player.spigot().getLocale()), multiplier).open(player);
                 });
             }
         } else {
@@ -111,13 +110,13 @@ public class MultipliersGUI extends BaseGUI {
         });
     }
 
-    private String rep(String str, MultiplierData data) {
+    private String rep(String str, Multiplier data) {
         return core.rep(
                 str
-                        .replaceAll("%amount%", String.valueOf(data.getAmount()))
+                        .replaceAll("%amount%", String.valueOf(data.getBaseData().getAmount()))
                         .replaceAll("%server%", data.getServer())
-                        .replaceAll("%minutes%", String.valueOf(data.getMinutes()))
-                        .replaceAll("%id%", String.valueOf(data.getID()))
+                        .replaceAll("%minutes%", String.valueOf(data.getBaseData().getMinutes()))
+                        .replaceAll("%id%", String.valueOf(data.getId()))
         );
     }
 }

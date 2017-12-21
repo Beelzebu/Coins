@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -20,43 +20,24 @@ package net.nifheim.beelzebu.coins.bungee.events;
 
 import java.util.UUID;
 import net.md_5.bungee.api.plugin.Event;
-import net.nifheim.beelzebu.coins.core.multiplier.MultiplierData;
+import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 
 /**
  *
  * @author Beelzebu
  */
 public class MultiplierEnableEvent extends Event {
+    private final Multiplier data;
 
-    private final UUID enabler;
-    private final MultiplierData data;
-
-    public MultiplierEnableEvent(UUID uuid, MultiplierData multiplierData) {
-        enabler = uuid;
-        data = multiplierData;
+    public MultiplierEnableEvent(Multiplier multiplier) {
+        data = multiplier;
     }
 
-    public String getEnabler() {
-        return data.getEnabler();
-    }
-    
     public UUID getEnablerUUID() {
-        return enabler;
+        return data.getEnablerUUID();
     }
-    
-    public MultiplierData getData() {
+
+    public Multiplier getMultiplier() {
         return data;
-    }
-    
-    public int getID() {
-        return data.getID();
-    }
-    
-    public int getAmount() {
-        return data.getAmount();
-    }
-    
-    public int getMinutes() {
-        return data.getMinutes();
     }
 }

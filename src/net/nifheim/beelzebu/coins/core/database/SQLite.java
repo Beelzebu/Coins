@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -16,21 +16,24 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.nifheim.beelzebu.coins.database;
+package net.nifheim.beelzebu.coins.core.database;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import net.nifheim.beelzebu.coins.CoinsResponse;
+import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
+import net.nifheim.beelzebu.coins.core.multiplier.MultiplierType;
 
 /**
  *
  * @author Beelzebu
  */
-public class NewSQLite implements CoinsDatabase {
+public class SQLite implements CoinsDatabase {
 
     @Override
     public void setup() {
-
+        throw new UnsupportedOperationException("setup is not finished yet.");
     }
 
     @Override
@@ -69,6 +72,11 @@ public class NewSQLite implements CoinsDatabase {
     }
 
     @Override
+    public void updatePlayer(UUID uuid, String name) {
+        throw new UnsupportedOperationException("updatePlayer is not finished yet.");
+    }
+
+    @Override
     public Map<String, Double> getTopPlayers(int top) {
         throw new UnsupportedOperationException("getTopPlayers is not finished yet.");
     }
@@ -83,4 +91,38 @@ public class NewSQLite implements CoinsDatabase {
         throw new UnsupportedOperationException("getUUID is not finished yet.");
     }
 
+    @Override
+    public void createMultiplier(UUID uuid, int amount, int minutes, String server, MultiplierType type) {
+        throw new UnsupportedOperationException("createMultiplier is not finished yet.");
+    }
+
+    @Override
+    public void deleteMultiplier(Multiplier multiplier) {
+        throw new UnsupportedOperationException("deleteMultiplier is not finished yet.");
+    }
+
+    @Override
+    public void enableMultiplier(Multiplier multiplier) {
+        throw new UnsupportedOperationException("enableMultiplier is not finished yet.");
+    }
+
+    @Override
+    public Set<Multiplier> getMultipliers(UUID uuid, boolean server) {
+        throw new UnsupportedOperationException("getMultipliers is not finished yet.");
+    }
+
+    @Override
+    public Multiplier getMultiplier(int id) {
+        throw new UnsupportedOperationException("getMultiplier is not finished yet.");
+    }
+
+    @Override
+    public Map<String, Double> getAllPlayers() {
+        throw new UnsupportedOperationException("getAllPlayers is not finished yet.");
+    }
+
+    @Override
+    public void shutdown() {
+        throw new UnsupportedOperationException("shutdown is not finished yet.");
+    }
 }

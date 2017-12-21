@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -18,21 +18,24 @@
  */
 package net.nifheim.beelzebu.coins.bukkit;
 
-import java.util.Iterator;
-import java.util.UUID;
 import net.nifheim.beelzebu.coins.CoinsAPI;
 import net.nifheim.beelzebu.coins.bukkit.command.CommandManager;
-import net.nifheim.beelzebu.coins.bukkit.listener.*;
+import net.nifheim.beelzebu.coins.bukkit.listener.CommandListener;
+import net.nifheim.beelzebu.coins.bukkit.listener.GUIListener;
+import net.nifheim.beelzebu.coins.bukkit.listener.InternalListener;
+import net.nifheim.beelzebu.coins.bukkit.listener.LoginListener;
+import net.nifheim.beelzebu.coins.bukkit.listener.SignListener;
 import net.nifheim.beelzebu.coins.bukkit.utils.CoinsEconomy;
 import net.nifheim.beelzebu.coins.bukkit.utils.Configuration;
 import net.nifheim.beelzebu.coins.bukkit.utils.bungee.PluginMessage;
 import net.nifheim.beelzebu.coins.bukkit.utils.leaderheads.LeaderHeadsHook;
-import net.nifheim.beelzebu.coins.bukkit.utils.placeholders.*;
+import net.nifheim.beelzebu.coins.bukkit.utils.placeholders.CoinsPlaceholders;
+import net.nifheim.beelzebu.coins.bukkit.utils.placeholders.MultipliersPlaceholders;
 import net.nifheim.beelzebu.coins.core.Core;
+import net.nifheim.beelzebu.coins.core.database.StorageType;
 import net.nifheim.beelzebu.coins.core.executor.Executor;
-import net.nifheim.beelzebu.coins.core.utils.CacheManager;
 import net.nifheim.beelzebu.coins.core.utils.CoinsConfig;
-import net.nifheim.beelzebu.coins.core.utils.dependencies.DependencyManager;
+import net.nifheim.beelzebu.coins.core.utils.MessagingService;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -41,7 +44,7 @@ public class Main extends JavaPlugin {
     private final Core core = Core.getInstance();
     private static Main instance;
     private CommandManager commandManager;
-    private Configuration configuration;
+    private CoinsConfig configuration;
 
     public static Main getInstance() {
         return instance;
@@ -50,13 +53,25 @@ public class Main extends JavaPlugin {
     @Override
     public void onLoad() {
         instance = this;
+        configuration = new Configuration(this);
+        try {
+            configuration.setMessagingService(MessagingService.valueOf(configuration.getString("Messaging Service", "BUNGEECORD").toUpperCase()));
+        } catch (Exception ex) {
+            Core.getInstance().log("We don't know the messaging service \"" + configuration.getString("Messaging Service") + "\"");
+            configuration.setMessagingService(MessagingService.BUNGEECORD);
+        }
         core.setup(new BukkitMethods());
-        DependencyManager.loadAllDependencies();
+        if (getConfig().getBoolean("Vault.Use", false)) {
+            if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
+                new CoinsEconomy(this).setup();
+            } else {
+                core.log("You enabled Vault in the config, but the plugin Vault can't be found.");
+            }
+        }
     }
 
     @Override
     public void onEnable() {
-        configuration = new Configuration(this);
         core.start();
         commandManager = new CommandManager();
         loadManagers();
@@ -103,12 +118,12 @@ public class Main extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new CommandListener(), this);
         Bukkit.getPluginManager().registerEvents(new GUIListener(), this);
         Bukkit.getPluginManager().registerEvents(new InternalListener(), this);
-        Bukkit.getPluginManager().registerEvents(new PlayerJoinListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new LoginListener(), this);
         Bukkit.getPluginManager().registerEvents(new SignListener(), this);
     }
 
     private void startTasks() {
-        if (core.getConfig().useBungee()) {
+        if (core.getConfig().useBungee() && !core.getStorageType().equals(StorageType.REDIS)) {
             PluginMessage pmsg = new PluginMessage();
             Bukkit.getMessenger().registerOutgoingPluginChannel(this, "Coins");
             Bukkit.getMessenger().registerIncomingPluginChannel(this, "Coins", pmsg);
@@ -122,16 +137,6 @@ public class Main extends JavaPlugin {
                 CoinsAPI.createPlayer(p.getName(), p.getUniqueId());
             });
         }, 30);
-        core.debug("Starting cache cleanup task");
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
-            for (Iterator<UUID> it = CacheManager.getPlayersData().keySet().iterator(); it.hasNext();) {
-                UUID uuid = it.next();
-                if (!core.getMethods().isOnline(uuid)) {
-                    it.remove();
-                    core.debug("Removed '" + uuid + "' from the cache.");
-                }
-            }
-        }, 100, 12000);
     }
 
     public CoinsConfig getConfiguration() {

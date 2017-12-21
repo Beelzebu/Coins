@@ -49,8 +49,8 @@ Help:
   - '&8&m+-------------------------------------------------+'
 Errors:
   No permissions: '%prefix% &cYou don''t have permissions.'
-  Unknow command: '%prefix% &cUnknow command, try &f/coins help &cto see all avalable commands.'
-  Unknow player: '%prefix% &cThe player %target% can''t be found in the database.'
+  Unknown command: '%prefix% &cUnknown command, try &f/coins help &cto see all avalable commands.'
+  Unknown player: '%prefix% &cThe player %target% can''t be found in the database.'
   Console: '%prefix% &cYou need to be a Player.'
   No Negative: '%prefix% &cYou can''t set negative coins!'
   No Zero: '%prefix% &cThe amount can''t be zero.'

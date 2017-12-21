@@ -1,5 +1,5 @@
 /**
- * This file is part of Coins
+ * This file is part of Coins.
  *
  * Copyright © 2018 Beelzebu
  *
@@ -16,34 +16,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package net.nifheim.beelzebu.coins.core.executor;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+package net.nifheim.beelzebu.coins.core.utils;
 
 /**
  *
  * @author Beelzebu
  */
-public class ExecutorManager {
-
-    private final Set<Executor> executors = Collections.synchronizedSet(new HashSet<>());
-
-    public synchronized void addExecutor(Executor ex) {
-        executors.add(ex);
-    }
-
-    public synchronized Set<Executor> getExecutors() {
-        return executors;
-    }
-
-    public synchronized Executor getExecutor(String id) {
-        for (Executor ex : executors) {
-            if (ex.getID().equals(id)) {
-                return ex;
-            }
-        }
-        return null;
-    }
+public enum MessagingService {
+    REDIS,
+    BUNGEECORD,
+    NONE;
 }

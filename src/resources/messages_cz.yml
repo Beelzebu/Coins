@@ -37,8 +37,8 @@ Help:
   - '&8&m+-------------------------------------------------+'
 Errors:
   No permissions: '%prefix% &cNa toto nemas prava.'
-  Unknow command: '%prefix% &6Prikaz neexistuje, pouzi &e/coins help &6pro zobrazeni prikazu.'
-  Unknow player: '%prefix% &6Hrac &e%target% &6neni registrovan v dazabazi.'
+  Unknown command: '%prefix% &6Prikaz neexistuje, pouzi &e/coins help &6pro zobrazeni prikazu.'
+  Unknown player: '%prefix% &6Hrac &e%target% &6neni registrovan v dazabazi.'
   Console: '%prefix% &cMusis byt hrac.'
   No Negative: '%prefix% &cNelze nastavit zaporne hodnoty!'
   No Zero: '%prefix% &cPocet nemuze byt &e0&c.'
@@ -81,7 +81,7 @@ Multipliers:
       Lore:
       - ''
       - '&7Zakup si boostry v obchode'
-      - '&6&nPosledniTezba.cz/?mode=store'
+      - '&6&nstore.servername.net'
   Placeholders:
     Enabler:
       Message: '&8? Aktivovano &8(&e%enabler%&8)'

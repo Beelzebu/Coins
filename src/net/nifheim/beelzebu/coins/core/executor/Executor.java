@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -19,38 +19,19 @@
 package net.nifheim.beelzebu.coins.core.executor;
 
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  *
  * @author Beelzebu
  */
+@Getter
+@AllArgsConstructor
 public class Executor {
 
     private final String ID;
     private final String displayName;
     private final double cost;
     private final List<String> commands;
-
-    public Executor(String i, String d, double c, List<String> cmds) {
-        ID = i;
-        displayName = d;
-        cost = c;
-        commands = cmds;
-    }
-
-    public String getID() {
-        return ID;
-    }
-    
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public Double getCost() {
-        return cost;
-    }
-
-    public List<String> getCommands() {
-        return commands;
-    }
 }

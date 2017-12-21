@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -19,7 +19,7 @@
 package net.nifheim.beelzebu.coins.bukkit.events;
 
 import java.util.UUID;
-import net.nifheim.beelzebu.coins.core.multiplier.MultiplierData;
+import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
@@ -29,13 +29,11 @@ import org.bukkit.event.HandlerList;
  */
 public class MultiplierEnableEvent extends Event {
 
-    private final UUID enabler;
-    private final MultiplierData data;
+    private final Multiplier data;
     private final static HandlerList handlers = new HandlerList();
 
-    public MultiplierEnableEvent(UUID uuid, MultiplierData multiplierData) {
-        enabler = uuid;
-        data = multiplierData;
+    public MultiplierEnableEvent(Multiplier multiplier) {
+        data = multiplier;
     }
 
     @Override
@@ -48,57 +46,21 @@ public class MultiplierEnableEvent extends Event {
     }
 
     /**
-     * Get the enabler for this multiplier.
-     *
-     * @return the enabler.
-     */
-    public String getEnabler() {
-        return data.getEnabler();
-    }
-
-    /**
      * Get the UUID of the enabler for this multiplier.
      *
      * @return the uuid.
      * @throws NullPointerException if the multiplier is fake, this can be null.
      */
     public UUID getEnablerUUID() throws NullPointerException {
-        return enabler;
+        return data.getEnablerUUID();
     }
 
     /**
-     * Get all the data about this multiplier.
+     * Get the multiplier that fired this event.
      *
-     * @return all the multiplier data.
+     * @return the multiplier.
      */
-    public MultiplierData getData() {
+    public Multiplier getMultiplier() {
         return data;
-    }
-
-    /**
-     * Get the id of this multiplier.
-     *
-     * @return the id, can be -1 if the multiplier is fake.
-     */
-    public int getID() {
-        return data.getID();
-    }
-
-    /**
-     * Get the amount of this multiplier.
-     *
-     * @return the amount.
-     */
-    public int getAmount() {
-        return data.getAmount();
-    }
-
-    /**
-     * Get the amount of minutes that this multiplier will be enabled.
-     *
-     * @return the minutes.
-     */
-    public int getMinutes() {
-        return data.getMinutes();
     }
 }

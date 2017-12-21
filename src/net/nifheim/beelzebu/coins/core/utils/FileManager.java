@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2017 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -29,6 +29,7 @@ import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -82,7 +83,7 @@ public class FileManager {
         try {
             List<String> lines = FileUtils.readLines(configFile, Charsets.UTF_8);
             int index;
-            if (core.getConfig().getInt("version") == 11) {
+            if (core.getConfig().getInt("version") == 13) {
                 core.log("The config file is up to date.");
             } else {
                 switch (core.getConfig().getInt("version")) {
@@ -129,6 +130,72 @@ public class FileManager {
                         lines.set(index, "version: 11");
                         core.log("Configuraton file updated to v11");
                         break;
+                    case 11:
+                        index = lines.indexOf("  Executor Sign:") + 5;
+                        lines.addAll(index, Arrays.asList(
+                                "  # If you want the users to be created when they join to the server, enable this,",
+                                "  # otherwise the players will be created when his coins are modified or consulted",
+                                "  # to the database for the first time (recommended for big servers).",
+                                "  Create Join: false"
+                        ));
+                        index = lines.indexOf("version: 11");
+                        lines.set(index, "version: 12");
+                        core.log("Configuration file updated to v12");
+                        break;
+                    case 12:
+                        index = lines.indexOf("MySQL:");
+                        lines.addAll(index - 1, Arrays.asList("",
+                                "# Wich storage method the plugin should use.",
+                                "#",
+                                "# Available options:",
+                                "#  -> sqlite    data is stored locally and can't be shared with other servers.",
+                                "#  -> mysql     data is stored on a mysql server and can be shared by several servers.",
+                                "#  -> redis     data is stored on a redis server and can be shared by several servers.",
+                                "Storage Type: sqlite",
+                                "",
+                                "# Don't touch this setting, this is only for internal usage to auto update the",
+                                "# database when something changes.",
+                                "Database Version: 1",
+                                "",
+                                "# Settings for messaging service",
+                                "# If enabled and configured, Coins will use the messaging service to inform other",
+                                "# connected servers of changes.",
+                                "#",
+                                "# Available options:",
+                                "#  -> bungeecord   uses the plugin messaging channels. You must enable bungeecord",
+                                "#                  in spigot.yml and install the plugin in BungeeCord to work.",
+                                "#  -> redis        uses redis pub sub to push changes. You redis server must be",
+                                "#                  configured below.",
+                                "#  -> none         nothing.",
+                                "Messaging Service: none"
+                        ));
+                        index = lines.indexOf("  Use: true");
+                        if (index != -1) {
+                            lines.remove(index);
+                            index = lines.indexOf("Storage Type: sqlite");
+                            lines.set(index, "Storage Type: mysql");
+                        } else {
+                            index = lines.indexOf("  Use: false");
+                            lines.remove(index);
+                        }
+                        if (core.getConfig().useBungee()) {
+                            index = lines.indexOf("Messaging Service: none");
+                            lines.set(index, "Messaging Service: bungeecord");
+                        }
+                        index = lines.indexOf("MySQL:") + 8;
+                        lines.addAll(index, Arrays.asList("  # Don't change this value if you don't know what it does.",
+                                "  Connection Pool: 8",
+                                "  ",
+                                "# Here are the Redis server settings.",
+                                "Redis:",
+                                "  Host: 'localhost'",
+                                "  Port: 6379",
+                                "  Password: 'S3CUR3P4SSW0RD'"
+                        ));
+                        index = lines.indexOf("version: 12");
+                        lines.set(index, "version: 13");
+                        core.log("Configuration file updated to v13");
+                        break;
                     default:
                         core.log("Seems that you hava a too old version of the config or you canged this to another number >:(");
                         core.log("We can't update it, if is a old version you should try to update it slow and not jump from a version to another, keep in mind that we keep track of the last 3 versions of the config to update.");
@@ -144,6 +211,21 @@ public class FileManager {
     }
 
     private void updateMessages() {
+        try {
+            for (Map.Entry<String, File> ent : messagesFiles.entrySet()) {
+                List<String> liness = FileUtils.readLines(ent.getValue(), Charsets.UTF_8);
+                Iterator<String> it = liness.iterator();
+                while (it.hasNext()) {
+                    String line = it.next();
+                    if (line.contains("Unknow ")) {
+                        liness.set(liness.indexOf(line), line.replaceAll("Unknow ", "Unknown "));
+                    }
+                }
+                FileUtils.writeLines(ent.getValue(), liness);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
         try {
             List<String> lines = FileUtils.readLines(messagesFiles.get("default"), Charsets.UTF_8);
             int index;
@@ -312,13 +394,6 @@ public class FileManager {
     }
 
     public void copyFiles() {
-        if (!core.getDataFolder().exists()) {
-            core.getDataFolder().mkdirs();
-            File zh_cfg = new File(core.getDataFolder(), "config_zh.yml");
-            if (!zh_cfg.exists()) {
-                copy(core.getResource("config_zh.yml"), zh_cfg);
-            }
-        }
         if (!messagesFolder.exists()) {
             messagesFolder.mkdirs();
         }
@@ -343,14 +418,13 @@ public class FileManager {
         if (!configFile.exists()) {
             copy(core.getResource("config.yml"), configFile);
         }
-
     }
 
     public void updateFiles() {
-        checkLogs();
         updateMessages();
         core.getConfig().reload();
         updateConfig();
+        checkLogs();
     }
 
     private void checkLogs() {
@@ -373,9 +447,11 @@ public class FileManager {
         }
         File[] fList = logsFolder.listFiles();
         // Auto purge for old logs
-        for (File file : fList) {
-            if (file.isFile() && file.getName().contains(".gz") && (System.currentTimeMillis() - file.lastModified()) >= core.getConfig().getInt("General.Purge.Logs.Days") * 86400000L) {
-                file.delete();
+        if (fList.length > 0) {
+            for (File file : fList) {
+                if (file.isFile() && file.getName().contains(".gz") && (System.currentTimeMillis() - file.lastModified()) >= core.getConfig().getInt("General.Purge.Logs.Days") * 86400000L) {
+                    file.delete();
+                }
             }
         }
     }
@@ -389,5 +465,20 @@ public class FileManager {
         }
         in.close();
         out.close();
+    }
+
+    public void updateDatabaseVersion(int version) {
+        if (core.getConfig().getInt("Database Version") != version) {
+            try {
+                List<String> lines = FileUtils.readLines(configFile, Charsets.UTF_8);
+                int index = lines.indexOf("Database Version: " + core.getConfig().getInt("Database Version"));
+                lines.set(index, "Database Version: " + version);
+                FileUtils.writeLines(configFile, lines);
+                core.getConfig().reload();
+            } catch (IOException ex) {
+                core.log("An unexpected error occurred while updating the config file.");
+                core.debug(ex.getMessage());
+            }
+        }
     }
 }
