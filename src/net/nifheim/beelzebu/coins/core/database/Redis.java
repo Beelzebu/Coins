@@ -183,12 +183,20 @@ public class Redis implements CoinsDatabase {
     @Override
     public Map<String, Double> getTopPlayers(int top) {
         Map<String, Double> topMap = new HashMap<>();
+        Map<String, Double> topPlayers = new HashMap<>();
         try (Jedis jedis = pool.getResource()) {
-            for (int i = 0; i < top; i++) {
-                DatabaseUtils.sortByValue(jedis.hgetAll("coins_data")).entrySet().forEach(ent -> topMap.put(ent.getKey(), Double.valueOf(ent.getValue())));
+            jedis.hgetAll("coins_data").forEach((key, value) -> topMap.put(key, Double.valueOf(value)));
+        }
+        int i = 0;
+        for (Map.Entry<String, Double> ent : DatabaseUtils.sortByValue(topMap).entrySet()) {
+            if (i < top) {
+                topPlayers.put(core.getNick(UUID.fromString(ent.getKey()), false), ent.getValue());
+                i++;
+            } else {
+                break;
             }
         }
-        return DatabaseUtils.sortByValue(topMap);
+        return DatabaseUtils.sortByValue(topPlayers);
     }
 
     @Override

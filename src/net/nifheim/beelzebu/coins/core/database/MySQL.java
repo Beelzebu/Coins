@@ -140,8 +140,7 @@ public class MySQL implements CoinsDatabase {
     public double getCoins(UUID uuid) {
         double coins = -1;
         try (Connection c = ds.getConnection(); ResultSet res = DatabaseUtils.generatePreparedStatement(c, SQLQuery.SEARCH_USER_OFFLINE, uuid).executeQuery();) {
-            if (CoinsAPI.isindb(uuid)) {
-                res.next();
+            if (CoinsAPI.isindb(uuid) && res.next()) {
                 coins = res.getDouble("balance");
             } else if (core.isOnline(uuid)) {
                 coins = core.getConfig().getDouble("General.Starting Coins", 0);
@@ -158,8 +157,7 @@ public class MySQL implements CoinsDatabase {
     public double getCoins(String name) {
         double coins = -1;
         try (Connection c = ds.getConnection(); ResultSet res = DatabaseUtils.generatePreparedStatement(c, SQLQuery.SEARCH_USER_OFFLINE, name).executeQuery();) {
-            if (CoinsAPI.isindb(name)) {
-                res.next();
+            if (CoinsAPI.isindb(name) && res.next()) {
                 coins = res.getDouble("balance");
             } else if (core.isOnline(name)) {
                 coins = core.getConfig().getDouble("General.Starting Coins", 0);

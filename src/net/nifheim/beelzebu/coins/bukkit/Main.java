@@ -57,7 +57,7 @@ public class Main extends JavaPlugin {
         try {
             configuration.setMessagingService(MessagingService.valueOf(configuration.getString("Messaging Service", "BUNGEECORD").toUpperCase()));
         } catch (Exception ex) {
-            Core.getInstance().log("We don't know the messaging service \"" + configuration.getString("Messaging Service") + "\"");
+            core.log("We don't know the messaging service \"" + configuration.getString("Messaging Service") + "\"");
             configuration.setMessagingService(MessagingService.BUNGEECORD);
         }
         core.setup(new BukkitMethods());

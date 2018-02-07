@@ -41,6 +41,7 @@ public class CacheManager {
         public Double load(UUID key) {
             double coins = core.getDatabase().getCoins(key);
             core.getDatabase().updatePlayer(key, core.getNick(key, false).toLowerCase());
+            core.debug("Loaded " + key + " into cache.");
             return coins;
         }
     });
@@ -65,6 +66,7 @@ public class CacheManager {
 
     public static void updateCoins(UUID uuid, double coins) {
         if (coins > -1) {
+            core.debug("Updated " + uuid + " in cache.");
             playersData.put(uuid, coins);
         }
     }
