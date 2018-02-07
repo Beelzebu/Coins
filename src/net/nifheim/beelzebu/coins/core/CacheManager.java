@@ -61,7 +61,10 @@ public class CacheManager {
     private static final List<Multiplier> queuedMultipliers = new ArrayList<>();
 
     public static double getCoins(UUID uuid) {
-        return playersData.getUnchecked(uuid);
+        if (uuid != null) {
+            return playersData.getUnchecked(uuid);
+        }
+        return -1;
     }
 
     public static void updateCoins(UUID uuid, double coins) {

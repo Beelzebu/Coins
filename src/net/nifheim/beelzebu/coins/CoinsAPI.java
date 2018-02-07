@@ -292,7 +292,8 @@ public final class CoinsAPI {
      * @return true if the player exists in the database or false if not.
      */
     public static boolean isindb(String name) {
-        if (CacheManager.getPlayersData().getIfPresent(core.getUUID(name, false)) != null && getCoins(name) > -1) { // If the player is in the cache it should be in the database.
+        UUID uuid = core.getUUID(name, false);
+        if (CacheManager.getPlayersData().getIfPresent(uuid != null ? uuid : UUID.randomUUID()) != null && getCoins(name) > -1) { // If the player is in the cache it should be in the database.
             return true;
         }
         return core.getDatabase().isindb(name);

@@ -330,10 +330,10 @@ public class CoinsCommand extends Command {
                     try {
                         int multiplier = Integer.parseInt(args[3]);
                         int minutes = Integer.parseInt(args[4]);
-                        core.getDatabase().createMultiplier(Bukkit.getPlayer(args[2]).getUniqueId(), multiplier, minutes, ((args.length == 6 && !args[5].equals("")) ? args[5] : null), MultiplierType.SERVER);
+                        core.getDatabase().createMultiplier(core.getUUID(args[2], false), multiplier, minutes, ((args.length == 6 && !args[5].equals("")) ? args[5] : null), MultiplierType.SERVER);
                         sender.sendMessage(core.getString("Multipliers.Created", lang).replaceAll("%player%", Bukkit.getPlayer(args[2]).getName()));
                     } catch (NumberFormatException e) {
-                        sender.sendMessage(core.rep(String.valueOf(e.getCause().getMessage())));
+                        sender.sendMessage(core.rep(e.getMessage()));
                     }
                 } else {
                     sender.sendMessage(core.getString("Help.Multiplier Create", lang));
