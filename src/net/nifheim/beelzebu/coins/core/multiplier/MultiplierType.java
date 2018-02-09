@@ -23,10 +23,6 @@ package net.nifheim.beelzebu.coins.core.multiplier;
  * @author Beelzebu
  */
 public enum MultiplierType {
-    /**
-     * @deprecated Work in progress.
-     */
-    @Deprecated
     GLOBAL,
     SERVER,
     PERSONAL;

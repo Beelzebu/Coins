@@ -19,12 +19,12 @@
 package net.nifheim.beelzebu.coins.bungee.listener;
 
 import com.imaginarycode.minecraft.redisbungee.events.PubSubMessageEvent;
-import java.util.Arrays;
+import java.util.Collections;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
-import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 import net.nifheim.beelzebu.coins.core.CacheManager;
+import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 
 /**
  *
@@ -46,7 +46,7 @@ public class PubSubMessageListener extends CoinsBungeeListener implements Listen
                 break;
             case "Update":
                 ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                    sendToBukkit("Update", Arrays.asList(e.getMessage()), ProxyServer.getInstance().getServerInfo(server), true);
+                    sendToBukkit("Update", Collections.singletonList(e.getMessage()), ProxyServer.getInstance().getServerInfo(server), true);
                 });
                 break;
             case "Multiplier":

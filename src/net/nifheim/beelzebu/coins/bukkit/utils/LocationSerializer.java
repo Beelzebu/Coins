@@ -33,6 +33,6 @@ public class LocationSerializer {
 
     public static Location locationFromString(String string) {
         String[] s = string.split(";");
-        return new Location(Bukkit.getWorld(s[0]), Double.valueOf(s[1]), Double.valueOf(s[2]), Double.valueOf(s[3]));
+        return new Location(Bukkit.getWorld(s[0]), Double.parseDouble(s[1]), Double.parseDouble(s[2]), Double.parseDouble(s[3]));
     }
 }

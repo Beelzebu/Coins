@@ -54,8 +54,8 @@ public class PluginMessage implements PluginMessageListener {
             case "Coins":
                 String id = in.readUTF();
                 String displayname = in.readUTF();
-                double cost = Double.valueOf(in.readUTF());
-                int cmds = Integer.valueOf(in.readUTF());
+                double cost = Double.parseDouble(in.readUTF());
+                int cmds = Integer.parseInt(in.readUTF());
                 List<String> commands = new ArrayList<>();
                 if (cmds > 0) {
                     for (int i = 0; i < cmds; i++) {
@@ -82,7 +82,7 @@ public class PluginMessage implements PluginMessageListener {
                 if (data.split(" ").length == 2) {
                     UUID puuid = UUID.fromString(data.split(" ")[0]);
                     if (CacheManager.getCoins(puuid) > -1) {
-                        CacheManager.updateCoins(puuid, Double.valueOf(data.split(" ")[1]));
+                        CacheManager.updateCoins(puuid, Double.parseDouble(data.split(" ")[1]));
                     }
                 }
                 break;

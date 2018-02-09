@@ -53,6 +53,7 @@ import net.nifheim.beelzebu.coins.core.utils.FileManager;
 import net.nifheim.beelzebu.coins.core.utils.MessagesManager;
 import net.nifheim.beelzebu.coins.core.utils.MessagingService;
 import net.nifheim.beelzebu.coins.core.utils.dependencies.DependencyManager;
+import org.apache.commons.lang.Validate;
 import redis.clients.jedis.Jedis;
 
 /**
@@ -334,6 +335,7 @@ public class Core {
     }
 
     public void updateCache(UUID uuid, double amount) {
+        Validate.notNull(uuid, "The uuid can't be null");
         if (storageType.equals(StorageType.REDIS) || getConfig().getMessagingService().equals(MessagingService.REDIS)) { // Update using redis pub/sub
             try (Jedis jedis = redis.getPool().getResource()) {
                 jedis.publish("coins-data-update", uuid + " " + amount);

@@ -62,7 +62,7 @@ public class Redis implements CoinsDatabase {
         double coins = -1;
         try (Jedis jedis = pool.getResource()) {
             if (CoinsAPI.isindb(uuid)) {
-                coins = Double.valueOf(jedis.hget("coins_data", uuid.toString()));
+                coins = Double.parseDouble(jedis.hget("coins_data", uuid.toString()));
             } else if (core.isOnline(uuid)) {
                 coins = core.getConfig().getDouble("General.Starting Coins", 0);
                 createPlayer(uuid, core.getNick(uuid, false).toLowerCase(), coins);
@@ -76,7 +76,7 @@ public class Redis implements CoinsDatabase {
         double coins = -1;
         try (Jedis jedis = pool.getResource()) {
             if (CoinsAPI.isindb(name)) {
-                coins = Double.valueOf(jedis.hget("coins_data", core.getUUID(name, false).toString()));
+                coins = Double.parseDouble(jedis.hget("coins_data", core.getUUID(name, false).toString()));
             } else if (core.isOnline(name)) {
                 coins = core.getConfig().getDouble("General.Starting Coins", 0);
                 createPlayer(core.getUUID(name, false), name, coins);
@@ -185,7 +185,7 @@ public class Redis implements CoinsDatabase {
         Map<String, Double> topMap = new HashMap<>();
         Map<String, Double> topPlayers = new HashMap<>();
         try (Jedis jedis = pool.getResource()) {
-            jedis.hgetAll("coins_data").forEach((key, value) -> topMap.put(key, Double.valueOf(value)));
+            jedis.hgetAll("coins_data").forEach((key, value) -> topMap.put(key, Double.parseDouble(value)));
         }
         int i = 0;
         for (Map.Entry<String, Double> ent : DatabaseUtils.sortByValue(topMap).entrySet()) {
@@ -220,14 +220,16 @@ public class Redis implements CoinsDatabase {
     public int getLastMultiplierID() {
         try (Jedis jedis = pool.getResource()) {
             return Integer.parseInt(jedis.get("coins_lastmultiplierid"));
+        } catch (NumberFormatException ex) {
+            return 1;
         }
     }
 
     @Override
     public void createMultiplier(UUID uuid, int amount, int minutes, String server, MultiplierType type) {
         try (Jedis jedis = pool.getResource()) {
-            Multiplier multiplier = MultiplierBuilder.newBuilder().setServer(server).setType(type).setData(new MultiplierData(amount, minutes)).setEnablerUUID(uuid).setEnablerName(core.getNick(uuid, false)).setID(getLastMultiplierID()).setAmount(amount).setMinutes(minutes).build();
-            jedis.hset("coins_multipliers", uuid.toString(), jedis.hget("coins_multipliers", uuid.toString()) != null ? jedis.hget("coins_multipliers", uuid.toString()) + "," : "" + Integer.toString(multiplier.getId()));
+            Multiplier multiplier = MultiplierBuilder.newBuilder().setServer(server != null ? server : "default").setType(server != null ? type : MultiplierType.GLOBAL).setData(new MultiplierData(amount, minutes)).setEnablerUUID(uuid).setEnablerName(core.getNick(uuid, false)).setID(getLastMultiplierID()).setAmount(amount).setMinutes(minutes).build();
+            jedis.hset("coins_multipliers", uuid.toString(), (jedis.hget("coins_multipliers", uuid.toString()) != null ? jedis.hget("coins_multipliers", uuid.toString()) + "," : "") + Integer.toString(multiplier.getId()));
             jedis.set("coins_multiplier:" + multiplier.getId(), multiplier.toString());
             jedis.incr("coins_lastmultiplierid");
         }
@@ -294,7 +296,7 @@ public class Redis implements CoinsDatabase {
         try (Jedis jedis = pool.getResource()) {
             Map<String, String> data = jedis.hgetAll("coins_data");
             data.entrySet().forEach(ent -> {
-                players.put(ent.getKey() + "," + core.getNick(UUID.fromString(ent.getKey()), false), Double.valueOf(ent.getValue()));
+                players.put(ent.getKey() + "," + core.getNick(UUID.fromString(ent.getKey()), false), Double.parseDouble(ent.getValue()));
             });
         } catch (Exception ex) {
             core.log("An error has ocurred getting all the players from the database, check the logs for more info.");
@@ -358,7 +360,7 @@ public class Redis implements CoinsDatabase {
             core.debug(message);
             switch (channel) {
                 case "coins-data-update":
-                    CacheManager.updateCoins(UUID.fromString(message.split(" ")[0]), Double.valueOf(message.split(" ")[1]));
+                    CacheManager.updateCoins(UUID.fromString(message.split(" ")[0]), Double.parseDouble(message.split(" ")[1]));
                     break;
                 case "coins-multiplier":
                     Multiplier multiplier = Multiplier.fromJson(message);

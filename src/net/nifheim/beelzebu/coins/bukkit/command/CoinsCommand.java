@@ -331,9 +331,9 @@ public class CoinsCommand extends Command {
                         int multiplier = Integer.parseInt(args[3]);
                         int minutes = Integer.parseInt(args[4]);
                         core.getDatabase().createMultiplier(core.getUUID(args[2], false), multiplier, minutes, ((args.length == 6 && !args[5].equals("")) ? args[5] : null), MultiplierType.SERVER);
-                        sender.sendMessage(core.getString("Multipliers.Created", lang).replaceAll("%player%", Bukkit.getPlayer(args[2]).getName()));
+                        sender.sendMessage(core.getString("Multipliers.Created", lang).replaceAll("%player%", args[2]));
                     } catch (NumberFormatException e) {
-                        sender.sendMessage(core.rep(e.getMessage()));
+                        sender.sendMessage(core.getString("Help.Multiplier Create", lang));
                     }
                 } else {
                     sender.sendMessage(core.getString("Help.Multiplier Create", lang));
@@ -347,10 +347,10 @@ public class CoinsCommand extends Command {
                     try {
                         Multiplier multiplier;
                         if (args.length == 6) {
-                            multiplier = MultiplierBuilder.newBuilder().setAmount(Integer.valueOf(args[2])).setEnablerName(args[3].replaceAll("_", "")).setEnablerUUID(core.getUUID(args[3], false)).setServer(args[5]).setMinutes(Integer.valueOf(args[4])).setEnabled(true).setQueue(false).build();
+                            multiplier = MultiplierBuilder.newBuilder().setAmount(Integer.parseInt(args[2])).setEnablerName(args[3].replaceAll("_", "")).setEnablerUUID(core.getUUID(args[3], false)).setServer(args[5]).setMinutes(Integer.parseInt(args[4])).setEnabled(true).setQueue(false).build();
                         } else {
                             multiplier = CoinsAPI.getMultiplier();
-                            MultiplierData multiplierdata = new MultiplierData(Integer.valueOf(args[2]), Integer.valueOf(args[4]));
+                            MultiplierData multiplierdata = new MultiplierData(Integer.parseInt(args[2]), Integer.parseInt(args[4]));
                             multiplier.setBaseData(multiplierdata);
                             multiplier.setType(MultiplierType.SERVER);
                             multiplier.enable(core.getUUID(args[4], false), args[3].replaceAll("_", ""), false);

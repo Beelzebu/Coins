@@ -21,7 +21,6 @@ package net.nifheim.beelzebu.coins.bungee.listener;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import com.imaginarycode.minecraft.redisbungee.RedisBungee;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import net.md_5.bungee.api.ProxyServer;
@@ -29,8 +28,8 @@ import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
-import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 import net.nifheim.beelzebu.coins.core.CacheManager;
+import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 
 /**
  *
@@ -70,7 +69,7 @@ public class PluginMessageListener extends CoinsBungeeListener implements Listen
                             RedisBungee.getApi().sendChannelMessage("Update", updatemsg[1] + " " + updatemsg[2]);
                         } else {
                             ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                                sendToBukkit("Update", Arrays.asList(updatemsg[1] + " " + updatemsg[2]), ProxyServer.getInstance().getServerInfo(server), true);
+                                sendToBukkit("Update", Collections.singletonList(updatemsg[1] + " " + updatemsg[2]), ProxyServer.getInstance().getServerInfo(server), true);
                             });
                         }
                     }
