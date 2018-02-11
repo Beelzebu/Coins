@@ -178,7 +178,7 @@ public class FileManager {
                             index = lines.indexOf("  Use: false");
                             lines.remove(index);
                         }
-                        if (core.getConfig().useBungee()) {
+                        if (core.isBungee() || core.getConfig().useBungee()) {
                             index = lines.indexOf("Messaging Service: none");
                             lines.set(index, "Messaging Service: bungeecord");
                         }

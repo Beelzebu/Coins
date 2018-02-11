@@ -18,6 +18,7 @@
  */
 package net.nifheim.beelzebu.coins.core;
 
+import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -53,6 +55,7 @@ import net.nifheim.beelzebu.coins.core.utils.FileManager;
 import net.nifheim.beelzebu.coins.core.utils.MessagesManager;
 import net.nifheim.beelzebu.coins.core.utils.MessagingService;
 import net.nifheim.beelzebu.coins.core.utils.dependencies.DependencyManager;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.Validate;
 import redis.clients.jedis.Jedis;
 
@@ -81,10 +84,6 @@ public class Core {
 
     public void setup(IMethods methodinterface) {
         mi = methodinterface;
-        fileUpdater = new FileManager(this);
-        fileUpdater.copyFiles();
-        messagesMap = new HashMap<>();
-        fileUpdater.updateFiles();
         try {
             if (getConfig().getBoolean("MySQL.Use")) {
                 storageType = StorageType.MYSQL;
@@ -96,6 +95,10 @@ public class Core {
             log("Invalid Storage Type selected in the config, possible values: " + Arrays.toString(StorageType.values()));
         }
         DependencyManager.loadAllDependencies();
+        fileUpdater = new FileManager(this);
+        fileUpdater.copyFiles();
+        messagesMap = new HashMap<>();
+        fileUpdater.updateFiles();
     }
 
     public void shutdown() {
@@ -103,7 +106,7 @@ public class Core {
     }
 
     public void start() {
-        if (!storageType.equals(StorageType.SQLITE) && isBungee()) {
+        if (storageType.equals(StorageType.SQLITE) && isBungee()) {
             log(" ");
             log("    WARNING");
             log(" ");
@@ -115,6 +118,19 @@ public class Core {
         }
         getConfig().reload();
         motd(true);
+        try {
+            Iterator<String> lines = FileUtils.readLines(new File(getDataFolder(), "multipliers.json"), Charsets.UTF_8).iterator();
+            while (lines.hasNext()) {
+                try {
+                Multiplier multiplier = Multiplier.fromJson(lines.next());
+                CacheManager.addMultiplier(multiplier.getServer(), multiplier);
+                } catch (Exception ignore) { // Invalid line
+                }
+            }
+        } catch (IOException ex) {
+            log("An error has ocurred loading multipliers from local storage.");
+            debug(ex.getMessage());
+        }
         if (getConfig().getMessagingService().equals(MessagingService.REDIS)) {
             if (storageType.equals(StorageType.REDIS)) {
                 redis = (Redis) getDatabase();
@@ -155,7 +171,7 @@ public class Core {
     }
 
     public void debug(Object msg) {
-        if (true) {// (getConfig().getBoolean("Debug")) {
+        if (getConfig().getBoolean("Debug")) {
             mi.sendMessage(mi.getConsole(), rep("&8[&cCoins&8] &cDebug: &7" + msg));
         }
         logToFile(msg);
@@ -262,8 +278,8 @@ public class Core {
             string = msg
                     .replaceAll("%enabler%", multiplierData.getEnablerName())
                     .replaceAll("%server%", multiplierData.getServer())
-                    .replaceAll("%amount%", String.valueOf(multiplierData.getBaseData().getAmount()))
-                    .replaceAll("%minutes%", String.valueOf(multiplierData.getBaseData().getMinutes()))
+                    .replaceAll("%amount%", String.valueOf(multiplierData.getAmount()))
+                    .replaceAll("%minutes%", String.valueOf(multiplierData.getMinutes()))
                     .replaceAll("%id%", String.valueOf(multiplierData.getId()));
         }
         return rep(string);

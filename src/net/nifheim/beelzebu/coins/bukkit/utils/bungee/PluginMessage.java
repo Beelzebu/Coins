@@ -23,14 +23,16 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import net.nifheim.beelzebu.coins.CoinsAPI;
 import net.nifheim.beelzebu.coins.bukkit.Main;
+import net.nifheim.beelzebu.coins.core.CacheManager;
 import net.nifheim.beelzebu.coins.core.Core;
 import net.nifheim.beelzebu.coins.core.executor.Executor;
 import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
-import net.nifheim.beelzebu.coins.core.CacheManager;
+import net.nifheim.beelzebu.coins.core.multiplier.MultiplierType;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -92,9 +94,14 @@ public class PluginMessage implements PluginMessageListener {
                     multiplierData.add(in.readUTF());
                 }
                 Multiplier multiplier = Multiplier.fromJson(in.readUTF());
+                if (multiplier.getType().equals(MultiplierType.GLOBAL)) {
+                    multiplier.setServer(core.getConfig().getServerName().toLowerCase());
+                }
                 if (multiplier.isEnabled() && multiplier.getId() != CoinsAPI.getMultiplier().getId()) {
                     CacheManager.addMultiplier(multiplierData.get(0), multiplier);
                     core.getMethods().callMultiplierEnableEvent(multiplier);
+                } else if (multiplier.isQueue()) {
+                    CacheManager.getQueuedMultipliers().add(multiplier);
                 }
                 break;
             default:
@@ -103,17 +110,7 @@ public class PluginMessage implements PluginMessageListener {
     }
 
     public void sendToBungeeCord(String channel, String message) {
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF(channel);
-        out.writeUTF(message);
-        Player p = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
-        if (p != null) {
-            try {
-                p.sendPluginMessage(Main.getInstance(), "Coins", out.toByteArray());
-            } catch (Exception ex) {
-                core.log("Hey, you need to install the plugin in BungeeCord if you have bungeecord enabled in spigot.yml!");
-            }
-        }
+        sendToBungeeCord(channel, Collections.singletonList(message));
     }
 
     public void sendToBungeeCord(String channel, List<String> messages) {

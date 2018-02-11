@@ -18,25 +18,24 @@
  */
 package net.nifheim.beelzebu.coins.core.multiplier;
 
-import java.util.Collections;
+import com.google.common.collect.Sets;
 import java.util.Set;
 import java.util.UUID;
+import org.apache.commons.lang.Validate;
 
 /**
  *
  * @author Beelzebu
  */
 public final class MultiplierBuilder {
-    
+
     private String server = "";
     private MultiplierType type = MultiplierType.SERVER;
-    private MultiplierData data = new MultiplierData(-1, -1);
+    private MultiplierData data = new MultiplierData(UUID.randomUUID(), "", -1, -1);
     private int id = -1;
-    private String enablerName = null;
-    private UUID enablerUUID = null;
-    private Set<MultiplierData> extradata = Collections.emptySet();
+    private Set<MultiplierData> extradata = Sets.newHashSet();
     private boolean enabled = false;
-    private boolean queue =  false;
+    private boolean queue = false;
 
     private MultiplierBuilder() {
     }
@@ -44,72 +43,80 @@ public final class MultiplierBuilder {
     public static MultiplierBuilder newBuilder() {
         return new MultiplierBuilder();
     }
-    
+
     public MultiplierBuilder setServer(String server) {
         this.server = server;
         return this;
     }
-    
+
     public MultiplierBuilder setType(MultiplierType type) {
         this.type = type;
         return this;
     }
-    
+
     public MultiplierBuilder setData(MultiplierData data) {
         this.data = data;
         return this;
     }
-    
+
     public MultiplierBuilder setID(int id) {
         this.id = id;
         return this;
     }
-    
+
     public MultiplierBuilder setEnablerName(String enablerName) {
-        this.enablerName = enablerName;
+        Validate.notNull(enablerName, "The enabler name can't be null");
+        data.setEnablerName(enablerName);
         return this;
     }
-    
+
     public MultiplierBuilder setEnablerUUID(UUID uuid) {
-        this.enablerUUID = uuid;
+        data.setEnablerUUID(uuid);
         return this;
     }
-    
+
     public MultiplierBuilder setExtraData(Set<MultiplierData> extradata) {
         this.extradata = extradata;
         return this;
     }
-    
+
+    public MultiplierBuilder addExtraData(MultiplierData data) {
+        this.extradata.add(data);
+        return this;
+    }
+
     public MultiplierBuilder setAmount(int amount) {
         data.setAmount(amount);
         return this;
     }
-    
+
     public MultiplierBuilder setMinutes(int minutes) {
         data.setMinutes(minutes);
         return this;
     }
-    
+
     public MultiplierBuilder setEnabled(boolean enabled) {
         this.enabled = enabled;
         return this;
     }
-    
+
     public MultiplierBuilder setQueue(boolean queue) {
         this.queue = queue;
         return this;
     }
-    
+
     public Multiplier build() {
         Multiplier multiplier = new Multiplier(server, data);
-        multiplier.setType(type);
+        if (server == null) {
+            multiplier.setType(MultiplierType.GLOBAL);
+        } else {
+            multiplier.setType(type);
+        }
         multiplier.setId(id);
-        multiplier.setEnablerName(enablerName);
-        multiplier.setEnablerUUID(enablerUUID);
         multiplier.setExtradata(extradata);
         multiplier.setQueue(queue);
         if (enabled) {
-            multiplier.enable(enablerUUID, enablerName, queue);
+            multiplier.enable(data.getEnablerUUID(), data.getEnablerName(), queue);
         }
         return multiplier;
     }

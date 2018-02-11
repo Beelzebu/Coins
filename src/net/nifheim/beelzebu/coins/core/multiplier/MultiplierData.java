@@ -18,6 +18,7 @@
  */
 package net.nifheim.beelzebu.coins.core.multiplier;
 
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,6 +32,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class MultiplierData {
 
+    private UUID enablerUUID;
+    private String enablerName;
     private int amount;
     private int minutes;
 }

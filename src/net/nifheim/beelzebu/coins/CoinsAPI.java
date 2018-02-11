@@ -26,7 +26,6 @@ import net.nifheim.beelzebu.coins.CoinsResponse.CoinsResponseType;
 import net.nifheim.beelzebu.coins.core.CacheManager;
 import net.nifheim.beelzebu.coins.core.Core;
 import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
-import net.nifheim.beelzebu.coins.core.multiplier.MultiplierBuilder;
 import net.nifheim.beelzebu.coins.core.multiplier.MultiplierType;
 
 /**
@@ -69,7 +68,7 @@ public final class CoinsAPI {
      */
     public static String getCoinsString(String name) {
         double coins = getCoins(name.toLowerCase());
-        if (coins > -1 && isindb(name)) {
+        if (coins >= 0) {
             return (DF.format(coins));
         } else {
             return "This player isn't in the database";
@@ -84,7 +83,7 @@ public final class CoinsAPI {
      */
     public static String getCoinsString(UUID uuid) {
         double coins = getCoins(uuid);
-        if (coins > -1 && isindb(uuid)) {
+        if (coins >= 0) {
             return (DF.format(coins));
         } else {
             return "This player isn't in the database";
@@ -105,7 +104,7 @@ public final class CoinsAPI {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + name + " isn't in the database.");
         }
         double finalCoins = coins;
-        if (multiply) {
+        if (multiply && getMultiplier() != null) {
             if (getMultiplier().getType().equals(MultiplierType.PERSONAL) && !getMultiplier().getEnablerUUID().equals(core.getUUID(name, false))) {
             } else {
                 finalCoins *= getMultiplier().getAmount();
@@ -140,7 +139,7 @@ public final class CoinsAPI {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the database.");
         }
         double finalCoins = coins;
-        if (multiply) {
+        if (multiply && getMultiplier() != null) {
             if (getMultiplier().getType().equals(MultiplierType.PERSONAL) && !getMultiplier().getEnablerUUID().equals(uuid)) {
             } else {
                 finalCoins *= getMultiplier().getAmount();
@@ -351,9 +350,6 @@ public final class CoinsAPI {
      * @return The active multiplier for the specified server.
      */
     public static Multiplier getMultiplier(String server) {
-        if (CacheManager.getMultiplier(server) == null) {
-            CacheManager.addMultiplier(server, MultiplierBuilder.newBuilder().setServer(server).build());
-        }
         return CacheManager.getMultiplier(server);
     }
 

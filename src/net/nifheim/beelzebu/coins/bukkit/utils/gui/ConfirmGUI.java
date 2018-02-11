@@ -95,10 +95,10 @@ public class ConfirmGUI extends BaseGUI {
             PotionMeta meta = (PotionMeta) is.getItemMeta();
             meta.setMainEffect(PotionEffectType.FIRE_RESISTANCE);
             meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
-            meta.setDisplayName(rep(core.getString("Multipliers.Menu.Multipliers.Name", p.spigot().getLocale()), multiplier));
+            meta.setDisplayName(core.rep(core.getString("Multipliers.Menu.Multipliers.Name", p.spigot().getLocale()), multiplier));
             List<String> lore = new ArrayList<>();
             core.getMessages(p.spigot().getLocale()).getStringList("Multipliers.Menu.Multipliers.Lore").forEach(line -> {
-                lore.add(rep(line, multiplier));
+                lore.add(core.rep(line, multiplier));
             });
             meta.setLore(lore);
             is.setItemMeta(meta);
@@ -114,15 +114,5 @@ public class ConfirmGUI extends BaseGUI {
                 player.closeInventory();
             });
         }
-    }
-
-    private String rep(String str, Multiplier data) {
-        return core.rep(
-                str
-                        .replaceAll("%amount%", String.valueOf(data.getBaseData().getAmount()))
-                        .replaceAll("%server%", data.getServer())
-                        .replaceAll("%minutes%", String.valueOf(data.getBaseData().getMinutes()))
-                        .replaceAll("%id%", String.valueOf(data.getId()))
-        );
     }
 }

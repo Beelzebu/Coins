@@ -23,7 +23,16 @@ package net.nifheim.beelzebu.coins.core.multiplier;
  * @author Beelzebu
  */
 public enum MultiplierType {
+    /**
+     * Global multipliers can override server and personal.
+     */
     GLOBAL,
+    /**
+     * Server multipliers can override personal multipliers.
+     */
     SERVER,
+    /**
+     * Personal multipliers only affects to enabler
+     */
     PERSONAL;
 }

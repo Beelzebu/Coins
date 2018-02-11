@@ -57,8 +57,10 @@ public class DatabaseUtils {
                         ps.setLong(i, (long) parameter);
                     } else if (parameter instanceof Double) {
                         ps.setDouble(i, (double) parameter);
+                    } else if (parameter instanceof Boolean) {
+                        ps.setBoolean(i, (boolean) parameter);
                     } else {
-                        Core.getInstance().debug("We can't put the object '" + parameter.toString() + "' in the query.");
+                        ps.setString(i, parameter.toString());
                     }
                 }
             }
@@ -74,11 +76,12 @@ public class DatabaseUtils {
     public enum SQLQuery {
         SEARCH_USER_ONLINE("SELECT * FROM `" + prefix + "data` WHERE uuid = ?;"),
         SEARCH_USER_OFFLINE("SELECT * FROM `" + prefix + "data` WHERE nick = ?;"),
-        CREATE_USER("INSERT INTO `" + prefix + "data` (`id`, `uuid`, `nick`, `balance`, `lastlogin`) VALUES (null, ?, ?, ?, ?);"),
-        UPDATE_USER_ONLINE("UPDATE `" + prefix + "data` SET nick = ?, lastlogin = ? WHERE uuid = ?;"),
-        UPDATE_USER_OFFLINE("UPDATE `" + prefix + "data` SET uuid = ?, lastlogin = ? WHERE nick = ?;"),
         UPDATE_COINS_ONLINE("UPDATE `" + prefix + "data` SET balance = ? WHERE uuid = ?;"),
         UPDATE_COINS_OFFLINE("UPDATE `" + prefix + "data` SET balance = ? WHERE nick = ?;"),
+        UPDATE_USER_ONLINE("UPDATE `" + prefix + "data` SET nick = ?, lastlogin = ? WHERE uuid = ?;"),
+        UPDATE_USER_OFFLINE("UPDATE `" + prefix + "data` SET uuid = ?, lastlogin = ? WHERE nick = ?;"),
+        CREATE_USER("INSERT INTO `" + prefix + "data` (`id`, `uuid`, `nick`, `balance`, `lastlogin`) VALUES (null, ?, ?, ?, ?);"),
+        CREATE_MULTIPLIER("INSERT INTO `" + prefix + "multipliers` (`id`, `server`, `uuid`, `type`, `amount`, `minutes`, `endtime`, `queue`, `enabled`) VALUES (null, ?, ?, ?, ?, ?, ?, ?, ?);"),
         SELECT_TOP("SELECT * FROM `" + prefix + "data` ORDER BY balance DESC LIMIT ?;");
 
         private final String name;

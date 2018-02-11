@@ -41,7 +41,6 @@ public class Messages extends MessagesManager {
     public Messages(String lang) {
         super(lang);
         load(new File(Core.getInstance().getDataFolder() + "/messages", "messages" + lang + ".yml"));
-        reload();
     }
 
     @Override
@@ -120,6 +119,7 @@ public class Messages extends MessagesManager {
     }
 
     private net.md_5.bungee.config.Configuration load(File file) {
+        langFile = file;
         try {
             messages = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
         } catch (IOException ex) {

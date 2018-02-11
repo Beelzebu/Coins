@@ -43,7 +43,7 @@ public class MultipliersPlaceholders extends EZPlaceholderHook {
         }
         String[] server = coins.split("_");
         if (coins.startsWith("enabler_")) {
-            String enabler = CoinsAPI.getMultiplier(server[1]).getEnablerName();
+            String enabler = CoinsAPI.getMultiplier(server[1]) != null ? CoinsAPI.getMultiplier(server[1]).getEnablerName() : "";
             if (enabler == null || enabler.equals("")) {
                 return core.getString("Multipliers.Placeholders.Enabler.Anyone", p.spigot().getLocale());
             } else {
@@ -51,7 +51,7 @@ public class MultipliersPlaceholders extends EZPlaceholderHook {
             }
         }
         if (coins.startsWith("amount_")) {
-            return String.valueOf(CoinsAPI.getMultiplier(server[1]).getBaseData().getAmount());
+            return String.valueOf(CoinsAPI.getMultiplier(server[1]) != null ? CoinsAPI.getMultiplier(server[1]).getBaseData().getAmount() : 1);
         }
         if (coins.startsWith("time_")) {
             //return CoinsAPI.getMultiplier(server[1]).getMultiplierTimeFormated();

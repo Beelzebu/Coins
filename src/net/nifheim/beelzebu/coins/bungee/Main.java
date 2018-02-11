@@ -49,12 +49,12 @@ public class Main extends Plugin {
     @Override
     public void onLoad() {
         instance = this;
+        config = new Configuration();
         core.setup(new BungeeMethods());
     }
 
     @Override
     public void onEnable() {
-        config = new Configuration();
         core.start();
         if (ProxyServer.getInstance().getPluginManager().getPlugin("RedisBungee") != null) {
             ProxyServer.getInstance().getPluginManager().registerListener(this, new PubSubMessageListener());

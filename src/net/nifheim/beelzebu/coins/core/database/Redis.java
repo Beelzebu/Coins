@@ -221,14 +221,14 @@ public class Redis implements CoinsDatabase {
         try (Jedis jedis = pool.getResource()) {
             return Integer.parseInt(jedis.get("coins_lastmultiplierid"));
         } catch (NumberFormatException ex) {
-            return 1;
+            return 0;
         }
     }
 
     @Override
     public void createMultiplier(UUID uuid, int amount, int minutes, String server, MultiplierType type) {
         try (Jedis jedis = pool.getResource()) {
-            Multiplier multiplier = MultiplierBuilder.newBuilder().setServer(server != null ? server : "default").setType(server != null ? type : MultiplierType.GLOBAL).setData(new MultiplierData(amount, minutes)).setEnablerUUID(uuid).setEnablerName(core.getNick(uuid, false)).setID(getLastMultiplierID()).setAmount(amount).setMinutes(minutes).build();
+            Multiplier multiplier = MultiplierBuilder.newBuilder().setServer(server != null ? server : "default").setType(server != null ? type : MultiplierType.GLOBAL).setData(new MultiplierData(uuid, core.getNick(uuid, false), amount, minutes)).setID(getLastMultiplierID() + 1).build();
             jedis.hset("coins_multipliers", uuid.toString(), (jedis.hget("coins_multipliers", uuid.toString()) != null ? jedis.hget("coins_multipliers", uuid.toString()) + "," : "") + Integer.toString(multiplier.getId()));
             jedis.set("coins_multiplier:" + multiplier.getId(), multiplier.toString());
             jedis.incr("coins_lastmultiplierid");

@@ -49,17 +49,22 @@ public class CoinsCommand extends Command {
     private final Core core = Core.getInstance();
     private final Main plugin = Main.getInstance();
     private String lang = "";
+    private final String perm;
 
     public CoinsCommand(String command, String desc, String usage, String permission, List<String> aliases) {
         super(command);
         description = desc;
         usageMessage = usage;
-        setPermission(permission);
+	perm = permission;
         setAliases(aliases);
     }
 
     @Override
     public boolean execute(CommandSender sender, String alias, String[] args) {
+        if (!sender.hasPermission(perm)) {
+            sender.sendMessage(core.getString("Errors.No permissions", lang));
+            return true;
+        }
         core.getMethods().runAsync(() -> {
             if (sender instanceof Player) {
                 lang = ((Player) sender).spigot().getLocale().split("_")[0];
@@ -125,6 +130,10 @@ public class CoinsCommand extends Command {
     }
 
     public boolean pay(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("coins.user.pay")) {
+            sender.sendMessage(core.getString("Errors.No permissions", lang));
+            return true;
+        }
         if (args.length < 3 || args[1].equalsIgnoreCase("?")) {
             sender.sendMessage(core.getString("Help.Pay Usage", lang));
             return true;
@@ -163,7 +172,7 @@ public class CoinsCommand extends Command {
     }
 
     public boolean give(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("coins.admin")) {
+        if (!sender.hasPermission("coins.admin") || !sender.hasPermission("coins.admin.give")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return true;
         }
@@ -203,7 +212,7 @@ public class CoinsCommand extends Command {
     }
 
     public boolean take(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("coins.admin")) {
+        if (!sender.hasPermission("coins.admin") || !sender.hasPermission("coins.admin.take")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return true;
         }
@@ -249,7 +258,7 @@ public class CoinsCommand extends Command {
     }
 
     public boolean reset(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("coins.admin")) {
+        if (!sender.hasPermission("coins.admin") || !sender.hasPermission("coins.admin.reset")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return true;
         }
@@ -319,7 +328,7 @@ public class CoinsCommand extends Command {
 
     private boolean multiplier(CommandSender sender, String[] args) {
         // TODO: add a command to get all multipliers for a player and a command to enable any multiplier by the ID.
-        if (sender.hasPermission("coins.admin") && args.length >= 2) {
+        if ((sender.hasPermission("coins.admin") || sender.hasPermission("coins.admin.multiplier")) && args.length >= 2) {
             if (args[1].equalsIgnoreCase("help")) {
                 core.getMessages(lang).getStringList("Help.Multiplier").forEach(line -> {
                     sender.sendMessage(core.rep(line));
@@ -341,31 +350,6 @@ public class CoinsCommand extends Command {
             }
             if (args[1].equalsIgnoreCase("get")) {
                 sender.sendMessage(CoinsAPI.getMultiplier().getMultiplierTimeFormated());
-            }
-            if (args[1].equalsIgnoreCase("set")) {
-                if (args.length >= 5) {
-                    try {
-                        Multiplier multiplier;
-                        if (args.length == 6) {
-                            multiplier = MultiplierBuilder.newBuilder().setAmount(Integer.parseInt(args[2])).setEnablerName(args[3].replaceAll("_", "")).setEnablerUUID(core.getUUID(args[3], false)).setServer(args[5]).setMinutes(Integer.parseInt(args[4])).setEnabled(true).setQueue(false).build();
-                        } else {
-                            multiplier = CoinsAPI.getMultiplier();
-                            MultiplierData multiplierdata = new MultiplierData(Integer.parseInt(args[2]), Integer.parseInt(args[4]));
-                            multiplier.setBaseData(multiplierdata);
-                            multiplier.setType(MultiplierType.SERVER);
-                            multiplier.enable(core.getUUID(args[4], false), args[3].replaceAll("_", ""), false);
-                        }
-                        multiplier.sendMultiplier();
-                        core.getMethods().callMultiplierEnableEvent(multiplier);
-                        core.rep(core.getMessages(lang).getStringList("Multipliers.Set"), multiplier).forEach(msg -> {
-                            sender.sendMessage(msg);
-                        });
-                    } catch (NullPointerException | NumberFormatException ex) {
-                        sender.sendMessage(core.getString("Help.Multiplier Set", lang));
-                    }
-                } else {
-                    sender.sendMessage(core.getString("Help.Multiplier Set", lang));
-                }
             }
             return true;
         }
@@ -472,7 +456,7 @@ public class CoinsCommand extends Command {
     }
 
     private boolean reload(CommandSender sender) {
-        if (sender.hasPermission("coins.admin")) {
+        if (sender.hasPermission("coins.admin.reload")) {
             if (plugin.getConfig().getBoolean("Vault.Use", false)) {
                 new CoinsEconomy(plugin).shutdown();
             }

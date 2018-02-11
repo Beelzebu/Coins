@@ -18,7 +18,9 @@
  */
 package net.nifheim.beelzebu.coins.core.multiplier;
 
+import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +28,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.nifheim.beelzebu.coins.CoinsAPI;
 import net.nifheim.beelzebu.coins.core.CacheManager;
 import net.nifheim.beelzebu.coins.core.Core;
 import org.apache.commons.lang.Validate;
@@ -51,10 +54,8 @@ public final class Multiplier {
     @Getter
     @Setter
     private MultiplierType type;
-    @Getter
     @Setter
     private String enablerName = null;
-    @Getter
     @Setter
     private UUID enablerUUID = null;
     @Getter
@@ -64,7 +65,7 @@ public final class Multiplier {
     private boolean queue = false;
     @Getter
     @Setter
-    public Set<MultiplierData> extradata;
+    private Set<MultiplierData> extradata;
     private long endTime;
 
     public Multiplier(String server, MultiplierData baseData) {
@@ -94,9 +95,15 @@ public final class Multiplier {
         this.queue = queue;
         endTime = System.currentTimeMillis() + baseData.getMinutes() * 60000;
         if (!queue) {
+            if (type.equals(MultiplierType.GLOBAL)) {
+                extradata.add(CoinsAPI.getMultiplier().getBaseData());
+                extradata.addAll(CoinsAPI.getMultiplier().getExtradata());
+            }
+	    if (CacheManager.getMultiplier(server) != null && CacheManager.getMultiplier(server).getId() != id) {
+		CacheManager.removeMultiplier(server);
+	    }
+            CacheManager.addMultiplier(server, this);
             core.getDatabase().enableMultiplier(this);
-            CacheManager.getMultipliersData().invalidate(server);
-            CacheManager.getMultipliersData().put(server, this);
         } else {
             CacheManager.getQueuedMultipliers().add(this);
         }
@@ -108,12 +115,20 @@ public final class Multiplier {
     public void disable() {
         enabled = false;
         CacheManager.getQueuedMultipliers().remove(this);
-        CacheManager.getMultipliersData().invalidate(server);
+        CacheManager.removeMultiplier(server);
         delete();
     }
 
     public long checkMultiplierTime() {
         long endtime = endTime - System.currentTimeMillis();
+        Iterator<MultiplierData> edata = extradata.iterator();
+        while (edata.hasNext()) {
+            MultiplierData data = edata.next();
+            if (data.getMinutes() * 60000 <= endtime) {
+                edata.remove();
+            }
+        }
+        extradata = Sets.newHashSet(edata);
         if (endtime <= 0) {
             disable();
         }
@@ -171,6 +186,14 @@ public final class Multiplier {
         core.getDatabase().deleteMultiplier(this);
     }
 
+    public UUID getEnablerUUID() {
+        return enablerUUID == null ? baseData.getEnablerUUID() : enablerUUID;
+    }
+
+    public String getEnablerName() {
+        return enablerName == null ? baseData.getEnablerName() : enablerName;
+    }
+
     public JsonObject toJson() {
         JsonObject multiplier = new JsonObject();
         multiplier.addProperty("id", getId());
@@ -178,6 +201,7 @@ public final class Multiplier {
         multiplier.addProperty("type", getType().toString());
         multiplier.addProperty("amount", getAmount());
         multiplier.addProperty("minutes", getMinutes());
+        multiplier.addProperty("endtime", endTime);
         multiplier.addProperty("enabler", getEnablerName());
         multiplier.addProperty("enableruuid", getEnablerUUID().toString());
         multiplier.addProperty("enabled", isEnabled());
@@ -190,18 +214,21 @@ public final class Multiplier {
     }
 
     public static Multiplier fromJson(String multiplier) {
+	if (multiplier == null) {
+	    return null;
+	}
         JsonObject mult = Core.getInstance().getGson().fromJson(multiplier, JsonObject.class);
         Multiplier multi = MultiplierBuilder.newBuilder()
                 .setServer(mult.get("server").getAsString())
                 .setType(MultiplierType.valueOf(mult.get("type").getAsString()))
-                .setData(new MultiplierData(mult.get("amount").getAsInt(), mult.get("minutes").getAsInt()))
+                .setData(new MultiplierData(UUID.fromString(mult.get("enableruuid").getAsString()), mult.get("enabler").getAsString(), mult.get("amount").getAsInt(), mult.get("minutes").getAsInt()))
                 .setID(mult.get("id").getAsInt())
                 .setEnablerName(mult.get("enabler").getAsString())
                 .setEnablerUUID(UUID.fromString(mult.get("enableruuid").getAsString()))
                 .setEnabled(mult.get("enabled").getAsBoolean())
                 .setQueue(mult.get("queue").getAsBoolean())
                 .build();
-        CacheManager.addMultiplier(multi.getServer(), multi);
+        multi.endTime = mult.get("endtime").getAsLong();
         return multi;
     }
 

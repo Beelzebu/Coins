@@ -35,6 +35,7 @@ import net.nifheim.beelzebu.coins.CoinsResponse.CoinsResponseType;
 import net.nifheim.beelzebu.coins.core.database.DatabaseUtils.SQLQuery;
 import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 import net.nifheim.beelzebu.coins.core.multiplier.MultiplierBuilder;
+import net.nifheim.beelzebu.coins.core.multiplier.MultiplierData;
 import net.nifheim.beelzebu.coins.core.multiplier.MultiplierType;
 import org.apache.commons.lang.Validate;
 
@@ -99,7 +100,7 @@ public class MySQL implements CoinsDatabase {
                 core.debug("The data table was updated.");
                 st.executeUpdate(Multiplier);
                 core.debug("The multipliers table was updated");
-                if (core.getConfig().get("Database Version") == null || core.getConfig().getInt("Database Version", -1) != 2) {
+                if (core.getConfig().getInt("Database Version", 1) < 2) {
                     try {
                         if (c.prepareStatement("SELECT * FROM " + prefix + "Data;").executeQuery().next() && !c.prepareStatement("SELECT * FROM " + prefix + "data;").executeQuery().next()) {
                             core.log("Seems that your database is outdated, we'll try to update this...");
@@ -139,8 +140,8 @@ public class MySQL implements CoinsDatabase {
     @Override
     public double getCoins(UUID uuid) {
         double coins = -1;
-        try (Connection c = ds.getConnection(); ResultSet res = DatabaseUtils.generatePreparedStatement(c, SQLQuery.SEARCH_USER_OFFLINE, uuid).executeQuery();) {
-            if (CoinsAPI.isindb(uuid) && res.next()) {
+        try (Connection c = ds.getConnection(); ResultSet res = DatabaseUtils.generatePreparedStatement(c, SQLQuery.SEARCH_USER_ONLINE, uuid).executeQuery();) {
+            if (res.next()) {
                 coins = res.getDouble("balance");
             } else if (core.isOnline(uuid)) {
                 coins = core.getConfig().getDouble("General.Starting Coins", 0);
@@ -157,7 +158,7 @@ public class MySQL implements CoinsDatabase {
     public double getCoins(String name) {
         double coins = -1;
         try (Connection c = ds.getConnection(); ResultSet res = DatabaseUtils.generatePreparedStatement(c, SQLQuery.SEARCH_USER_OFFLINE, name).executeQuery();) {
-            if (CoinsAPI.isindb(name) && res.next()) {
+            if (res.next()) {
                 coins = res.getDouble("balance");
             } else if (core.isOnline(name)) {
                 coins = core.getConfig().getDouble("General.Starting Coins", 0);
@@ -175,7 +176,7 @@ public class MySQL implements CoinsDatabase {
         CoinsResponse response;
         try (Connection c = ds.getConnection()) {
             if (CoinsAPI.getCoins(uuid) > -1 || isindb(uuid)) {
-                DatabaseUtils.generatePreparedStatement(c, SQLQuery.UPDATE_USER_ONLINE, uuid, amount);
+                DatabaseUtils.generatePreparedStatement(c, SQLQuery.UPDATE_COINS_ONLINE, amount, uuid);
                 core.updateCache(uuid, amount);
                 response = new CoinsResponse(CoinsResponseType.SUCCESS, "");
             } else {
@@ -193,7 +194,7 @@ public class MySQL implements CoinsDatabase {
     public CoinsResponse setCoins(String name, double amount) {
         CoinsResponse response;
         try (Connection c = ds.getConnection()) {
-            DatabaseUtils.generatePreparedStatement(c, SQLQuery.UPDATE_USER_OFFLINE, name, amount);
+            DatabaseUtils.generatePreparedStatement(c, SQLQuery.UPDATE_COINS_OFFLINE, amount, name);
             response = new CoinsResponse(CoinsResponseType.SUCCESS, "");
         } catch (SQLException ex) {
             response = new CoinsResponse(CoinsResponseType.FAILED, "An exception as ocurred with the database.");
@@ -249,13 +250,10 @@ public class MySQL implements CoinsDatabase {
         try {
             ResultSet res = DatabaseUtils.generatePreparedStatement(c, DatabaseUtils.SQLQuery.SEARCH_USER_ONLINE, uuid).executeQuery();
             try {
-                core.debug("Trying to create or update data.");
-                if (core.getConfig().getBoolean("Online Mode")) {
-                    core.debug("Creating data for player: " + name + " in the database.");
-                    if (!res.next()) {
-                        DatabaseUtils.generatePreparedStatement(c, DatabaseUtils.SQLQuery.CREATE_USER, uuid, name, balance, System.currentTimeMillis()).executeUpdate();
-                        core.debug("An entry in the database was created for: " + name);
-                    }
+                core.debug("Creating data for player: " + name + " in the database.");
+                if (!res.next()) {
+                    DatabaseUtils.generatePreparedStatement(c, DatabaseUtils.SQLQuery.CREATE_USER, uuid, name, balance, System.currentTimeMillis()).executeUpdate();
+                    core.debug("An entry in the database was created for: " + name);
                 }
             } finally {
                 if (res != null) {
@@ -291,6 +289,7 @@ public class MySQL implements CoinsDatabase {
             } else {
                 core.debug("Tried to update a player that isn't in the database.");
             }
+            c.close();
         } catch (SQLException ex) {
             core.log("An internal error has ocurred updating the data for player '" + name + "'");
             core.debug(ex);
@@ -340,9 +339,9 @@ public class MySQL implements CoinsDatabase {
     }
 
     @Override
-    public void createMultiplier(UUID uuid, int multiplier, int minutes, String server, MultiplierType type) {
+    public void createMultiplier(UUID uuid, int amount, int minutes, String server, MultiplierType type) {
         try (Connection c = ds.getConnection()) {
-            c.prepareStatement("INSERT INTO " + prefix + "multipliers VALUES(NULL, '" + uuid + "', " + multiplier + ", -1, " + minutes + ", 0, " + "'" + (server != null ? server : "default") + "'" + ", false);").executeUpdate();
+            DatabaseUtils.generatePreparedStatement(c, SQLQuery.CREATE_MULTIPLIER, server, uuid, type, amount, minutes, 0, false, false).executeUpdate();
         } catch (SQLException ex) {
             core.log("Something was wrong when creating a multiplier for " + core.getNick(uuid, false));
             core.debug(ex);
@@ -372,12 +371,13 @@ public class MySQL implements CoinsDatabase {
     @Override
     public Set<Multiplier> getMultipliers(UUID uuid, boolean server) {
         Set<Multiplier> multipliers = new HashSet<>();
-        try (Connection c = ds.getConnection(); ResultSet res = c.prepareStatement("SELECT * FROM " + prefix + "multipliers WHERE uuid = '" + uuid + "'" + (server ? " AND server = '" + core.getConfig().getString("Multipliers.Server", "default") + "'" : ";")).executeQuery()) {
+        try (Connection c = ds.getConnection(); ResultSet res = c.prepareStatement("SELECT * FROM " + prefix + "multipliers WHERE uuid = '" + uuid + "' AND enabled = false AND queue = false" + (server ? " AND server = '" + core.getConfig().getServerName() + "'" : ";")).executeQuery()) {
             while (res.next()) {
                 multipliers.add(getMultiplier(res.getInt("id")));
             }
         } catch (SQLException ex) {
-
+            core.log("An error has ocurred getting all the multipliers for " + uuid);
+            core.debug(ex);
         }
         return multipliers;
     }
@@ -385,10 +385,14 @@ public class MySQL implements CoinsDatabase {
     @Override
     public Multiplier getMultiplier(int id) {
         try (Connection c = ds.getConnection(); ResultSet res = c.prepareStatement("SELECT * FROM " + prefix + "multipliers WHERE id = " + id + ";").executeQuery()) {
-            return MultiplierBuilder.newBuilder().setID(res.getInt("id")).setType(MultiplierType.valueOf(res.getString("type"))).setServer(res.getString("server")).setAmount(res.getInt("amount")).setMinutes(res.getInt("minutes")).setEnabled(res.getBoolean("enabled")).setQueue(res.getBoolean("queue")).setEnablerUUID(UUID.fromString(res.getString("uuid"))).setEnablerName(core.getNick(UUID.fromString(res.getString("uuid")), false)).build();
+	    if (res.next()) {
+            return MultiplierBuilder.newBuilder().setID(res.getInt("id")).setType(MultiplierType.valueOf(res.getString("type"))).setServer(res.getString("server")).setData(new MultiplierData(UUID.fromString(res.getString("uuid")), core.getNick(UUID.fromString(res.getString("uuid")), false), res.getInt("amount"), res.getInt("minutes"))).setAmount(res.getInt("amount")).setMinutes(res.getInt("minutes")).setEnabled(res.getBoolean("enabled")).setQueue(res.getBoolean("queue")).build();
+	    }
         } catch (SQLException ex) {
-            return null;
+            core.log("An error has ocurred getting the multiplier with the id #" + id + " from the database.");
+            core.debug(ex);
         }
+        return null;
     }
 
     @Override
@@ -403,7 +407,7 @@ public class MySQL implements CoinsDatabase {
             core.debug(ex);
         }
         return data;
-}
+    }
 
     @Override
     public void shutdown() {

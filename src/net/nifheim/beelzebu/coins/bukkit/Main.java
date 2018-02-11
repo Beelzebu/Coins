@@ -18,7 +18,6 @@
  */
 package net.nifheim.beelzebu.coins.bukkit;
 
-import net.nifheim.beelzebu.coins.CoinsAPI;
 import net.nifheim.beelzebu.coins.bukkit.command.CommandManager;
 import net.nifheim.beelzebu.coins.bukkit.listener.CommandListener;
 import net.nifheim.beelzebu.coins.bukkit.listener.GUIListener;
@@ -35,7 +34,6 @@ import net.nifheim.beelzebu.coins.core.Core;
 import net.nifheim.beelzebu.coins.core.database.StorageType;
 import net.nifheim.beelzebu.coins.core.executor.Executor;
 import net.nifheim.beelzebu.coins.core.utils.CoinsConfig;
-import net.nifheim.beelzebu.coins.core.utils.MessagingService;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -54,12 +52,6 @@ public class Main extends JavaPlugin {
     public void onLoad() {
         instance = this;
         configuration = new Configuration(this);
-        try {
-            configuration.setMessagingService(MessagingService.valueOf(configuration.getString("Messaging Service", "BUNGEECORD").toUpperCase()));
-        } catch (Exception ex) {
-            core.log("We don't know the messaging service \"" + configuration.getString("Messaging Service") + "\"");
-            configuration.setMessagingService(MessagingService.BUNGEECORD);
-        }
         core.setup(new BukkitMethods());
         if (getConfig().getBoolean("Vault.Use", false)) {
             if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
@@ -132,11 +124,6 @@ public class Main extends JavaPlugin {
                 pmsg.sendToBungeeCord("Coins", "getExecutors");
             }, 20);
         }
-        Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
-            Bukkit.getOnlinePlayers().forEach((p) -> {
-                CoinsAPI.createPlayer(p.getName(), p.getUniqueId());
-            });
-        }, 30);
     }
 
     public CoinsConfig getConfiguration() {

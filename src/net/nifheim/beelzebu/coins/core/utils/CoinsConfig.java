@@ -21,8 +21,6 @@ package net.nifheim.beelzebu.coins.core.utils;
 
 import java.util.Collections;
 import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
 import net.nifheim.beelzebu.coins.core.Core;
 import net.nifheim.beelzebu.coins.core.database.StorageType;
 import net.nifheim.beelzebu.coins.core.interfaces.IConfiguration;
@@ -34,16 +32,15 @@ import org.bukkit.Bukkit;
  */
 public abstract class CoinsConfig implements IConfiguration {
 
-    @Getter
-    @Setter
-    private MessagingService messagingService;
-
     // #EasterEgg
     public boolean vaultMultipliers() {
         return getBoolean("Vault.Use Multipliers", false);
     }
 
     public boolean useBungee() {
+        if (Core.getInstance().isBungee()) {
+            return true;
+        }
         try {
             return Bukkit.spigot().getConfig().getBoolean("settings.bungeecord") && !Core.getInstance().getStorageType().equals(StorageType.REDIS);
         } catch (Exception ex) {
@@ -61,5 +58,13 @@ public abstract class CoinsConfig implements IConfiguration {
 
     public String getCommand() {
         return getString("General.Command.Name", "coins");
+    }
+
+    public String getServerName() {
+        return getString("Multipliers.Server", "default");
+    }
+
+    public MessagingService getMessagingService() {
+        return MessagingService.valueOf(getString("Messaging Service", "NONE").toUpperCase());
     }
 }
