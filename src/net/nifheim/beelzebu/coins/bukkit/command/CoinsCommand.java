@@ -190,7 +190,7 @@ public class CoinsCommand extends Command {
             if (core.isOnline(core.getUUID(args[1], false)) && args.length == 4 && args[3].equalsIgnoreCase("true")) {
                 multiply = true;
                 Player target = Bukkit.getPlayer(args[1]);
-                int amount = CoinsAPI.getMultiplier().getBaseData().getAmount();
+                int amount = CoinsAPI.getMultiplier() != null ? CoinsAPI.getMultiplier().getBaseData().getAmount() : 1;
                 if (amount > 1) {
                     multiplier = core.getString("Multipliers.Format", target.spigot().getLocale()).replaceAll("%multiplier%", String.valueOf(amount)).replaceAll("%enabler%", CoinsAPI.getMultiplier().getEnablerName());
                 }
