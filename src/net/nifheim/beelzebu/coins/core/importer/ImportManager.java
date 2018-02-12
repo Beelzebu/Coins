@@ -137,7 +137,7 @@ public class ImportManager {
                         Logger.getLogger(ImportManager.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-                core.log("The migration has completed, check the plugin logs for more information.");
+                core.log("The migration was completed, check the plugin logs for more information.");
                 break;
             default:
                 break;
@@ -170,7 +170,7 @@ public class ImportManager {
                             core.debug(ex);
                         }
                     });
-                    core.log("The migration has completed, check the plugin logs for more information.");
+                    core.log("The migration was completed, check the plugin logs for more information.");
                 } else {
                     core.log("There are no users to migrate in the database.");
                 }
@@ -200,7 +200,7 @@ public class ImportManager {
                             core.debug(ex);
                         }
                     });
-                    core.log("The migration has completed, check the plugin logs for more information.");
+                    core.log("The migration was completed, check the plugin logs for more information.");
                 } else {
                     core.log("There are no users to migrate in the database.");
                 }
@@ -230,7 +230,7 @@ public class ImportManager {
                             core.debug(ex);
                         }
                     });
-                    core.log("The migration has completed, check the plugin logs for more information.");
+                    core.log("The migration was completed, check the plugin logs for more information.");
                 } else {
                     core.log("There are no users to migrate in the database.");
                 }

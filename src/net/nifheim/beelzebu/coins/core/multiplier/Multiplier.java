@@ -20,6 +20,7 @@ package net.nifheim.beelzebu.coins.core.multiplier;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
@@ -100,7 +101,21 @@ public final class Multiplier {
                 extradata.addAll(CoinsAPI.getMultiplier().getExtradata());
             }
             if (CacheManager.getMultiplier(server) != null && CacheManager.getMultiplier(server).getId() != id) {
-                CacheManager.removeMultiplier(server);
+                switch (CacheManager.getMultiplier(server).getType()) {
+                    case GLOBAL:
+                        CacheManager.getMultiplier(server).addExtraData(baseData);
+                        CacheManager.getMultiplier(server).addExtraData(extradata);
+                        break;
+                    case SERVER:
+                        CacheManager.removeMultiplier(server);
+                        break;
+                    case PERSONAL:
+                        extradata.add(CacheManager.getMultiplier(server).getBaseData());
+                        extradata.addAll(CacheManager.getMultiplier(server).getExtradata());
+                        break;
+                    default:
+                        break;
+                }
             }
             CacheManager.addMultiplier(server, this);
             core.getDatabase().enableMultiplier(this);
@@ -142,6 +157,10 @@ public final class Multiplier {
 
     public void addExtraData(MultiplierData data) {
         extradata.add(data);
+    }
+
+    public void addExtraData(Collection<MultiplierData> data) {
+        extradata.addAll(data);
     }
 
     public int getAmount() {

@@ -386,7 +386,7 @@ public class MySQL implements CoinsDatabase {
     public Multiplier getMultiplier(int id) {
         try (Connection c = ds.getConnection(); ResultSet res = c.prepareStatement("SELECT * FROM " + prefix + "multipliers WHERE id = " + id + ";").executeQuery()) {
             if (res.next()) {
-                return MultiplierBuilder.newBuilder().setID(res.getInt("id")).setType(MultiplierType.valueOf(res.getString("type"))).setServer(res.getString("server")).setData(new MultiplierData(UUID.fromString(res.getString("uuid")), core.getNick(UUID.fromString(res.getString("uuid")), false), res.getInt("amount"), res.getInt("minutes"))).setAmount(res.getInt("amount")).setMinutes(res.getInt("minutes")).setEnabled(res.getBoolean("enabled")).setQueue(res.getBoolean("queue")).build();
+                return MultiplierBuilder.newBuilder().setID(res.getInt("id")).setType(MultiplierType.valueOf(res.getString("type"))).setServer(res.getString("server")).setData(new MultiplierData(UUID.fromString(res.getString("uuid")), core.getNick(UUID.fromString(res.getString("uuid")), false), res.getInt("amount"), res.getInt("minutes"))).setEnabled(res.getBoolean("enabled")).setQueue(res.getBoolean("queue")).build();
             }
         } catch (SQLException ex) {
             core.log("An error has ocurred getting the multiplier with the id #" + id + " from the database.");

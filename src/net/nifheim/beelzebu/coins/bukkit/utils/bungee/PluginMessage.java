@@ -89,13 +89,14 @@ public class PluginMessage implements PluginMessageListener {
                 }
                 break;
             case "Multiplier":
-                Multiplier multiplier = Multiplier.fromJson(in.readUTF());
+                String multdata = in.readUTF();
+                core.debug(multdata);
+                Multiplier multiplier = Multiplier.fromJson(multdata);
                 if (multiplier.getType().equals(MultiplierType.GLOBAL)) {
                     multiplier.setServer(core.getConfig().getServerName().toLowerCase());
                 }
-                if (multiplier.isEnabled() && multiplier.getId() != CoinsAPI.getMultiplier().getId()) {
+                if (multiplier.getId() != CoinsAPI.getMultiplier().getId()) {
                     CacheManager.addMultiplier(multiplier.getServer(), multiplier);
-                    core.getMethods().callMultiplierEnableEvent(multiplier);
                 } else if (multiplier.isQueue()) {
                     CacheManager.getQueuedMultipliers().add(multiplier);
                 }

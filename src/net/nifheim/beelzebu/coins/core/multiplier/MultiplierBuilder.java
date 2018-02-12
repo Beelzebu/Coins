@@ -115,6 +115,8 @@ public final class MultiplierBuilder {
         multiplier.setId(id);
         multiplier.setExtradata(extradata);
         multiplier.setQueue(queue);
+	multiplier.setEnablerName(data.getEnablerName());
+	multiplier.setEnablerUUID(data.getEnablerUUID());
         if (enabled) {
             multiplier.enable(data.getEnablerUUID(), data.getEnablerName(), queue);
         }

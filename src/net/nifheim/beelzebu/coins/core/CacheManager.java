@@ -33,7 +33,9 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.Getter;
 import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
+import net.nifheim.beelzebu.coins.core.utils.MessagingService;
 import org.apache.commons.io.FileUtils;
+import redis.clients.jedis.Jedis;
 
 /**
  *
@@ -58,6 +60,7 @@ public class CacheManager {
         public Multiplier load(String key) {
             for (Multiplier mult : queuedMultipliers) {
                 if (mult.getServer().equals(key)) {
+                    callEnable(mult);
                     mult.enable(mult.getEnablerUUID(), mult.getEnablerName(), false);
                     return mult;
                 }
@@ -94,6 +97,7 @@ public class CacheManager {
                 String line = lines.next();
                 Multiplier mult = Multiplier.fromJson(line);
                 if (mult.getId() != multiplier.getId()) {
+                    callEnable(multiplier);
                     try {
                         FileUtils.writeLines(multipliersdata, Collections.singletonList(multiplier.toJson().toString()), true);
                     } catch (IOException ex) {
@@ -131,5 +135,15 @@ public class CacheManager {
             multiplier.checkMultiplierTime();
         }
         return multiplier;
+    }
+
+    private static void callEnable(Multiplier multiplier) {
+        if (core.getConfig().getMessagingService() != MessagingService.REDIS) {
+            core.getMethods().callMultiplierEnableEvent(multiplier);
+        } else {
+            try (Jedis jedis = core.getRedis().getPool().getResource()) {
+                jedis.publish("coins", "{\"event\":\"MultiplierEnableEvent\",\"multiplier\":\"" + multiplier.toJson().toString() + "\"}");
+            }
+        }
     }
 }

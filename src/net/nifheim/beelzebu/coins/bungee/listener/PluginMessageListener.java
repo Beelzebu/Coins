@@ -104,13 +104,10 @@ public class PluginMessageListener extends CoinsBungeeListener implements Listen
                         RedisBungee.getApi().sendChannelMessage("Multiplier", input);
                     } else { // just upadte this
                         CacheManager.addMultiplier(multiplier.getServer(), multiplier);
-                        if (multiplier.isEnabled()) {
-                            core.getMethods().callMultiplierEnableEvent(multiplier);
-                        }
+                        ProxyServer.getInstance().getServers().keySet().forEach(server -> {
+                            sendToBukkit("Multiplier", Collections.singletonList(multiplier.toJson().toString()), ProxyServer.getInstance().getServerInfo(server), false);
+                        });
                     }
-                    ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                        sendToBukkit("Multiplier", Collections.singletonList(multiplier.toJson().toString()), ProxyServer.getInstance().getServerInfo(server), false);
-                    });
                 }
                 break;
             default:

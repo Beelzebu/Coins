@@ -367,6 +367,9 @@ public class Redis implements CoinsDatabase {
                     break;
                 case "coins-multiplier":
                     Multiplier multiplier = Multiplier.fromJson(message);
+                    if (multiplier.getType().equals(MultiplierType.GLOBAL)) {
+                        multiplier.setServer(core.getConfig().getServerName());
+                    }
                     CacheManager.addMultiplier(multiplier.getServer(), multiplier);
                     break;
                 case "coins-multiplier-disable":

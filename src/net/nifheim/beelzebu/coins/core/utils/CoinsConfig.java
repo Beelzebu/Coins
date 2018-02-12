@@ -31,6 +31,8 @@ import org.bukkit.Bukkit;
  * @author Beelzebu
  */
 public abstract class CoinsConfig implements IConfiguration {
+    
+    private final Core core = Core.getInstance();
 
     // #EasterEgg
     public boolean vaultMultipliers() {
@@ -38,11 +40,11 @@ public abstract class CoinsConfig implements IConfiguration {
     }
 
     public boolean useBungee() {
-        if (Core.getInstance().isBungee()) {
+        if (core.isBungee()) {
             return true;
         }
         try {
-            return Bukkit.spigot().getConfig().getBoolean("settings.bungeecord") && !Core.getInstance().getStorageType().equals(StorageType.REDIS);
+            return Bukkit.spigot().getConfig().getBoolean("settings.bungeecord") && !core.getStorageType().equals(StorageType.REDIS);
         } catch (Exception ex) {
             return false;
         }
@@ -65,6 +67,9 @@ public abstract class CoinsConfig implements IConfiguration {
     }
 
     public MessagingService getMessagingService() {
+        if (core.getStorageType().equals(StorageType.REDIS)) {
+            return MessagingService.REDIS;
+        }
         return MessagingService.valueOf(getString("Messaging Service", "NONE").toUpperCase());
     }
 }

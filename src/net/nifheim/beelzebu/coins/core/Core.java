@@ -71,6 +71,7 @@ public class Core {
     @Getter
     private FileManager fileUpdater;
     private CoinsDatabase db;
+    @Getter
     private Redis redis;
     @Getter
     private StorageType storageType;
@@ -124,7 +125,7 @@ public class Core {
             while (lines.hasNext()) {
                 try {
                     Multiplier multiplier = Multiplier.fromJson(lines.next());
-                    CacheManager.addMultiplier(multiplier.getServer(), multiplier);
+                    CacheManager.getMultipliersData().put(multiplier.getServer().toLowerCase(), multiplier);
                 } catch (Exception ignore) { // Invalid line
                 }
             }
@@ -385,7 +386,6 @@ public class Core {
                 jedis.publish("coins-multiplier", multiplier.toJson().toString());
             }
         } else if (getConfig().getMessagingService().equals(MessagingService.BUNGEECORD)) {
-            CacheManager.addMultiplier(multiplier.getServer(), multiplier);
             if (isBungee()) {
                 ProxyServer.getInstance().getServers().keySet().forEach(server -> {
                     PluginMessageListener pml = new PluginMessageListener();
