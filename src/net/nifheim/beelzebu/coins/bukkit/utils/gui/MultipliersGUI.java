@@ -51,9 +51,9 @@ public class MultipliersGUI extends BaseGUI {
         if (p == null) {
             return;
         }
-        if (CoinsAPI.getMultipliersFor(p.getUniqueId(), true).size() > 0) {
+        if (CoinsAPI.getMultipliersFor(p.getUniqueId(), false).size() > 0) {
             int pos = -1;
-            for (Multiplier multiplier : CoinsAPI.getMultipliersFor(p.getUniqueId(), true)) {
+            for (Multiplier multiplier : CoinsAPI.getMultipliersFor(p.getUniqueId(), false)) {
                 pos++;
                 ItemStack item = new ItemStack(Material.POTION);
                 PotionMeta meta = (PotionMeta) item.getItemMeta();
