@@ -76,6 +76,9 @@ public class DependencyManager {
         if (classExists("org.apache.commons.io.FileUtils")) {
             dependencies.remove(Dependency.COMMONS_IO);
         }
+        if (classExists("org.apache.commons.lang.Validate")) {
+            dependencies.remove(Dependency.COMMONS_LANG);
+        }
         if (!core.getStorageType().equals(StorageType.REDIS)) {
             dependencies.remove(Dependency.COMMONS_POOL);
             dependencies.remove(Dependency.JEDIS);
