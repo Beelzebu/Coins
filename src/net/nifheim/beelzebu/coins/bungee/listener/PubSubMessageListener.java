@@ -54,7 +54,7 @@ public class PubSubMessageListener extends CoinsBungeeListener implements Listen
                     CacheManager.getMultiplier(e.getMessage().split(" ")[1]).disable();
                 } else {
                     Multiplier multiplier = Multiplier.fromJson(e.getMessage());
-                    CacheManager.addMultiplier(multiplier.getEnablerName(), multiplier);
+                    CacheManager.addMultiplier(multiplier.getServer(), multiplier);
                     if (multiplier.isEnabled()) {
                         core.getMethods().callMultiplierEnableEvent(multiplier);
                     }

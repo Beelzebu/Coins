@@ -86,6 +86,9 @@ public class CacheManager {
         multiplier.setServer(multiplier.getServer().toLowerCase());
         multipliersData.put(server, multiplier);
         try {
+            if (!multipliersdata.exists()) {
+                multipliersdata.createNewFile();
+            }
             Iterator<String> lines = FileUtils.readLines(multipliersdata, Charsets.UTF_8).iterator();
             while (lines.hasNext()) {
                 String line = lines.next();

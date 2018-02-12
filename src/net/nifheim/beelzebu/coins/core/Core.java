@@ -123,8 +123,8 @@ public class Core {
             Iterator<String> lines = FileUtils.readLines(new File(getDataFolder(), "multipliers.json"), Charsets.UTF_8).iterator();
             while (lines.hasNext()) {
                 try {
-                Multiplier multiplier = Multiplier.fromJson(lines.next());
-                CacheManager.addMultiplier(multiplier.getServer(), multiplier);
+                    Multiplier multiplier = Multiplier.fromJson(lines.next());
+                    CacheManager.addMultiplier(multiplier.getServer(), multiplier);
                 } catch (Exception ignore) { // Invalid line
                 }
             }
@@ -389,11 +389,11 @@ public class Core {
             if (isBungee()) {
                 ProxyServer.getInstance().getServers().keySet().forEach(server -> {
                     PluginMessageListener pml = new PluginMessageListener();
-                    pml.sendToBukkit("Multiplier", Collections.singletonList(multiplier.toString()), ProxyServer.getInstance().getServerInfo(server), false);
+                    pml.sendToBukkit("Multiplier", Collections.singletonList(multiplier.toJson().toString()), ProxyServer.getInstance().getServerInfo(server), false);
                 });
             } else if (getConfig().useBungee()) {
                 PluginMessage pm = new PluginMessage();
-                pm.sendToBungeeCord("Multiplier", multiplier.toString());
+                pm.sendToBungeeCord("Multiplier", multiplier.toJson().toString());
             }
         }
     }

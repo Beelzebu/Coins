@@ -99,11 +99,12 @@ public final class Multiplier {
                 extradata.add(CoinsAPI.getMultiplier().getBaseData());
                 extradata.addAll(CoinsAPI.getMultiplier().getExtradata());
             }
-	    if (CacheManager.getMultiplier(server) != null && CacheManager.getMultiplier(server).getId() != id) {
-		CacheManager.removeMultiplier(server);
-	    }
+            if (CacheManager.getMultiplier(server) != null && CacheManager.getMultiplier(server).getId() != id) {
+                CacheManager.removeMultiplier(server);
+            }
             CacheManager.addMultiplier(server, this);
             core.getDatabase().enableMultiplier(this);
+            sendMultiplier();
         } else {
             CacheManager.getQueuedMultipliers().add(this);
         }
@@ -214,9 +215,9 @@ public final class Multiplier {
     }
 
     public static Multiplier fromJson(String multiplier) {
-	if (multiplier == null) {
-	    return null;
-	}
+        if (multiplier == null) {
+            return null;
+        }
         JsonObject mult = Core.getInstance().getGson().fromJson(multiplier, JsonObject.class);
         Multiplier multi = MultiplierBuilder.newBuilder()
                 .setServer(mult.get("server").getAsString())

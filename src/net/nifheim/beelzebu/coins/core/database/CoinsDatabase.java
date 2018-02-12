@@ -44,32 +44,32 @@ public interface CoinsDatabase {
     CoinsResponse setCoins(UUID uuid, double amount);
 
     CoinsResponse setCoins(String name, double amount);
-    
+
     boolean isindb(UUID uuid);
-    
+
     boolean isindb(String name);
 
     void createPlayer(UUID uuid, String name, double balance);
-    
+
     void updatePlayer(UUID uuid, String name);
-    
+
     Map<String, Double> getTopPlayers(int top);
-    
+
     String getNick(UUID uuid);
-    
+
     UUID getUUID(String name);
-    
+
     void createMultiplier(UUID uuid, int amount, int minutes, String server, MultiplierType type);
-    
+
     void deleteMultiplier(Multiplier multiplier);
-    
+
     void enableMultiplier(Multiplier multiplier);
-    
+
     Set<Multiplier> getMultipliers(UUID uuid, boolean server);
-    
+
     Multiplier getMultiplier(int id);
-    
+
     Map<String, Double> getAllPlayers();
-    
+
     void shutdown();
 }

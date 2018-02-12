@@ -59,7 +59,8 @@ public class ConfirmGUI extends BaseGUI {
             meta.setDisplayName(core.getString("Multipliers.Menu.Confirm.Accept", p.spigot().getLocale()));
             is.setItemMeta(meta);
             setItem(2, is, player -> {
-                if (CoinsAPI.useMultiplier(multiplier)) {
+                if (CoinsAPI.getMultiplier() == null) {
+                    multiplier.enable(player.getUniqueId(), player.getName(), false);
                     try {
                         player.playSound(player.getLocation(), Sound.valueOf(core.getConfig().getString("Multipliers.GUI.Use.Sound")), 10, 2);
                     } catch (IllegalStateException ex) {
@@ -73,6 +74,7 @@ public class ConfirmGUI extends BaseGUI {
                                 + "If need more help, please open an issue in https://github.com/Beelzebu/Coins/issues");
                     }
                 } else {
+                    multiplier.enable(player.getUniqueId(), player.getName(), true);
                     try {
                         player.playSound(player.getLocation(), Sound.valueOf(core.getConfig().getString("Multipliers.GUI.Use.Fail.Sound")), 10, 1);
                     } catch (IllegalStateException ex) {

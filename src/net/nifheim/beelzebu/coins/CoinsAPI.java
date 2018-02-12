@@ -379,18 +379,6 @@ public final class CoinsAPI {
     }
 
     /**
-     * Enable a multiplier.
-     *
-     * @param multiplier The multiplier to enable.
-     * @return <i>true</i> if the multiplier was enabled successfully or
-     * <i>false</i> otherwise.
-     */
-    public static boolean useMultiplier(Multiplier multiplier) {
-        core.getDatabase().enableMultiplier(multiplier);
-        return true;
-    }
-
-    /**
      * Get all the multipliers for a Player.
      *
      * @param uuid The UUID of the player.

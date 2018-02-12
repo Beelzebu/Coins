@@ -109,7 +109,7 @@ public class PluginMessageListener extends CoinsBungeeListener implements Listen
                         }
                     }
                     ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                        sendToBukkit("Multiplier", Collections.singletonList(multiplier.toString()), ProxyServer.getInstance().getServerInfo(server), false);
+                        sendToBukkit("Multiplier", Collections.singletonList(multiplier.toJson().toString()), ProxyServer.getInstance().getServerInfo(server), false);
                     });
                 }
                 break;

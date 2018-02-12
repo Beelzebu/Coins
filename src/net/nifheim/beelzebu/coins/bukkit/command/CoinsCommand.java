@@ -31,9 +31,6 @@ import net.nifheim.beelzebu.coins.core.Core;
 import net.nifheim.beelzebu.coins.core.database.StorageType;
 import net.nifheim.beelzebu.coins.core.executor.Executor;
 import net.nifheim.beelzebu.coins.core.importer.ImportManager;
-import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
-import net.nifheim.beelzebu.coins.core.multiplier.MultiplierBuilder;
-import net.nifheim.beelzebu.coins.core.multiplier.MultiplierData;
 import net.nifheim.beelzebu.coins.core.multiplier.MultiplierType;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -55,7 +52,7 @@ public class CoinsCommand extends Command {
         super(command);
         description = desc;
         usageMessage = usage;
-	perm = permission;
+        perm = permission;
         setAliases(aliases);
     }
 

@@ -230,7 +230,7 @@ public class Redis implements CoinsDatabase {
         try (Jedis jedis = pool.getResource()) {
             Multiplier multiplier = MultiplierBuilder.newBuilder().setServer(server != null ? server : "default").setType(server != null ? type : MultiplierType.GLOBAL).setData(new MultiplierData(uuid, core.getNick(uuid, false), amount, minutes)).setID(getLastMultiplierID() + 1).build();
             jedis.hset("coins_multipliers", uuid.toString(), (jedis.hget("coins_multipliers", uuid.toString()) != null ? jedis.hget("coins_multipliers", uuid.toString()) + "," : "") + Integer.toString(multiplier.getId()));
-            jedis.set("coins_multiplier:" + multiplier.getId(), multiplier.toString());
+            jedis.set("coins_multiplier:" + multiplier.getId(), multiplier.toJson().toString());
             jedis.incr("coins_lastmultiplierid");
         }
     }
@@ -245,7 +245,7 @@ public class Redis implements CoinsDatabase {
             }
             jedis.hset("coins_multipliers", multiplier.getEnablerUUID().toString(), multipliers);
             jedis.del("coins_multiplier:" + multiplier.getId());
-            jedis.publish("coins-multiplier-disable", multiplier.toString());
+            jedis.publish("coins-multiplier-disable", multiplier.toJson().toString());
         } catch (Exception ex) {
             core.log("An error has ocurred deleting the multiplier #" + multiplier.getId());
             core.debug(ex.getMessage());
@@ -255,8 +255,8 @@ public class Redis implements CoinsDatabase {
     @Override
     public void enableMultiplier(Multiplier multiplier) {
         try (Jedis jedis = pool.getResource()) {
-            jedis.set("coins_multiplier:" + multiplier.getId(), multiplier.toString());
-            jedis.publish("coins-multiplier", multiplier.toString());
+            jedis.set("coins_multiplier:" + multiplier.getId(), multiplier.toJson().toString());
+            jedis.publish("coins-multiplier", multiplier.toJson().toString());
             jedis.publish("coins-event", "{\"event\":\"MultiplierEnableEvent\",\"multiplier\":\"" + multiplier.toJson() + "\"}");
         } catch (Exception ex) {
             core.log("An error has ocurred enabling the multiplier #" + multiplier.getId());

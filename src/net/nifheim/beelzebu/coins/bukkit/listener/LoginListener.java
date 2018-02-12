@@ -35,10 +35,10 @@ import org.bukkit.event.player.PlayerQuitEvent;
  * @author Beelzebu
  */
 public class LoginListener implements Listener {
-    
+
     private final Core core = Core.getInstance();
     private static boolean first = true;
-    
+
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent e) {
         if (core.getConfig().getBoolean("General.Create Join", false)) {
@@ -56,7 +56,7 @@ public class LoginListener implements Listener {
             first = false;
         }
     }
-    
+
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent e) {
         if (core.getConfig().useBungee()) {

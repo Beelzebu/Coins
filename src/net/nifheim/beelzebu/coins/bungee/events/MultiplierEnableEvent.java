@@ -27,6 +27,7 @@ import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
  * @author Beelzebu
  */
 public class MultiplierEnableEvent extends Event {
+
     private final Multiplier data;
 
     public MultiplierEnableEvent(Multiplier multiplier) {
