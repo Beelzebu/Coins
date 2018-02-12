@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -137,6 +138,14 @@ public class Core {
             } else {
                 redis = new Redis();
                 redis.setup();
+            }
+        }
+        if (storageType.equals(StorageType.SQLITE) && getConfig().getInt("Database Version", 1) < 2) {
+            try {
+                Files.move(new File(getDataFolder(), "database.db").toPath(), new File(getDataFolder(), "database.old.db").toPath());
+            } catch (IOException ex) {
+                log("An error has ocurred moving the old database");
+                debug(ex.getMessage());
             }
         }
         getDatabase().setup();
