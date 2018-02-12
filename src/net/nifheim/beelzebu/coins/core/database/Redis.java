@@ -270,9 +270,12 @@ public class Redis implements CoinsDatabase {
         try (Jedis jedis = pool.getResource()) {
             String multiplier = jedis.hget("coins_multipliers", uuid.toString()) != null ? jedis.hget("coins_multipliers", uuid.toString()) : "";
             String[] multiplier_ids = multiplier.split(",");
-            if (multiplier_ids.length > 0) {
-                for (int i = 0; i < multiplier_ids.length; i++) {
-                    multipliers.add(getMultiplier(i));
+            for (String id : multiplier_ids) {
+                Multiplier mult = getMultiplier(Integer.parseInt(id));
+                if (server && mult.getServer().equals(core.getConfig().getServerName().toLowerCase())) {
+                    multipliers.add(mult);
+                } else {
+                    multipliers.add(mult);
                 }
             }
         }
