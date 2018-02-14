@@ -124,7 +124,7 @@ public class Core {
             Iterator<String> lines = FileUtils.readLines(new File(getDataFolder(), "multipliers.json"), Charsets.UTF_8).iterator();
             while (lines.hasNext()) {
                 try {
-                    Multiplier multiplier = Multiplier.fromJson(lines.next());
+                    Multiplier multiplier = Multiplier.fromJson(lines.next(), false);
                     CacheManager.getMultipliersData().put(multiplier.getServer().toLowerCase(), multiplier);
                 } catch (Exception ignore) { // Invalid line
                 }
@@ -158,13 +158,13 @@ public class Core {
         mi.sendMessage(mi.getConsole(), rep("&6-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"));
         mi.sendMessage(mi.getConsole(), rep("           &4Coins &fBy:  &7Beelzebu"));
         mi.sendMessage(mi.getConsole(), rep(""));
-        String version = "";
+        StringBuilder version = new StringBuilder();
         int spaces = (42 - ("v: " + mi.getVersion()).length()) / 2;
         for (int i = 0; i < spaces; i++) {
-            version += " ";
+            version.append(" ");
         }
-        version += rep("&4v: &f" + mi.getVersion());
-        mi.sendMessage(mi.getConsole(), version);
+        version.append(rep("&4v: &f" + mi.getVersion()));
+        mi.sendMessage(mi.getConsole(), version.toString());
         mi.sendMessage(mi.getConsole(), rep("&6-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"));
         mi.sendMessage(mi.getConsole(), rep(""));
         // Only send this in the onEnable
@@ -173,6 +173,7 @@ public class Core {
                 log("Debug mode is enabled.");
             }
             log("Using " + storageType + " for storage.");
+            log("Using " + getConfig().getMessagingService() + " as messaging service.");
         }
     }
 
@@ -282,32 +283,27 @@ public class Core {
         return message.replaceAll("&", "§");
     }
 
-    public String rep(String msg, Multiplier multiplierData) {
+    public String rep(String msg, Multiplier multiplier) {
         String string = msg;
-        if (multiplierData != null) {
-            string = msg
-                    .replaceAll("%enabler%", multiplierData.getEnablerName())
-                    .replaceAll("%server%", multiplierData.getServer())
-                    .replaceAll("%amount%", String.valueOf(multiplierData.getAmount()))
-                    .replaceAll("%minutes%", String.valueOf(multiplierData.getMinutes()))
-                    .replaceAll("%id%", String.valueOf(multiplierData.getId()));
+        if (multiplier != null) {
+            string = msg.replaceAll("%enabler%", multiplier.getEnablerName())
+                    .replaceAll("%server%", multiplier.getServer())
+                    .replaceAll("%amount%", String.valueOf(multiplier.getAmount()))
+                    .replaceAll("%minutes%", String.valueOf(multiplier.getMinutes()))
+                    .replaceAll("%id%", String.valueOf(multiplier.getId()));
         }
         return rep(string);
     }
 
     public List<String> rep(List<String> msgs) {
         List<String> message = new ArrayList<>();
-        msgs.forEach(msg -> {
-            message.add(rep(msg));
-        });
+        msgs.forEach(msg -> message.add(rep(msg)));
         return message;
     }
 
     public List<String> rep(List<String> msgs, Multiplier multiplierData) {
         List<String> message = new ArrayList<>();
-        msgs.forEach(msg -> {
-            message.add(rep(msg, multiplierData));
-        });
+        msgs.forEach(msg -> message.add(rep(msg, multiplierData)));
         return message;
     }
 
@@ -362,7 +358,7 @@ public class Core {
 
     public void updateCache(UUID uuid, double amount) {
         Validate.notNull(uuid, "The uuid can't be null");
-        if (storageType.equals(StorageType.REDIS) || getConfig().getMessagingService().equals(MessagingService.REDIS)) { // Update using redis pub/sub
+        if (getConfig().getMessagingService().equals(MessagingService.REDIS)) { // Update using redis pub/sub
             try (Jedis jedis = redis.getPool().getResource()) {
                 jedis.publish("coins-data-update", uuid + " " + amount);
             }
@@ -381,7 +377,7 @@ public class Core {
     }
 
     public void updateMultiplier(Multiplier multiplier) {
-        if (storageType.equals(StorageType.REDIS) || getConfig().getMessagingService().equals(MessagingService.REDIS)) { // Update using redis pub/sub
+        if (getConfig().getMessagingService().equals(MessagingService.REDIS)) { // Update using redis pub/sub
             try (Jedis jedis = redis.getPool().getResource()) {
                 jedis.publish("coins-multiplier", multiplier.toJson().toString());
             }
@@ -399,8 +395,6 @@ public class Core {
     }
 
     public void reloadMessages() {
-        messagesMap.keySet().forEach((lang) -> {
-            messagesMap.get(lang).reload();
-        });
+        messagesMap.keySet().forEach(lang -> messagesMap.get(lang).reload());
     }
 }

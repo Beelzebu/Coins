@@ -35,10 +35,10 @@ import net.nifheim.beelzebu.coins.core.interfaces.IConfiguration;
  */
 public abstract class CoinsBungeeListener {
 
-    final Main plugin = Main.getInstance();
-    final Core core = Core.getInstance();
-    final IConfiguration config = core.getConfig();
-    final List<String> message = Collections.synchronizedList(new ArrayList<>());
+    protected final Main plugin = Main.getInstance();
+    protected final Core core = Core.getInstance();
+    protected final IConfiguration config = core.getConfig();
+    protected final List<String> message = Collections.synchronizedList(new ArrayList<>());
 
     public void sendExecutors(ServerInfo server) {
         config.getConfigurationSection("Command executor").forEach((String id) -> {

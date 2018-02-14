@@ -1,9 +1,9 @@
 # Coins
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/cebeb3932ff04424acf86554fd1d7eec)](https://www.codacy.com/app/Beelzebu/Coins?utm_source=github.com&utm_medium=referral&utm_content=Beelzebu/Coins&utm_campaign=badger)
-![license GNU AGLP v3.0](https://img.shields.io/badge/license-GNU%20AGLP%20v3.0-lightgrey.svg)
-![Minecraft Version 1.8.x-1.12.x](https://img.shields.io/badge/supports%20minecraft%20versions-1.8.x--1.12.x-brightgreen.svg)
-![latest build](https://img.shields.io/jenkins/s/https/ci.nifheim.net/job/Coins.svg)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/cebeb3932ff04424acf86554fd1d7eec)](https://app.codacy.com/app/Beelzebu/Coins)
+[![license GNU AGLP v3.0](https://img.shields.io/badge/license-GNU%20AGLP%20v3.0-lightgrey.svg)](https://www.gnu.org/licenses/agpl-3.0.html)
+[![Minecraft Version 1.8.x-1.12.x](https://img.shields.io/badge/supports%20minecraft%20versions-1.8.x--1.12.x-brightgreen.svg)](https://www.spigotmc.org/resources/48536/)
+[![latest build](https://img.shields.io/jenkins/s/https/ci.nifheim.net/job/Coins.svg)](https://ci.nifheim.net/job/Coins/)
 
 Coins is the most complete and efficient plugin to manage a secondary economy in any server, it has a lot of features that you gonna love, everything is configurable, inclusive the command, you can send different messages to players depending on his game language, a multipliers system for networks, a integrated API for developers and much more!
 

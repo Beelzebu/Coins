@@ -67,6 +67,7 @@ public final class Multiplier {
     @Getter
     @Setter
     private Set<MultiplierData> extradata;
+    @Setter(AccessLevel.PACKAGE)
     private long endTime;
 
     public Multiplier(String server, MultiplierData baseData) {
@@ -221,35 +222,36 @@ public final class Multiplier {
         multiplier.addProperty("type", getType().toString());
         multiplier.addProperty("amount", getAmount());
         multiplier.addProperty("minutes", getMinutes());
-        multiplier.addProperty("endtime", endTime);
         multiplier.addProperty("enabler", getEnablerName());
         multiplier.addProperty("enableruuid", getEnablerUUID().toString());
         multiplier.addProperty("enabled", isEnabled());
         multiplier.addProperty("queue", isQueue());
+        multiplier.addProperty("endtime", endTime);
         return multiplier;
     }
 
-    public static Multiplier fromJson(JsonObject multiplier) {
-        return fromJson(multiplier.toString());
+    public static Multiplier fromJson(String multiplier) {
+        return fromJson(multiplier, true);
     }
 
-    public static Multiplier fromJson(String multiplier) {
+    public static Multiplier fromJson(String multiplier, boolean callenable) {
         if (multiplier == null) {
             return null;
         }
         JsonObject mult = Core.getInstance().getGson().fromJson(multiplier, JsonObject.class);
-        Multiplier multi = MultiplierBuilder.newBuilder()
+        MultiplierBuilder multi = MultiplierBuilder.newBuilder()
                 .setServer(mult.get("server").getAsString())
                 .setType(MultiplierType.valueOf(mult.get("type").getAsString()))
                 .setData(new MultiplierData(UUID.fromString(mult.get("enableruuid").getAsString()), mult.get("enabler").getAsString(), mult.get("amount").getAsInt(), mult.get("minutes").getAsInt()))
                 .setID(mult.get("id").getAsInt())
                 .setEnablerName(mult.get("enabler").getAsString())
                 .setEnablerUUID(UUID.fromString(mult.get("enableruuid").getAsString()))
-                .setEnabled(mult.get("enabled").getAsBoolean())
                 .setQueue(mult.get("queue").getAsBoolean())
-                .build();
-        multi.endTime = mult.get("endtime").getAsLong();
-        return multi;
+                .setEnabled(mult.get("enabled").getAsBoolean());
+        if (mult.get("endtime") != null) {
+            multi.setEndTime(mult.get("endtime").getAsLong());
+        }
+        return multi.build(callenable);
     }
 
     @Override

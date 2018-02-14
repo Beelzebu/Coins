@@ -95,11 +95,11 @@ public class CacheManager {
             Iterator<String> lines = FileUtils.readLines(multipliersdata, Charsets.UTF_8).iterator();
             while (lines.hasNext()) {
                 String line = lines.next();
-                Multiplier mult = Multiplier.fromJson(line);
+                Multiplier mult = Multiplier.fromJson(line, false);
                 if (mult.getId() != multiplier.getId()) {
                     callEnable(multiplier);
                     try {
-                        FileUtils.writeLines(multipliersdata, Collections.singletonList(multiplier.toJson().toString()), true);
+                        FileUtils.writeLines(multipliersdata, Collections.singletonList(multiplier.toJson().toString() + "\n"), true);
                     } catch (IOException ex) {
                         core.log("An error has ocurred saving a multiplier in the local storage.");
                         core.debug(ex.getMessage());
@@ -116,7 +116,7 @@ public class CacheManager {
         try {
             Iterator<String> lines = FileUtils.readLines(multipliersdata, Charsets.UTF_8).iterator();
             while (lines.hasNext()) {
-                Multiplier multiplier = Multiplier.fromJson(lines.next());
+                Multiplier multiplier = Multiplier.fromJson(lines.next(), false);
                 if (multiplier.getServer().equals(server.toLowerCase())) {
                     lines.remove();
                 }

@@ -36,6 +36,7 @@ public final class MultiplierBuilder {
     private Set<MultiplierData> extradata = Sets.newHashSet();
     private boolean enabled = false;
     private boolean queue = false;
+    private long endtime = 0L;
 
     private MultiplierBuilder() {
     }
@@ -45,6 +46,7 @@ public final class MultiplierBuilder {
     }
 
     public MultiplierBuilder setServer(String server) {
+        Validate.notNull(server, "The server can't be null.");
         this.server = server;
         return this;
     }
@@ -105,7 +107,16 @@ public final class MultiplierBuilder {
         return this;
     }
 
+    public MultiplierBuilder setEndTime(long endtime) {
+        this.endtime = endtime;
+        return this;
+    }
+
     public Multiplier build() {
+        return build(true);
+    }
+
+    public Multiplier build(boolean callenable) {
         Multiplier multiplier = new Multiplier(server, data);
         if (server == null) {
             multiplier.setType(MultiplierType.GLOBAL);
@@ -115,9 +126,10 @@ public final class MultiplierBuilder {
         multiplier.setId(id);
         multiplier.setExtradata(extradata);
         multiplier.setQueue(queue);
-	multiplier.setEnablerName(data.getEnablerName());
-	multiplier.setEnablerUUID(data.getEnablerUUID());
-        if (enabled) {
+        multiplier.setEnablerName(data.getEnablerName());
+        multiplier.setEnablerUUID(data.getEnablerUUID());
+        multiplier.setEndTime(endtime);
+        if (enabled && callenable) {
             multiplier.enable(data.getEnablerUUID(), data.getEnablerName(), queue);
         }
         return multiplier;

@@ -31,7 +31,7 @@ import org.bukkit.Bukkit;
  * @author Beelzebu
  */
 public abstract class CoinsConfig implements IConfiguration {
-    
+
     private final Core core = Core.getInstance();
 
     // #EasterEgg
