@@ -344,10 +344,10 @@ public final class CoinsAPI {
     }
 
     /**
-     * Get and modify information about multipliers for the specified server.
+     * Get the multiplier for this server from the cache if any exists.
      *
      * @param server The server to modify and get info about multiplier.
-     * @return The active multiplier for the specified server.
+     * @return The active multiplier for the specified server can be null;
      */
     public static Multiplier getMultiplier(String server) {
         return CacheManager.getMultiplier(server);
@@ -370,7 +370,7 @@ public final class CoinsAPI {
 
     /**
      * Get and modify information about the multiplier for the server specified
-     * in the plugin's config or manage other data about multipliers.
+     * in the plugin's config.
      *
      * @return The active multiplier for this server.
      */

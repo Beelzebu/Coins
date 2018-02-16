@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -34,6 +35,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -172,8 +174,17 @@ public class Core {
             if (getConfig().getBoolean("Debug", false)) {
                 log("Debug mode is enabled.");
             }
-            log("Using " + storageType + " for storage.");
-            log("Using " + getConfig().getMessagingService() + " as messaging service.");
+            log("Using \"" + storageType.toString().toLowerCase() + "\" for storage.");
+            log("Using \"" + getConfig().getMessagingService().toString().toLowerCase() + "\" as messaging service.");
+            String upt = "You have the newest version";
+            String response = getFromURL("https://api.spigotmc.org/legacy/update.php?resource=48536");
+            if (response == null) {
+                upt = "Failed to check for updates :(";
+            } else if (!response.equalsIgnoreCase(mi.getVersion())) {
+                upt = "There is a new version available! [" + response + "]";
+            }
+            log(upt);
+
         }
     }
 
@@ -396,5 +407,20 @@ public class Core {
 
     public void reloadMessages() {
         messagesMap.keySet().forEach(lang -> messagesMap.get(lang).reload());
+    }
+
+    public String getFromURL(String surl) {
+        String response = null;
+        try {
+            URL url = new URL(surl);
+            Scanner s = new Scanner(url.openStream());
+            if (s.hasNext()) {
+                response = s.next();
+                s.close();
+            }
+        } catch (IOException exc) {
+            debug("Failed to connect to URL: " + surl);
+        }
+        return response;
     }
 }

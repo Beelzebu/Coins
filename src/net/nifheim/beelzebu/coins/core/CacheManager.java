@@ -130,7 +130,7 @@ public class CacheManager {
     }
 
     public static Multiplier getMultiplier(String server) {
-        Multiplier multiplier = multipliersData.getIfPresent(server);
+        Multiplier multiplier = multipliersData.getIfPresent(server.toLowerCase());
         if (multiplier != null) {
             multiplier.checkMultiplierTime();
         }
