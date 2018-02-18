@@ -67,6 +67,9 @@ public class Redis implements CoinsDatabase {
                 coins = core.getConfig().getDouble("General.Starting Coins", 0);
                 createPlayer(uuid, core.getNick(uuid, false).toLowerCase(), coins);
             }
+        } catch (Exception ex) {
+            core.log("An unknown error has ocurred while getting the coins for '" + uuid + "'");
+            core.debug(ex);
         }
         return coins;
     }
@@ -257,7 +260,7 @@ public class Redis implements CoinsDatabase {
         try (Jedis jedis = pool.getResource()) {
             jedis.set("coins_multiplier:" + multiplier.getId(), multiplier.toJson().toString());
             jedis.publish("coins-multiplier", multiplier.toJson().toString());
-            jedis.publish("coins-event", "{\"event\":\"MultiplierEnableEvent\",\"multiplier\":\"" + multiplier.toJson() + "\"}");
+            jedis.publish("coins-event", "{\"event\":\"MultiplierEnableEvent\",\"multiplier\":" + multiplier.toJson() + "}");
         } catch (Exception ex) {
             core.log("An error has ocurred enabling the multiplier #" + multiplier.getId());
             core.debug(ex.getMessage());
@@ -272,10 +275,12 @@ public class Redis implements CoinsDatabase {
             String[] multiplier_ids = multiplier.split(",");
             for (String id : multiplier_ids) {
                 Multiplier mult = getMultiplier(Integer.parseInt(id));
-                if (server && mult.getServer().equals(core.getConfig().getServerName().toLowerCase())) {
-                    multipliers.add(mult);
-                } else {
-                    multipliers.add(mult);
+                if (!mult.isEnabled() && !mult.isQueue()) {
+                    if (server && mult.getServer().equals(core.getConfig().getServerName().toLowerCase())) {
+                        multipliers.add(mult);
+                    } else {
+                        multipliers.add(mult);
+                    }
                 }
             }
         }
@@ -379,7 +384,7 @@ public class Redis implements CoinsDatabase {
                     JsonObject event = core.getGson().fromJson(message, JsonObject.class);
                     switch (event.get("event").getAsString()) {
                         case "MultiplierEnableEvent":
-                            core.getMethods().callMultiplierEnableEvent(Multiplier.fromJson(event.get("multiplier").getAsString()));
+                            core.getMethods().callMultiplierEnableEvent(Multiplier.fromJson(event.getAsJsonObject("multiplier").toString()));
                             break;
                         default:
                             core.debug("Invalid redis event");

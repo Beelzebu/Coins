@@ -30,6 +30,7 @@ import net.nifheim.beelzebu.coins.bungee.utils.Configuration;
 import net.nifheim.beelzebu.coins.core.Core;
 import net.nifheim.beelzebu.coins.core.executor.Executor;
 import net.nifheim.beelzebu.coins.core.utils.CoinsConfig;
+import net.nifheim.beelzebu.coins.core.utils.MessagingService;
 
 /**
  *
@@ -56,14 +57,16 @@ public class Main extends Plugin {
     @Override
     public void onEnable() {
         core.start();
-        if (ProxyServer.getInstance().getPluginManager().getPlugin("RedisBungee") != null) {
-            ProxyServer.getInstance().getPluginManager().registerListener(this, new PubSubMessageListener());
-            RedisBungee.getApi().registerPubSubChannels("Coins", "Update", "Multiplier");
-            useRedis = true;
-            core.log("Using RedisBungee for plugin messaging.");
+        if (core.getConfig().getMessagingService().equals(MessagingService.BUNGEECORD)) {
+            if (ProxyServer.getInstance().getPluginManager().getPlugin("RedisBungee") != null) {
+                ProxyServer.getInstance().getPluginManager().registerListener(this, new PubSubMessageListener());
+                RedisBungee.getApi().registerPubSubChannels("Coins", "Update", "Multiplier");
+                useRedis = true;
+                core.log("Using RedisBungee for plugin messaging.");
+            }
+            ProxyServer.getInstance().getPluginManager().registerListener(this, new PluginMessageListener());
+            ProxyServer.getInstance().registerChannel("Coins");
         }
-        ProxyServer.getInstance().getPluginManager().registerListener(this, new PluginMessageListener());
-        ProxyServer.getInstance().registerChannel("Coins");
     }
 
     @Override
