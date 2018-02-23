@@ -143,6 +143,17 @@ public class FileManager {
                         core.log("Configuration file updated to v12");
                         break;
                     case 12:
+			index = lines.indexOf(" Fail:");
+			if (index != -1) {
+			    String fix = lines.get(index + 1);
+			    if (fix.startsWith(" Sound:")) {
+				lines.set(index + 1, "    " + fix);
+			    }
+			    fix = lines.get(index + 2);
+			    if (fix.startsWith("  Pitch:")) {
+				lines.set(index + 2, "    " + fix);
+			    }
+			}
                         index = lines.indexOf("MySQL:");
                         lines.addAll(index - 1, Arrays.asList("",
                                 "# Wich storage method the plugin should use.",

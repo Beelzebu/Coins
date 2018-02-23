@@ -142,7 +142,7 @@ public class CacheManager {
             core.getMethods().callMultiplierEnableEvent(multiplier);
         } else {
             try (Jedis jedis = core.getRedis().getPool().getResource()) {
-                jedis.publish("coins", "{\"event\":\"MultiplierEnableEvent\",\"multiplier\":\"" + multiplier.toJson().toString() + "\"}");
+                jedis.publish("coins-event", "{\"event\":\"MultiplierEnableEvent\",\"multiplier\":" + multiplier.toJson() + "}");
             }
         }
     }
