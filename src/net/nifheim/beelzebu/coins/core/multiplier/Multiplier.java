@@ -109,16 +109,17 @@ public final class Multiplier {
                         break;
                     case SERVER:
                         CacheManager.removeMultiplier(server);
+                        CacheManager.addMultiplier(server, this);
                         break;
                     case PERSONAL:
                         extradata.add(CacheManager.getMultiplier(server).getBaseData());
                         extradata.addAll(CacheManager.getMultiplier(server).getExtradata());
+                        CacheManager.addMultiplier(server + " " + enablerUUID.toString(), this);
                         break;
                     default:
                         break;
                 }
             }
-            CacheManager.addMultiplier(server, this);
             core.getDatabase().enableMultiplier(this);
             sendMultiplier();
         } else {

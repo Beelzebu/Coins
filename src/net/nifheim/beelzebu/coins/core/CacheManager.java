@@ -58,12 +58,13 @@ public class CacheManager {
     private static final LoadingCache<String, Multiplier> multipliersData = CacheBuilder.newBuilder().build(new CacheLoader<String, Multiplier>() {
         @Override
         public Multiplier load(String key) {
-            for (Multiplier mult : queuedMultipliers) {
-                if (mult.getServer().equals(key)) {
-                    callEnable(mult);
-                    mult.enable(mult.getEnablerUUID(), mult.getEnablerName(), false);
-                    return mult;
-                }
+            Iterator<Multiplier> mult = queuedMultipliers.iterator();
+            if (mult.hasNext()) {
+                Multiplier multi = mult.next();
+                callEnable(multi);
+                multi.enable(multi.getEnablerUUID(), multi.getEnablerName(), false);
+                mult.remove();
+                return multi;
             }
             return null;
         }
@@ -93,17 +94,22 @@ public class CacheManager {
                 multipliersdata.createNewFile();
             }
             Iterator<String> lines = FileUtils.readLines(multipliersdata, Charsets.UTF_8).iterator();
+            boolean exists = false;
             while (lines.hasNext()) {
                 String line = lines.next();
                 Multiplier mult = Multiplier.fromJson(line, false);
-                if (mult.getId() != multiplier.getId()) {
-                    callEnable(multiplier);
-                    try {
-                        FileUtils.writeLines(multipliersdata, Collections.singletonList(multiplier.toJson().toString() + "\n"), true);
-                    } catch (IOException ex) {
-                        core.log("An error has ocurred saving a multiplier in the local storage.");
-                        core.debug(ex.getMessage());
-                    }
+                if (mult.getId() == multiplier.getId()) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                callEnable(multiplier);
+                try {
+                    FileUtils.writeLines(multipliersdata, Collections.singletonList(multiplier.toJson().toString() + "\n"), true);
+                } catch (IOException ex) {
+                    core.log("An error has ocurred saving a multiplier in the local storage.");
+                    core.debug(ex.getMessage());
                 }
             }
         } catch (IOException ex) {
@@ -130,7 +136,15 @@ public class CacheManager {
     }
 
     public static Multiplier getMultiplier(String server) {
-        Multiplier multiplier = multipliersData.getIfPresent(server.toLowerCase());
+        Multiplier multiplier = multipliersData.getIfPresent(server.replaceAll(" ", "").toLowerCase());
+        if (multiplier == null) {
+            for (String sv : multipliersData.asMap().keySet()) {
+                if (sv.split(" ")[0].toLowerCase().equals(server.replaceAll(" ", "").toLowerCase())) {
+                    multiplier = multipliersData.getIfPresent(sv);
+                    break;
+                }
+            }
+        }
         if (multiplier != null) {
             multiplier.checkMultiplierTime();
         }

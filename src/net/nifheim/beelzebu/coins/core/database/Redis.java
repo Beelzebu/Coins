@@ -259,7 +259,6 @@ public class Redis implements CoinsDatabase {
     public void enableMultiplier(Multiplier multiplier) {
         try (Jedis jedis = pool.getResource()) {
             jedis.set("coins_multiplier:" + multiplier.getId(), multiplier.toJson().toString());
-            jedis.publish("coins-multiplier", multiplier.toJson().toString());
         } catch (Exception ex) {
             core.log("An error has ocurred enabling the multiplier #" + multiplier.getId());
             core.debug(ex.getMessage());
