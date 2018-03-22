@@ -34,7 +34,6 @@ public enum Dependency {
     SLF4J_SIMPLE("org.slf4j", "slf4j-simple", "1.7.25"),
     SLF4J_API("org.slf4j", "slf4j-api", "1.7.25"),
     COMMONS_IO("commons-io", "commons-io", "2.5"),
-    COMMONS_LANG("commons-lang", "commons-lang", "2.6"),
     JEDIS("redis.clients", "jedis", "2.9.0"),
     COMMONS_POOL("org.apache.commons", "commons-pool2", "2.4.2");
 

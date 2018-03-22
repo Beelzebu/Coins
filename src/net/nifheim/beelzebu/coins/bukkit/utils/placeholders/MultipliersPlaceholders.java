@@ -37,24 +37,28 @@ public class MultipliersPlaceholders extends EZPlaceholderHook {
     }
 
     @Override
-    public String onPlaceholderRequest(Player p, String coins) {
+    public String onPlaceholderRequest(Player p, String placeholder) {
         if (p == null) {
             return "Player needed!";
         }
-        String[] server = coins.split("_");
-        if (coins.startsWith("enabler_")) {
-            String enabler = CoinsAPI.getMultiplier(server[1]) != null ? CoinsAPI.getMultiplier(server[1]).getEnablerName() : "";
-            if (enabler == null || enabler.equals("")) {
-                return core.getString("Multipliers.Placeholders.Enabler.Anyone", p.spigot().getLocale());
-            } else {
-                return core.getString("Multipliers.Placeholders.Enabler.Message", p.spigot().getLocale()).replaceAll("%enabler%", enabler);
+        try {
+            String server = placeholder.split("_")[1];
+            if (placeholder.startsWith("enabler_")) {
+                String enabler = CoinsAPI.getMultiplier(server) != null ? CoinsAPI.getMultiplier(server).getEnablerName() : "";
+                if (enabler.equals("")) {
+                    return core.getString("Multipliers.Placeholders.Enabler.Anyone", p.spigot().getLocale());
+                } else {
+                    return core.getString("Multipliers.Placeholders.Enabler.Message", p.spigot().getLocale()).replaceAll("%enabler%", enabler);
+                }
             }
-        }
-        if (coins.startsWith("amount_")) {
-            return String.valueOf(CoinsAPI.getMultiplier(server[1]) != null ? CoinsAPI.getMultiplier(server[1]).getBaseData().getAmount() : 1);
-        }
-        if (coins.startsWith("time_")) {
-            //return CoinsAPI.getMultiplier(server[1]).getMultiplierTimeFormated();
+            if (placeholder.startsWith("amount_")) {
+                return String.valueOf(CoinsAPI.getMultiplier(server) != null ? CoinsAPI.getMultiplier(server).getBaseData().getAmount() : 1);
+            }
+            if (placeholder.startsWith("time_")) {
+                //return CoinsAPI.getMultiplier(server[1]).getMultiplierTimeFormated();
+            }
+        } catch (NullPointerException ex) {
+            ex.printStackTrace();
         }
         return "";
     }

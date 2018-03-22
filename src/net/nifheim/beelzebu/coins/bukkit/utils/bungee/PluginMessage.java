@@ -91,7 +91,7 @@ public class PluginMessage implements PluginMessageListener {
             case "Multiplier":
                 String multdata = in.readUTF();
                 core.debug(multdata);
-                Multiplier multiplier = Multiplier.fromJson(multdata);
+                Multiplier multiplier = Multiplier.fromJson(multdata, false);
                 if (multiplier.getType().equals(MultiplierType.GLOBAL)) {
                     multiplier.setServer(core.getConfig().getServerName().toLowerCase());
                 }

@@ -31,7 +31,6 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -41,10 +40,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.ProxyServer;
-import net.nifheim.beelzebu.coins.bukkit.utils.bungee.PluginMessage;
 import net.nifheim.beelzebu.coins.bungee.BungeeMethods;
-import net.nifheim.beelzebu.coins.bungee.listener.PluginMessageListener;
 import net.nifheim.beelzebu.coins.core.database.CoinsDatabase;
 import net.nifheim.beelzebu.coins.core.database.MySQL;
 import net.nifheim.beelzebu.coins.core.database.Redis;
@@ -59,8 +55,6 @@ import net.nifheim.beelzebu.coins.core.utils.MessagesManager;
 import net.nifheim.beelzebu.coins.core.utils.MessagingService;
 import net.nifheim.beelzebu.coins.core.utils.dependencies.DependencyManager;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.Validate;
-import redis.clients.jedis.Jedis;
 
 /**
  *
@@ -106,6 +100,7 @@ public class Core {
     }
 
     public void shutdown() {
+        db.shutdown();
         motd(false);
     }
 
@@ -355,7 +350,7 @@ public class Core {
         } catch (NullPointerException ex) {
             mi.log("The string " + path + " does not exists in the messages_" + lang.split("_")[0] + ".yml file.");
             debug(ex);
-            return rep(getMessages("").getString(path));
+            return rep(getMessages("").getString(path, ""));
         }
     }
 
@@ -365,44 +360,6 @@ public class Core {
 
     public boolean isBungee() {
         return mi instanceof BungeeMethods;
-    }
-
-    public void updateCache(UUID uuid, double amount) {
-        Validate.notNull(uuid, "The uuid can't be null");
-        if (getConfig().getMessagingService().equals(MessagingService.REDIS)) { // Update using redis pub/sub
-            try (Jedis jedis = redis.getPool().getResource()) {
-                jedis.publish("coins-data-update", uuid + " " + amount);
-            }
-        } else if (getConfig().getMessagingService().equals(MessagingService.BUNGEECORD)) {
-            CacheManager.updateCoins(uuid, amount);
-            if (isBungee()) { // Update using bungee or redisbungee if is present.
-                ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                    PluginMessageListener pml = new PluginMessageListener();
-                    pml.sendToBukkit("Update", Collections.singletonList(uuid + " " + amount), ProxyServer.getInstance().getServerInfo(server), false);
-                });
-            } else if (getConfig().useBungee()) { // Update using plugin message
-                PluginMessage pm = new PluginMessage();
-                pm.sendToBungeeCord("Update", "updateCache " + uuid + " " + amount);
-            }
-        }
-    }
-
-    public void updateMultiplier(Multiplier multiplier) {
-        if (getConfig().getMessagingService().equals(MessagingService.REDIS)) { // Update using redis pub/sub
-            try (Jedis jedis = redis.getPool().getResource()) {
-                jedis.publish("coins-multiplier", multiplier.toJson().toString());
-            }
-        } else if (getConfig().getMessagingService().equals(MessagingService.BUNGEECORD)) {
-            if (isBungee()) {
-                ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                    PluginMessageListener pml = new PluginMessageListener();
-                    pml.sendToBukkit("Multiplier", Collections.singletonList(multiplier.toJson().toString()), ProxyServer.getInstance().getServerInfo(server), false);
-                });
-            } else if (getConfig().useBungee()) {
-                PluginMessage pm = new PluginMessage();
-                pm.sendToBungeeCord("Multiplier", multiplier.toJson().toString());
-            }
-        }
     }
 
     public void reloadMessages() {

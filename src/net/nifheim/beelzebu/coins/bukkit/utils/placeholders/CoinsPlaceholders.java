@@ -20,6 +20,7 @@ package net.nifheim.beelzebu.coins.bukkit.utils.placeholders;
 
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.Map;
 import me.clip.placeholderapi.external.EZPlaceholderHook;
 import net.nifheim.beelzebu.coins.CoinsAPI;
 import net.nifheim.beelzebu.coins.bukkit.Main;
@@ -36,11 +37,20 @@ public class CoinsPlaceholders extends EZPlaceholderHook {
     }
 
     @Override
-    public String onPlaceholderRequest(Player p, String coins) {
+    public String onPlaceholderRequest(Player p, String placeholder) {
         if (p == null) {
             return "Player needed!";
         }
-        switch (coins) {
+        if (placeholder.toLowerCase().matches("top_\\d")) {
+            int top_n = Integer.parseInt(placeholder.toLowerCase().replace("top_", ""));
+            Map<String, Double> top = CoinsAPI.getTopPlayers(top_n);
+            for (int i = 0; i < top_n; i++) {
+                top.remove(top.entrySet().stream().findFirst().orElse(null).getKey());
+            }
+            return top.entrySet().stream().findFirst().orElse(null).getKey();
+
+        }
+        switch (placeholder.toLowerCase()) {
             case "amount":
                 String coinsS;
                 try {
@@ -54,7 +64,7 @@ public class CoinsPlaceholders extends EZPlaceholderHook {
             default:
                 break;
         }
-        return "0";
+        return "<invalid placeholder>";
     }
 
     private String format(double d) {

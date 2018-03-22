@@ -18,6 +18,7 @@
  */
 package net.nifheim.beelzebu.coins.core.database;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,11 +36,11 @@ import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 import net.nifheim.beelzebu.coins.core.multiplier.MultiplierBuilder;
 import net.nifheim.beelzebu.coins.core.multiplier.MultiplierData;
 import net.nifheim.beelzebu.coins.core.multiplier.MultiplierType;
-import org.apache.commons.lang.Validate;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisPubSub;
+import redis.clients.jedis.exceptions.JedisException;
 
 /**
  *
@@ -134,8 +135,8 @@ public class Redis implements CoinsDatabase {
 
     @Override
     public void createPlayer(UUID uuid, String name, double balance) {
-        Validate.notNull(uuid, "Can't create a player with null UUID");
-        Validate.notNull(name, "Can't create a player with null name");
+        Preconditions.checkNotNull(uuid, "Can't create a player with null UUID");
+        Preconditions.checkNotNull(name, "Can't create a player with null name");
         if (CoinsAPI.isindb(uuid)) {
             return;
         }
@@ -225,13 +226,16 @@ public class Redis implements CoinsDatabase {
             return Integer.parseInt(jedis.get("coins_lastmultiplierid"));
         } catch (NumberFormatException ex) {
             return 0;
-        }
+        } catch (JedisException ex1) {
+            core.debug(ex1);
+	    return 0;
+	}
     }
 
     @Override
     public void createMultiplier(UUID uuid, int amount, int minutes, String server, MultiplierType type) {
         try (Jedis jedis = pool.getResource()) {
-            Multiplier multiplier = MultiplierBuilder.newBuilder().setServer(server != null ? server : "default").setType(server != null ? type : MultiplierType.GLOBAL).setData(new MultiplierData(uuid, core.getNick(uuid, false), amount, minutes)).setID(getLastMultiplierID() + 1).build();
+            Multiplier multiplier = MultiplierBuilder.newBuilder().setServer(server != null ? server : "default").setType(server != null ? type : MultiplierType.GLOBAL).setData(new MultiplierData(uuid, core.getNick(uuid, false), amount, minutes)).setID(getLastMultiplierID() + 1).build(false);
             jedis.hset("coins_multipliers", uuid.toString(), (jedis.hget("coins_multipliers", uuid.toString()) != null ? jedis.hget("coins_multipliers", uuid.toString()) + "," : "") + Integer.toString(multiplier.getId()));
             jedis.set("coins_multiplier:" + multiplier.getId(), multiplier.toJson().toString());
             jedis.incr("coins_lastmultiplierid");
@@ -289,7 +293,7 @@ public class Redis implements CoinsDatabase {
     public Multiplier getMultiplier(int id) {
         try (Jedis jedis = pool.getResource()) {
             if (jedis.exists("coins_multiplier:" + id)) {
-                return Multiplier.fromJson(jedis.get("coins_multiplier:" + id));
+                return Multiplier.fromJson(jedis.get("coins_multiplier:" + id), false);
             } else {
                 return null;
             }
@@ -369,20 +373,20 @@ public class Redis implements CoinsDatabase {
                     CacheManager.updateCoins(UUID.fromString(message.split(" ")[0]), Double.parseDouble(message.split(" ")[1]));
                     break;
                 case "coins-multiplier":
-                    Multiplier multiplier = Multiplier.fromJson(message);
+                    Multiplier multiplier = Multiplier.fromJson(message, false);
                     if (multiplier.getType().equals(MultiplierType.GLOBAL)) {
                         multiplier.setServer(core.getConfig().getServerName());
                     }
                     CacheManager.addMultiplier(multiplier.getServer(), multiplier);
                     break;
                 case "coins-multiplier-disable":
-                    Multiplier.fromJson(message).disable();
+                    Multiplier.fromJson(message, false).disable();
                     break;
                 case "coins-event":
                     JsonObject event = core.getGson().fromJson(message, JsonObject.class);
                     switch (event.get("event").getAsString()) {
                         case "MultiplierEnableEvent":
-                            core.getMethods().callMultiplierEnableEvent(Multiplier.fromJson(event.getAsJsonObject("multiplier").toString()));
+                            core.getMethods().callMultiplierEnableEvent(Multiplier.fromJson(event.getAsJsonObject("multiplier").toString(), false));
                             break;
                         default:
                             core.debug("Invalid redis event");

@@ -18,8 +18,10 @@
  */
 package net.nifheim.beelzebu.coins.core.multiplier;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
@@ -32,7 +34,6 @@ import lombok.Setter;
 import net.nifheim.beelzebu.coins.CoinsAPI;
 import net.nifheim.beelzebu.coins.core.CacheManager;
 import net.nifheim.beelzebu.coins.core.Core;
-import org.apache.commons.lang.Validate;
 
 /**
  * Handle Coins multipliers.
@@ -42,7 +43,7 @@ import org.apache.commons.lang.Validate;
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class Multiplier {
 
-    private final Core core = Core.getInstance();
+    private static final Core core = Core.getInstance();
     @Getter
     @Setter
     private MultiplierData baseData;
@@ -68,18 +69,11 @@ public final class Multiplier {
     @Setter
     private Set<MultiplierData> extradata;
     @Setter(AccessLevel.PACKAGE)
-    private long endTime;
+    private long endTime = 0;
 
     public Multiplier(String server, MultiplierData baseData) {
         this.baseData = baseData;
         this.server = server;
-    }
-
-    /**
-     * Update this multiplier in all spigot servers.
-     */
-    public void sendMultiplier() {
-        core.updateMultiplier(this);
     }
 
     /**
@@ -90,7 +84,10 @@ public final class Multiplier {
      * @param queue if the multiplier should be queued or inmediatly enabled.
      */
     public void enable(UUID enablerUUID, String enablerName, boolean queue) {
-        Validate.notNull(enablerName, "The enabler name can't be null");
+        Preconditions.checkNotNull(enablerName, "The enabler name can't be null");
+        if (System.currentTimeMillis() + baseData.getMinutes() * 60000 > endTime && endTime > 1) {
+            return;
+        }
         this.enablerUUID = enablerUUID;
         this.enablerName = enablerName;
         this.enabled = true;
@@ -108,7 +105,7 @@ public final class Multiplier {
                         CacheManager.getMultiplier(server).addExtraData(extradata);
                         break;
                     case SERVER:
-                        CacheManager.removeMultiplier(server);
+                        CacheManager.deleteMultiplier(CacheManager.getMultiplier(server));
                         CacheManager.addMultiplier(server, this);
                         break;
                     case PERSONAL:
@@ -121,7 +118,7 @@ public final class Multiplier {
                 }
             }
             core.getDatabase().enableMultiplier(this);
-            sendMultiplier();
+            CacheManager.updateMultiplier(this);
         } else {
             CacheManager.getQueuedMultipliers().add(this);
         }
@@ -132,9 +129,14 @@ public final class Multiplier {
      */
     public void disable() {
         enabled = false;
+        queue = false;
+        baseData = null;
+        enablerName = null;
+        enablerUUID = null;
+        server = null;
+        core.getDatabase().deleteMultiplier(this);
         CacheManager.getQueuedMultipliers().remove(this);
-        CacheManager.removeMultiplier(server);
-        delete();
+	CacheManager.deleteMultiplier(this);
     }
 
     public long checkMultiplierTime() {
@@ -196,18 +198,6 @@ public final class Multiplier {
         return b.toString();
     }
 
-    /**
-     * Delete this multiplier from the database.
-     */
-    private void delete() {
-        queue = false;
-        baseData = null;
-        enablerName = null;
-        enablerUUID = null;
-        server = null;
-        core.getDatabase().deleteMultiplier(this);
-    }
-
     public UUID getEnablerUUID() {
         return enablerUUID == null ? baseData.getEnablerUUID() : enablerUUID;
     }
@@ -231,32 +221,27 @@ public final class Multiplier {
         return multiplier;
     }
 
-    public static Multiplier fromJson(String multiplier) {
-        return fromJson(multiplier, true);
-    }
-
     public static Multiplier fromJson(String multiplier, boolean callenable) {
-        if (multiplier == null) {
-            return null;
+        Preconditions.checkNotNull(multiplier, "Tried to load a null Multiplier");
+        core.debug("Loading multiplier from JSON: " + multiplier);
+        try {
+            JsonObject mult = Core.getInstance().getGson().fromJson(multiplier, JsonObject.class);
+            MultiplierBuilder multi = MultiplierBuilder.newBuilder()
+                    .setServer(mult.get("server").getAsString())
+                    .setType(MultiplierType.valueOf(mult.get("type").getAsString()))
+                    .setData(new MultiplierData(UUID.fromString(mult.get("enableruuid").getAsString()), mult.get("enabler").getAsString(), mult.get("amount").getAsInt(), mult.get("minutes").getAsInt()))
+                    .setID(mult.get("id").getAsInt())
+                    .setEnablerName(mult.get("enabler").getAsString())
+                    .setEnablerUUID(UUID.fromString(mult.get("enableruuid").getAsString()))
+                    .setQueue(mult.get("queue").getAsBoolean())
+                    .setEnabled(mult.get("enabled").getAsBoolean());
+            if (mult.get("endtime") != null) {
+                multi.setEndTime(mult.get("endtime").getAsLong());
+            }
+            return multi.build(callenable);
+        } catch (JsonSyntaxException ex) {
+            core.debug(ex);
         }
-        JsonObject mult = Core.getInstance().getGson().fromJson(multiplier, JsonObject.class);
-        MultiplierBuilder multi = MultiplierBuilder.newBuilder()
-                .setServer(mult.get("server").getAsString())
-                .setType(MultiplierType.valueOf(mult.get("type").getAsString()))
-                .setData(new MultiplierData(UUID.fromString(mult.get("enableruuid").getAsString()), mult.get("enabler").getAsString(), mult.get("amount").getAsInt(), mult.get("minutes").getAsInt()))
-                .setID(mult.get("id").getAsInt())
-                .setEnablerName(mult.get("enabler").getAsString())
-                .setEnablerUUID(UUID.fromString(mult.get("enableruuid").getAsString()))
-                .setQueue(mult.get("queue").getAsBoolean())
-                .setEnabled(mult.get("enabled").getAsBoolean());
-        if (mult.get("endtime") != null) {
-            multi.setEndTime(mult.get("endtime").getAsLong());
-        }
-        return multi.build(callenable);
-    }
-
-    @Override
-    public String toString() {
-        return toJson().toString();
+        return null;
     }
 }

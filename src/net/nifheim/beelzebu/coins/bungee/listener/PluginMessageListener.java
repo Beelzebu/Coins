@@ -81,13 +81,13 @@ public class PluginMessageListener extends CoinsBungeeListener implements Listen
                 if (input.startsWith("get ")) { // update the multiplier for the specified server
                     Multiplier multiplier = CacheManager.getMultiplier(input.split(" ")[1]);
                     if (multiplier != null) {
-                        core.updateMultiplier(multiplier);
+                        CacheManager.updateMultiplier(multiplier);
                     }
                 } else if (input.equals("getAllMultipliers")) { // update all multipliers
                     Iterator<String> it = CacheManager.getMultipliersData().asMap().keySet().iterator();
                     while (it.hasNext()) {
                         String server = it.next();
-                        core.updateMultiplier(CacheManager.getMultiplier(server));
+                        CacheManager.updateMultiplier(CacheManager.getMultiplier(server));
                     }
                 } else if (input.startsWith("disable ")) {
                     Multiplier multiplier = CacheManager.getMultiplier(input.split(" ")[1]);
@@ -99,7 +99,7 @@ public class PluginMessageListener extends CoinsBungeeListener implements Listen
                         }
                     }
                 } else { // store the data
-                    Multiplier multiplier = Multiplier.fromJson(input);
+                    Multiplier multiplier = Multiplier.fromJson(input, true);
                     if (plugin.useRedis()) { // update in all servers if use redis
                         RedisBungee.getApi().sendChannelMessage("Multiplier", input);
                     } else { // just upadte this

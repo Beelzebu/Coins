@@ -18,6 +18,7 @@
  */
 package net.nifheim.beelzebu.coins.core.database;
 
+import com.google.common.base.Preconditions;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
@@ -32,13 +33,11 @@ import java.util.Set;
 import java.util.UUID;
 import net.nifheim.beelzebu.coins.CoinsAPI;
 import net.nifheim.beelzebu.coins.CoinsResponse;
-import static net.nifheim.beelzebu.coins.core.database.CoinsDatabase.core;
-import static net.nifheim.beelzebu.coins.core.database.CoinsDatabase.prefix;
+import net.nifheim.beelzebu.coins.core.CacheManager;
 import net.nifheim.beelzebu.coins.core.multiplier.Multiplier;
 import net.nifheim.beelzebu.coins.core.multiplier.MultiplierBuilder;
 import net.nifheim.beelzebu.coins.core.multiplier.MultiplierData;
 import net.nifheim.beelzebu.coins.core.multiplier.MultiplierType;
-import org.apache.commons.lang.Validate;
 
 /**
  *
@@ -168,7 +167,7 @@ public class SQLite implements CoinsDatabase {
         try (Connection c = ds.getConnection()) {
             if (CoinsAPI.getCoins(uuid) > -1 || isindb(uuid)) {
                 DatabaseUtils.generatePreparedStatement(c, DatabaseUtils.SQLQuery.UPDATE_COINS_ONLINE, amount, uuid);
-                core.updateCache(uuid, amount);
+                CacheManager.updateCache(uuid, amount);
                 response = new CoinsResponse(CoinsResponse.CoinsResponseType.SUCCESS, "");
             } else {
                 response = new CoinsResponse(CoinsResponse.CoinsResponseType.FAILED, "This user isn't in the database or the cache.");
@@ -233,8 +232,8 @@ public class SQLite implements CoinsDatabase {
     }
 
     public void createPlayer(Connection c, UUID uuid, String name, double balance) {
-        Validate.notNull(uuid, "Can't create a player with null UUID");
-        Validate.notNull(name, "Can't create a player with null name");
+        Preconditions.checkNotNull(uuid, "Can't create a player with null UUID");
+        Preconditions.checkNotNull(name, "Can't create a player with null name");
         if (CoinsAPI.isindb(uuid)) {
             return;
         }
@@ -377,7 +376,7 @@ public class SQLite implements CoinsDatabase {
     public Multiplier getMultiplier(int id) {
         try (Connection c = ds.getConnection(); ResultSet res = c.prepareStatement("SELECT * FROM " + prefix + "multipliers WHERE id = " + id + ";").executeQuery()) {
             if (res.next()) {
-                return MultiplierBuilder.newBuilder().setID(res.getInt("id")).setType(MultiplierType.valueOf(res.getString("type"))).setServer(res.getString("server")).setData(new MultiplierData(UUID.fromString(res.getString("uuid")), core.getNick(UUID.fromString(res.getString("uuid")), false), res.getInt("amount"), res.getInt("minutes"))).setAmount(res.getInt("amount")).setMinutes(res.getInt("minutes")).setEnabled(res.getBoolean("enabled")).setQueue(res.getBoolean("queue")).build();
+                return MultiplierBuilder.newBuilder().setID(res.getInt("id")).setType(MultiplierType.valueOf(res.getString("type"))).setServer(res.getString("server")).setData(new MultiplierData(UUID.fromString(res.getString("uuid")), core.getNick(UUID.fromString(res.getString("uuid")), false), res.getInt("amount"), res.getInt("minutes"))).setAmount(res.getInt("amount")).setMinutes(res.getInt("minutes")).setEnabled(res.getBoolean("enabled")).setQueue(res.getBoolean("queue")).build(false);
             }
         } catch (SQLException ex) {
             core.log("An error has ocurred getting the multiplier with the id #" + id + " from the database.");

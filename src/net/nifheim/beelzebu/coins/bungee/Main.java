@@ -71,6 +71,7 @@ public class Main extends Plugin {
 
     @Override
     public void onDisable() {
+        ProxyServer.getInstance().getScheduler().cancel(this);
         core.shutdown();
     }
 

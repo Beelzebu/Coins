@@ -53,7 +53,7 @@ public class PubSubMessageListener extends CoinsBungeeListener implements Listen
                 if (e.getMessage().startsWith("disable ")) {
                     CacheManager.getMultiplier(e.getMessage().split(" ")[1]).disable();
                 } else {
-                    Multiplier multiplier = Multiplier.fromJson(e.getMessage());
+                    Multiplier multiplier = Multiplier.fromJson(e.getMessage(), true);
                     CacheManager.addMultiplier(multiplier.getServer(), multiplier);
                     ProxyServer.getInstance().getServers().keySet().forEach(server -> {
                         sendToBukkit("Multiplier", Collections.singletonList(multiplier.toJson().toString()), ProxyServer.getInstance().getServerInfo(server), false);

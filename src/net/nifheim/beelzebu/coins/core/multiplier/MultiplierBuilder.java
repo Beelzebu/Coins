@@ -18,10 +18,10 @@
  */
 package net.nifheim.beelzebu.coins.core.multiplier;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import java.util.Set;
 import java.util.UUID;
-import org.apache.commons.lang.Validate;
 
 /**
  *
@@ -46,7 +46,7 @@ public final class MultiplierBuilder {
     }
 
     public MultiplierBuilder setServer(String server) {
-        Validate.notNull(server, "The server can't be null.");
+        Preconditions.checkNotNull(server, "The server can't be null.");
         this.server = server;
         return this;
     }
@@ -67,7 +67,7 @@ public final class MultiplierBuilder {
     }
 
     public MultiplierBuilder setEnablerName(String enablerName) {
-        Validate.notNull(enablerName, "The enabler name can't be null");
+        Preconditions.checkNotNull(enablerName, "The enabler name can't be null");
         data.setEnablerName(enablerName);
         return this;
     }
@@ -110,10 +110,6 @@ public final class MultiplierBuilder {
     public MultiplierBuilder setEndTime(long endtime) {
         this.endtime = endtime;
         return this;
-    }
-
-    public Multiplier build() {
-        return build(true);
     }
 
     public Multiplier build(boolean callenable) {
