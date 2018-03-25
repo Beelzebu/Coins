@@ -229,7 +229,7 @@ public class CoinsCommand extends Command {
                         if (CoinsAPI.isindb(args[1])) {
                             CoinsAPI.takeCoins(args[1], coins);
                             if (!core.getString("Coins.Take", lang).equals("")) {
-                                sender.sendMessage(core.getString("Coins.Take", lang).replaceAll("%coins%", String.valueOf(finalcoins)).replaceAll("%newcoins%", String.valueOf(finalcoins)).replaceAll("%target%", args[1]));
+                                sender.sendMessage(core.getString("Coins.Take", lang).replaceAll("%coins%", String.valueOf(coins)).replaceAll("%newcoins%", String.valueOf(finalcoins)).replaceAll("%target%", args[1]));
                             }
                         } else {
                             sender.sendMessage(core.getString("Errors.Unknown player", lang).replaceAll("%target%", args[1]));
@@ -242,7 +242,7 @@ public class CoinsCommand extends Command {
                     if (CoinsAPI.getCoins(target.getUniqueId()) >= coins) {
                         CoinsAPI.takeCoins(args[1], coins);
                         if (!core.getString("Coins.Take", lang).equals("")) {
-                            sender.sendMessage(core.getString("Coins.Take", lang).replaceAll("%target%", target.getName()).replaceAll("%newcoins%", String.valueOf(finalcoins)));
+                            sender.sendMessage(core.getString("Coins.Take", lang).replaceAll("%target%", target.getName()).replaceAll("%coins%", String.valueOf(coins)).replaceAll("%newcoins%", String.valueOf(finalcoins)));
                         }
                         if (!core.getString("Coins.Take target", target.spigot().getLocale()).equals("")) {
                             target.sendMessage(core.getString("Coins.Take target", target.spigot().getLocale()).replaceAll("%coins%", String.valueOf(finalcoins)));
