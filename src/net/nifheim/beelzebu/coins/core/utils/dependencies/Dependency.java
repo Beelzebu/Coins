@@ -33,7 +33,7 @@ public enum Dependency {
     HIKARI("com.zaxxer", "HikariCP", "2.7.8"),
     SLF4J_SIMPLE("org.slf4j", "slf4j-simple", "1.7.25"),
     SLF4J_API("org.slf4j", "slf4j-api", "1.7.25"),
-    COMMONS_IO("commons-io", "commons-io", "2.7"),
+    COMMONS_IO("commons-io", "commons-io", "2.6"),
     JEDIS("redis.clients", "jedis", "2.9.0"),
     COMMONS_POOL("org.apache.commons", "commons-pool2", "2.4.2");
 
