@@ -1,4 +1,4 @@
 name: Coins
-main: net.nifheim.beelzebu.coins.bungee.Main
+main: io.github.beelzebu.coins.bungee.Main
 version: ${project.version}
 author: Beelzebu

@@ -2,6 +2,6 @@ name: Coins
 load: STARTUP
 loadbefore: [Vault]
 softdepend: [PlaceholderAPI, Vault, LeaderHeads]
-main: net.nifheim.beelzebu.coins.bukkit.Main
+main: io.github.beelzebu.coins.bukkit.Main
 version: ${project.version}
 author: Beelzebu
