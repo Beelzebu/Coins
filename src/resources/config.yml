@@ -3,7 +3,7 @@
 # the official github repo https://github.com/Beelzebu/Coins/issues/
 
 # The version of the config, don't touch!
-version: 13
+version: 14
 
 # This is the prefix used in all the messages.
 Prefix: '&c&lCoins &6&l>&7'
