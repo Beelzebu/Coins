@@ -1,5 +1,5 @@
 # Coins üzenetfájl.
-# Ha segítségre van szüksége, vagy hibát talál, 
+# Ha segítségre van szüksége, vagy hibát talál,
 # a kérdéseket tegye fel a hivatalos átvitelről https://github.com/Beelzebu/Coins/issues/
 
 # A fájl verziója automatikusan frissíti ezt a fájlt, és nem módosítja
@@ -12,7 +12,7 @@ Help:
   - '%prefix% Elérhető parancsok:'
   - ' '
   - ' &a/coins help &f- &7A súgóüzenet megjelenítése.'
-  - ' &a/coins &f- &7Megmutassa az érméit.'
+  - ' &a/coins &f- &7Megmutassa az érméidet.'
   - ' &a/coins <név> &f- &7Megmutassa a felhasználó érméit.'
   - ' &a/coins pay <név> <mennyiség> &f- &7Fizet a felhasználónak a kiválasztott összeget.'
   - ' &a/coins top &f- &7Megmutassa a tíz legnagyobb felhasználót érmékben.'
@@ -27,6 +27,9 @@ Help:
   - ' &c/coins set <név> <mennyiség> &f- &7Beállítsa a felhasználó érméit.'
   - ' &c/coins reset <név> &f- &7Visszaállítsa a felhasználó érméit.'
   - ' &c/coins reload &f- &7Újratölti a konfigurációt és az üzeneteket.'
+  - ' &c/coins about &f- &7Információkat mutat a pluginról.'
+  - ' &c/coins import &f- &7Adatok importálása más beépülő modulokból.'
+  - ' &c/coins importdb &f- &7Adatok importálása egy másik tárból.'
   - ' &c/coins multiplier &f- &7Megmutatja a szorzó al-parancsokat.'
   - ' &8&m+-------------------------------------------------+'
   Pay Usage: '%prefix% &cKérlek, használd &f/coins pay <név> <érmék>'
@@ -42,11 +45,12 @@ Help:
   - '%prefix% Szorzó parancsok'
   - ' '
   - ' &ccreate <játékos> <mennyiség> <percek> (szerver) &f- &7Létrehoz egy szorzót.'
+  - ' &cset <mennyiség> <engedélyező> <perc> (szerver) &f- &7Beállít egy szorzót.'
   - '&8&m+-------------------------------------------------+'
 Errors:
   No permissions: '%prefix% &cNincs jogod ehhez.'
-  Unknown command: '%prefix% &cIsmeretlen parnacs, próbáld &f/coins help &caz összes elérhető parancs megjelenítéséhez.'
-  Unknown player: '%prefix% &cA(z) %target% játékos nem található az adatbázisban.'
+  Unknow command: '%prefix% &cIsmeretlen parnacs, próbáld &f/coins help &caz összes elérhető parancs megjelenítéséhez.'
+  Unknow player: '%prefix% &cA(z) %target% játékos nem található az adatbázisban.'
   Console: '%prefix% &cJátékosnak kell lenned.'
   No Negative: '%prefix% &cNem helyezhet negatív érméket!'
   No Zero: '%prefix% &cAz összeg nem lehet nulla.'

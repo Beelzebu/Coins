@@ -18,10 +18,10 @@
  */
 package io.github.beelzebu.coins.bukkit.utils;
 
-import java.util.List;
-import java.util.Set;
 import io.github.beelzebu.coins.bukkit.Main;
 import io.github.beelzebu.coins.common.utils.CoinsConfig;
+import java.util.List;
+import java.util.Set;
 import org.bukkit.configuration.file.FileConfiguration;
 
 /**
@@ -105,7 +105,7 @@ public class Configuration extends CoinsConfig {
 
     @Override
     public Set<String> getConfigurationSection(String path) {
-        return config.getConfigurationSection(path).getKeys(false);
+        return config.getConfigurationSection(path) != null ? config.getConfigurationSection(path).getKeys(false) : null;
     }
 
     @Override

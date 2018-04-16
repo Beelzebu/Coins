@@ -25,7 +25,7 @@ import org.bukkit.Location;
  *
  * @author Beelzebu
  */
-public class LocationSerializer {
+public class LocationUtils {
 
     public static String locationToString(Location loc) {
         return loc.getWorld().getName() + ";" + loc.getX() + ";" + loc.getY() + ";" + loc.getZ();

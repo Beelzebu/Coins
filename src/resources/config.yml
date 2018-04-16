@@ -59,7 +59,7 @@ MySQL:
   Connection Interval: 5
   # Don't change this value if you don't know what it does.
   Connection Pool: 8
-  
+
 # Here are the Redis server settings.
 Redis:
   Host: 'localhost'
@@ -89,7 +89,7 @@ General:
   Executor Sign:
     '1': '&c&lCoins'
     '2': '%executor_displayname%'
-    '3': '%ececutor_cost%'
+    '3': '%xexecutor_cost%'
     '4': ''
   # If you want the users to be created when they join to the server, enable this,
   # otherwise the players will be created when his coins are modified or consulted
@@ -108,12 +108,12 @@ Command executor:
   # With the command below you should use /coins execute example1
   example1:
     # This is the command that the console gonna run.
-    Command: 
+    Command:
     - 'eco give %player% 10000' # Note the %player% placeholder, this is replaced by the player that runs the command.
     Cost: 100 # This is the cost of the command.
   '2':
     # You can create executors without cost.
-    Command: 
+    Command:
     - 'broadcast: %player% Is awesome!'
   list:
     # You can also create a list of commands to run when the executor is called.
@@ -138,6 +138,18 @@ Command executor:
     - 'crate givekey %player% 1 normal'
     - 'message: Here is your key!'
     Cost: 2
+  # This example executor allows you to define every line of the executor sign only
+  # for this executor.
+  sign2:
+    Executor Sign: # The first line must be the same that above.
+      '2': '&lVIP4'
+      '3': '10 days'
+      '4': '%executor_cost%'
+    Command:
+    - 'lp user %player% parent add vip4 10d'
+    - 'message:Here is your VIP for 10 days, enjoy! :D'
+    Cost: 500
+
 Multipliers:
   # Here you can configure some aspects of the GUI of multipliers
   GUI:

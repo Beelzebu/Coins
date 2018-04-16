@@ -18,10 +18,8 @@
  */
 package io.github.beelzebu.coins.bukkit.command;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import io.github.beelzebu.coins.CoinsAPI;
+import io.github.beelzebu.coins.MultiplierType;
 import io.github.beelzebu.coins.bukkit.Main;
 import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
 import io.github.beelzebu.coins.bukkit.utils.bungee.PluginMessage;
@@ -31,7 +29,9 @@ import io.github.beelzebu.coins.common.Core;
 import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.executor.Executor;
 import io.github.beelzebu.coins.common.importer.ImportManager;
-import io.github.beelzebu.coins.MultiplierType;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -175,6 +175,7 @@ public class CoinsCommand extends Command {
         }
         if (args.length < 3 || args.length > 4) {
             sender.sendMessage(core.getString("Help.Give Usage", lang));
+            return true;
         }
         if (!CoinsAPI.isindb(args[1])) {
             sender.sendMessage(core.getString("Errors.Unknown player", lang).replaceAll("%target%", args[1]));

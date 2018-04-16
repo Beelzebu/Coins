@@ -19,6 +19,7 @@
 package io.github.beelzebu.coins.common.utils;
 
 import com.google.common.base.Charsets;
+import io.github.beelzebu.coins.common.Core;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -35,7 +36,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
-import io.github.beelzebu.coins.common.Core;
 import org.apache.commons.io.FileUtils;
 
 /**
@@ -83,39 +83,10 @@ public class FileManager {
         try {
             List<String> lines = FileUtils.readLines(configFile, Charsets.UTF_8);
             int index;
-            if (core.getConfig().getInt("version") == 13) {
+            if (core.getConfig().getInt("version") == 14) {
                 core.log("The config file is up to date.");
             } else {
                 switch (core.getConfig().getInt("version")) {
-                    case 8:
-                        index = lines.indexOf("  Purge:") + 5;
-                        lines.addAll(index, Arrays.asList(
-                                "  Executor Sign:",
-                                "    1: '&c&lCoins'",
-                                "    2: '%executor_displayname%'",
-                                "    3: '%ececutor_cost%'",
-                                "    4: ''"
-                        ));
-                        index = lines.indexOf("version: 8");
-                        lines.set(index, "version: 9");
-                        core.log("Configuration file updated to v9");
-                        break;
-                    case 9:
-                        index = lines.indexOf("MySQL:") - 2;
-                        lines.addAll(index, Arrays.asList(
-                                "# Here you can enable Vault to make this plugin manage all the Vault transactions.",
-                                "Vault:",
-                                "  Use: false",
-                                "  # Names used by vault for the currency.",
-                                "  Name:",
-                                "    Singular: 'Coin'",
-                                "    Plural: 'Coins'",
-                                ""
-                        ));
-                        index = lines.indexOf("version: 9");
-                        lines.set(index, "version: 10");
-                        core.log("Configuraton file updated to v10");
-                        break;
                     case 10:
                         index = lines.indexOf("    Close:") + 1;
                         lines.addAll(index, Arrays.asList(
@@ -143,17 +114,22 @@ public class FileManager {
                         core.log("Configuration file updated to v12");
                         break;
                     case 12:
-			index = lines.indexOf(" Fail:");
-			if (index != -1) {
-			    String fix = lines.get(index + 1);
-			    if (fix.startsWith(" Sound:")) {
-				lines.set(index + 1, "    " + fix);
-			    }
-			    fix = lines.get(index + 2);
-			    if (fix.startsWith("  Pitch:")) {
-				lines.set(index + 2, "    " + fix);
-			    }
-			}
+                        index = lines.indexOf("version: 12");
+                        lines.set(index, "version: 13");
+                        core.log("Configuration file updated to v13");
+                        break;
+                    case 13:
+                        index = lines.indexOf(" Fail:");
+                        if (index != -1) {
+                            String fix = lines.get(index + 1);
+                            if (fix.startsWith(" Sound:")) {
+                                lines.set(index + 1, "    " + fix);
+                            }
+                            fix = lines.get(index + 2);
+                            if (fix.startsWith("  Pitch:")) {
+                                lines.set(index + 2, "    " + fix);
+                            }
+                        }
                         index = lines.indexOf("MySQL:");
                         lines.addAll(index - 1, Arrays.asList("",
                                 "# Wich storage method the plugin should use.",
@@ -203,9 +179,9 @@ public class FileManager {
                                 "  Port: 6379",
                                 "  Password: 'S3CUR3P4SSW0RD'"
                         ));
-                        index = lines.indexOf("version: 12");
-                        lines.set(index, "version: 13");
-                        core.log("Configuration file updated to v13");
+                        index = lines.indexOf("version: 13");
+                        lines.set(index, "version: 14");
+                        core.log("Configuration file updated to v14");
                         break;
                     default:
                         core.log("Seems that you hava a too old version of the config or you canged this to another number >:(");
