@@ -25,7 +25,7 @@ import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
 import io.github.beelzebu.coins.bukkit.utils.bungee.PluginMessage;
 import io.github.beelzebu.coins.bukkit.utils.gui.MultipliersGUI;
 import io.github.beelzebu.coins.common.CacheManager;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.executor.Executor;
 import io.github.beelzebu.coins.common.importer.ImportManager;
@@ -43,7 +43,7 @@ import org.bukkit.entity.Player;
  */
 public class CoinsCommand extends Command {
 
-    private final Core core = Core.getInstance();
+    private final CoinsCore core = CoinsCore.getInstance();
     private final Main plugin = Main.getInstance();
     private String lang = "";
     private final String perm;
@@ -185,7 +185,7 @@ public class CoinsCommand extends Command {
         boolean multiply = false;
         if (args.length == 3 || args.length == 4) {
             double coins = Double.parseDouble(args[2]);
-            if (core.isOnline(core.getUUID(args[1], false)) && args.length == 4 && args[3].equalsIgnoreCase("true")) {
+            if (core.getMethods().isOnline(core.getUUID(args[1], false)) && args.length == 4 && args[3].equalsIgnoreCase("true")) {
                 multiply = true;
                 Player target = Bukkit.getPlayer(args[1]);
                 int amount = CoinsAPI.getMultiplier() != null ? CoinsAPI.getMultiplier().getBaseData().getAmount() : 1;
@@ -193,7 +193,7 @@ public class CoinsCommand extends Command {
                     multiplier = core.getString("Multipliers.Format", target.spigot().getLocale()).replaceAll("%multiplier%", String.valueOf(amount)).replaceAll("%enabler%", CoinsAPI.getMultiplier().getEnablerName());
                 }
             }
-            if (core.isOnline(core.getUUID(args[1], false))) {
+            if (core.getMethods().isOnline(core.getUUID(args[1], false))) {
                 Player target = Bukkit.getPlayer(core.getUUID(args[1], false));
                 if (!core.getString("Coins.Give target", target.spigot().getLocale()).equals("")) {
                     target.sendMessage(core.getString("Coins.Give target", target.spigot().getLocale()).replaceAll("%coins%", String.valueOf(coins)).replaceAll("%multiplier_format%", multiplier));

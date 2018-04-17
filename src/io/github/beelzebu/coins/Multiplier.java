@@ -22,6 +22,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import io.github.beelzebu.coins.common.CacheManager;
+import io.github.beelzebu.coins.common.CoinsCore;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
@@ -31,41 +33,31 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import io.github.beelzebu.coins.common.CacheManager;
-import io.github.beelzebu.coins.common.Core;
 
 /**
  * Handle Coins multipliers.
  *
  * @author Beelzebu
  */
+@Getter
+@Setter
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class Multiplier {
 
-    private static final Core core = Core.getInstance();
-    @Getter
-    @Setter
+    private static final CoinsCore core = CoinsCore.getInstance();
     private MultiplierData baseData;
-    @Getter
     @Setter(AccessLevel.PACKAGE)
     private int id;
-    @Getter
-    @Setter
     private String server;
-    @Getter
-    @Setter
     private MultiplierType type;
-    @Setter
+    @Getter(AccessLevel.NONE)
     private String enablerName = null;
-    @Setter
+    @Getter(AccessLevel.NONE)
     private UUID enablerUUID = null;
-    @Getter
+    @Setter(AccessLevel.NONE)
     private boolean enabled = false;
-    @Getter
     @Setter(AccessLevel.PACKAGE)
     private boolean queue = false;
-    @Getter
-    @Setter
     private Set<MultiplierData> extradata;
     @Setter(AccessLevel.PACKAGE)
     private long endTime = 0;
@@ -224,7 +216,7 @@ public final class Multiplier {
         Preconditions.checkNotNull(multiplier, "Tried to load a null Multiplier");
         core.debug("Loading multiplier from JSON: " + multiplier);
         try {
-            JsonObject data = Core.getInstance().getGson().fromJson(multiplier, JsonObject.class);
+            JsonObject data = CoinsCore.getInstance().getGson().fromJson(multiplier, JsonObject.class);
             MultiplierBuilder multi = MultiplierBuilder.newBuilder(data.get("server").getAsString(), MultiplierType.valueOf(data.get("type").getAsString()), new MultiplierData(UUID.fromString(data.get("enableruuid").getAsString()), data.get("enabler").getAsString(), data.get("amount").getAsInt(), data.get("minutes").getAsInt()))
                     .setID(data.get("id").getAsInt())
                     .setEnablerName(data.get("enabler").getAsString())

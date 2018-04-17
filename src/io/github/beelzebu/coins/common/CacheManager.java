@@ -47,8 +47,8 @@ import redis.clients.jedis.Jedis;
  */
 public class CacheManager {
 
-    private static final Core core = Core.getInstance();
-    private static final File multipliersFile = new File(core.getDataFolder(), "multipliers.json");
+    private static final CoinsCore core = CoinsCore.getInstance();
+    private static final File multipliersFile = new File(core.getMethods().getDataFolder(), "multipliers.json");
     @Getter
     private static final LoadingCache<UUID, Double> playersData = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<UUID, Double>() {
         @Override

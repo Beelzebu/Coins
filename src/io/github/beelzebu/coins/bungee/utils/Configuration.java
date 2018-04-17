@@ -18,16 +18,15 @@
  */
 package io.github.beelzebu.coins.bungee.utils;
 
+import io.github.beelzebu.coins.bungee.Main;
+import io.github.beelzebu.coins.common.utils.CoinsConfig;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
-import io.github.beelzebu.coins.common.utils.CoinsConfig;
 
 /**
  *
@@ -35,11 +34,11 @@ import io.github.beelzebu.coins.common.utils.CoinsConfig;
  */
 public class Configuration extends CoinsConfig {
 
-    private final File configFile = new File(ProxyServer.getInstance().getPluginsFolder() + "/Coins", "config.yml");
+    private final File configFile = new File(Main.getInstance().getDataFolder(), "config.yml");
     private net.md_5.bungee.config.Configuration config;
 
     public Configuration() {
-        reload(true);
+        reload();
     }
 
     @Override
@@ -114,16 +113,10 @@ public class Configuration extends CoinsConfig {
 
     @Override
     public final void reload() {
-        reload(false);
-    }
-
-    private void reload(boolean canFail) {
         try {
             config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
         } catch (IOException ex) {
-            if (!canFail) {
-                Logger.getLogger(Configuration.class.getName()).log(Level.WARNING, "An unexpected error has ocurred reloading the config. {0}", ex.getMessage());
-            }
+            core.getMethods().getLogger().log(Level.SEVERE, "An unexpected error has ocurred reloading the config. {0}", ex.getMessage());
         }
     }
 }

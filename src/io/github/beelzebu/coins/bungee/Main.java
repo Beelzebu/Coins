@@ -26,10 +26,8 @@ import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.CoinsResponse.CoinsResponseType;
 import io.github.beelzebu.coins.bungee.listener.PluginMessageListener;
 import io.github.beelzebu.coins.bungee.listener.PubSubMessageListener;
-import io.github.beelzebu.coins.bungee.utils.Configuration;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.executor.Executor;
-import io.github.beelzebu.coins.common.utils.CoinsConfig;
 import io.github.beelzebu.coins.common.utils.MessagingService;
 
 /**
@@ -39,8 +37,7 @@ import io.github.beelzebu.coins.common.utils.MessagingService;
 public class Main extends Plugin {
 
     private static Main instance;
-    private final Core core = Core.getInstance();
-    private Configuration config;
+    private final CoinsCore core = CoinsCore.getInstance();
     private static Boolean useRedis = false;
 
     public static Main getInstance() {
@@ -50,7 +47,6 @@ public class Main extends Plugin {
     @Override
     public void onLoad() {
         instance = this;
-        config = new Configuration();
         core.setup(new BungeeMethods());
     }
 
@@ -80,10 +76,6 @@ public class Main extends Plugin {
         if (CoinsAPI.getCoins(p.getUniqueId()) >= executor.getCost() && CoinsAPI.takeCoins(p.getUniqueId(), executor.getCost()).getResponse().equals(CoinsResponseType.SUCCESS)) {
             core.getExecutorManager().getExecutor(executorid).getCommands().forEach(cmd -> ProxyServer.getInstance().getPluginManager().dispatchCommand(p, cmd));
         }
-    }
-
-    public CoinsConfig getConfiguration() {
-        return config;
     }
 
     public Boolean useRedis() {

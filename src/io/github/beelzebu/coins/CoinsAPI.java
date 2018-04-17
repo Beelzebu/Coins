@@ -24,7 +24,7 @@ import java.util.Set;
 import java.util.UUID;
 import io.github.beelzebu.coins.CoinsResponse.CoinsResponseType;
 import io.github.beelzebu.coins.common.CacheManager;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 
 /**
  *
@@ -35,7 +35,7 @@ public final class CoinsAPI {
     private CoinsAPI() {
     }
 
-    private static final Core core = Core.getInstance();
+    private static final CoinsCore core = CoinsCore.getInstance();
     private static final DecimalFormat DF = new DecimalFormat("#.#");
 
     /**

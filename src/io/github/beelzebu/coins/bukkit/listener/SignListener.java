@@ -20,7 +20,7 @@ package io.github.beelzebu.coins.bukkit.listener;
 
 import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.bukkit.utils.LocationUtils;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.executor.Executor;
 import java.io.File;
 import java.io.IOException;
@@ -42,12 +42,12 @@ import org.bukkit.event.player.PlayerInteractEvent;
  */
 public class SignListener implements Listener {
 
-    private final Core core = Core.getInstance();
+    private final CoinsCore core = CoinsCore.getInstance();
     private final File signsFile;
     private final FileConfiguration signs;
 
     public SignListener() {
-        signsFile = new File(core.getDataFolder(), "signs.yml");
+        signsFile = new File(core.getMethods().getDataFolder(), "signs.yml");
         if (!signsFile.exists()) {
             try {
                 signsFile.createNewFile();

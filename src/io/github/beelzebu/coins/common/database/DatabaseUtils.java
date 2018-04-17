@@ -26,7 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import static io.github.beelzebu.coins.common.database.CoinsDatabase.prefix;
 
 /**
@@ -65,10 +65,10 @@ public class DatabaseUtils {
                 }
             }
         } catch (SQLException ex) {
-            Core.getInstance().log("An internal error has ocurred while trying to execute a query in the database, check the logs to get more information.");
-            Core.getInstance().debug("The error code is: '" + ex.getErrorCode() + "'");
-            Core.getInstance().debug("The error message is: '" + ex.getMessage() + "'");
-            Core.getInstance().debug("Query: " + query.name);
+            CoinsCore.getInstance().log("An internal error has ocurred while trying to execute a query in the database, check the logs to get more information.");
+            CoinsCore.getInstance().debug("The error code is: '" + ex.getErrorCode() + "'");
+            CoinsCore.getInstance().debug("The error message is: '" + ex.getMessage() + "'");
+            CoinsCore.getInstance().debug("Query: " + query.name);
         }
         return ps;
     }

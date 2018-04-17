@@ -19,15 +19,15 @@
  */
 package io.github.beelzebu.coins.bukkit.utils;
 
+import io.github.beelzebu.coins.CoinsAPI;
+import io.github.beelzebu.coins.bukkit.Main;
+import io.github.beelzebu.coins.common.CoinsCore;
 import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.List;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
-import io.github.beelzebu.coins.CoinsAPI;
-import io.github.beelzebu.coins.bukkit.Main;
-import io.github.beelzebu.coins.common.Core;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.ServicePriority;
@@ -186,25 +186,25 @@ public class CoinsEconomy implements Economy {
 
     @Override
     public EconomyResponse depositPlayer(String string, double d) {
-        CoinsAPI.addCoins(string, d, plugin.getConfiguration().vaultMultipliers());
+        CoinsAPI.addCoins(string, d, CoinsCore.getInstance().getConfig().vaultMultipliers());
         return new EconomyResponse(d, getBalance(string), ResponseType.SUCCESS, "");
     }
 
     @Override
     public EconomyResponse depositPlayer(OfflinePlayer op, double d) {
-        CoinsAPI.addCoins(op.getUniqueId(), d, plugin.getConfiguration().vaultMultipliers());
+        CoinsAPI.addCoins(op.getUniqueId(), d, CoinsCore.getInstance().getConfig().vaultMultipliers());
         return new EconomyResponse(d, getBalance(op), ResponseType.SUCCESS, "");
     }
 
     @Override
     public EconomyResponse depositPlayer(String string, String string1, double d) {
-        CoinsAPI.addCoins(string, d, plugin.getConfiguration().vaultMultipliers());
+        CoinsAPI.addCoins(string, d, CoinsCore.getInstance().getConfig().vaultMultipliers());
         return new EconomyResponse(d, getBalance(string), ResponseType.SUCCESS, "");
     }
 
     @Override
     public EconomyResponse depositPlayer(OfflinePlayer op, String string, double d) {
-        CoinsAPI.addCoins(op.getUniqueId(), d, plugin.getConfiguration().vaultMultipliers());
+        CoinsAPI.addCoins(op.getUniqueId(), d, CoinsCore.getInstance().getConfig().vaultMultipliers());
         return new EconomyResponse(d, getBalance(op), ResponseType.SUCCESS, "");
     }
 
@@ -270,7 +270,7 @@ public class CoinsEconomy implements Economy {
 
     @Override
     public boolean createPlayerAccount(String string) {
-        CoinsAPI.createPlayer(string, Core.getInstance().getUUID(string));
+        CoinsAPI.createPlayer(string, CoinsCore.getInstance().getUUID(string));
         return !CoinsAPI.getCoinsString(string).equals("This player isn't in the database");
     }
 
@@ -282,7 +282,7 @@ public class CoinsEconomy implements Economy {
 
     @Override
     public boolean createPlayerAccount(String string, String string1) {
-        CoinsAPI.createPlayer(string, Core.getInstance().getUUID(string));
+        CoinsAPI.createPlayer(string, CoinsCore.getInstance().getUUID(string));
         return !CoinsAPI.getCoinsString(string).equals("This player isn't in the database");
     }
 

@@ -24,6 +24,8 @@
  */
 package io.github.beelzebu.coins.common.utils.dependencies;
 
+import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.common.database.StorageType;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -38,8 +40,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.experimental.UtilityClass;
-import io.github.beelzebu.coins.common.Core;
-import io.github.beelzebu.coins.common.database.StorageType;
 
 /**
  * Responsible for loading runtime dependencies.
@@ -47,7 +47,7 @@ import io.github.beelzebu.coins.common.database.StorageType;
 @UtilityClass
 public class DependencyManager {
 
-    private static final Core core = Core.getInstance();
+    private static final CoinsCore core = CoinsCore.getInstance();
     private static final Method ADD_URL_METHOD;
 
     static {
@@ -90,7 +90,7 @@ public class DependencyManager {
     public static void loadDependencies(Set<Dependency> dependencies) throws RuntimeException {
         core.getMethods().log("Identified the following dependencies: " + dependencies.toString());
 
-        File libDir = new File(core.getDataFolder(), "lib");
+        File libDir = new File(core.getMethods().getDataFolder(), "lib");
         if (!(libDir.exists() || libDir.mkdirs())) {
             throw new RuntimeException("Unable to create lib dir - " + libDir.getPath());
         }

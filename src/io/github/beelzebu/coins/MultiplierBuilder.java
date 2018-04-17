@@ -50,7 +50,7 @@ public final class MultiplierBuilder {
     public static MultiplierBuilder newBuilder(String server, MultiplierType type, MultiplierData data) {
         return new MultiplierBuilder(server, type, data);
     }
-    
+
     public MultiplierBuilder setID(int id) {
         this.id = id;
         return this;

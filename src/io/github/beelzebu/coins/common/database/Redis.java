@@ -64,7 +64,7 @@ public class Redis implements CoinsDatabase {
         try (Jedis jedis = pool.getResource()) {
             if (CoinsAPI.isindb(uuid)) {
                 coins = Double.parseDouble(jedis.hget("coins_data", uuid.toString()));
-            } else if (core.isOnline(uuid)) {
+            } else if (core.getMethods().isOnline(uuid)) {
                 coins = core.getConfig().getDouble("General.Starting Coins", 0);
                 createPlayer(uuid, core.getNick(uuid, false).toLowerCase(), coins);
             }
@@ -81,7 +81,7 @@ public class Redis implements CoinsDatabase {
         try (Jedis jedis = pool.getResource()) {
             if (CoinsAPI.isindb(name)) {
                 coins = Double.parseDouble(jedis.hget("coins_data", core.getUUID(name, false).toString()));
-            } else if (core.isOnline(name)) {
+            } else if (core.getMethods().isOnline(name)) {
                 coins = core.getConfig().getDouble("General.Starting Coins", 0);
                 createPlayer(core.getUUID(name, false), name, coins);
             }

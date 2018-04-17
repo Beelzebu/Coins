@@ -27,33 +27,33 @@ import java.util.Set;
  */
 public interface IConfiguration {
 
-    Object get(String path);
+    public Object get(String path);
 
-    String getString(String path);
+    public String getString(String path);
 
-    List<String> getStringList(String path);
+    public List<String> getStringList(String path);
 
-    boolean getBoolean(String path);
+    public boolean getBoolean(String path);
 
-    int getInt(String path);
+    public int getInt(String path);
 
-    double getDouble(String path);
+    public double getDouble(String path);
 
-    Object get(String path, Object def);
+    public Object get(String path, Object def);
 
-    String getString(String path, String def);
+    public String getString(String path, String def);
 
-    List<String> getStringList(String path, List<String> def);
+    public List<String> getStringList(String path, List<String> def);
 
-    boolean getBoolean(String path, boolean def);
+    public boolean getBoolean(String path, boolean def);
 
-    int getInt(String path, int def);
+    public int getInt(String path, int def);
 
-    double getDouble(String path, double def);
+    public double getDouble(String path, double def);
 
-    void set(String path, Object value);
+    public void set(String path, Object value);
 
-    Set<String> getConfigurationSection(String path);
+    public Set<String> getConfigurationSection(String path);
 
-    void reload();
+    public void reload();
 }

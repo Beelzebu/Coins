@@ -144,7 +144,7 @@ public class MySQL implements CoinsDatabase {
         try (Connection c = ds.getConnection(); ResultSet res = DatabaseUtils.generatePreparedStatement(c, SQLQuery.SEARCH_USER_ONLINE, uuid).executeQuery();) {
             if (res.next()) {
                 coins = res.getDouble("balance");
-            } else if (core.isOnline(uuid)) {
+            } else if (core.getMethods().isOnline(uuid)) {
                 coins = core.getConfig().getDouble("General.Starting Coins", 0);
                 createPlayer(c, uuid, core.getNick(uuid, false).toLowerCase(), coins);
             }
@@ -161,7 +161,7 @@ public class MySQL implements CoinsDatabase {
         try (Connection c = ds.getConnection(); ResultSet res = DatabaseUtils.generatePreparedStatement(c, SQLQuery.SEARCH_USER_OFFLINE, name).executeQuery();) {
             if (res.next()) {
                 coins = res.getDouble("balance");
-            } else if (core.isOnline(name)) {
+            } else if (core.getMethods().isOnline(name)) {
                 coins = core.getConfig().getDouble("General.Starting Coins", 0);
                 createPlayer(c, core.getUUID(name, false), name, coins);
             }

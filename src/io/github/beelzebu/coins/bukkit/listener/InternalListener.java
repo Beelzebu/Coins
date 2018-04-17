@@ -19,7 +19,7 @@
 package io.github.beelzebu.coins.bukkit.listener;
 
 import io.github.beelzebu.coins.bukkit.events.MultiplierEnableEvent;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
@@ -29,7 +29,7 @@ import org.bukkit.event.Listener;
  */
 public class InternalListener implements Listener {
 
-    private final Core core = Core.getInstance();
+    private final CoinsCore core = CoinsCore.getInstance();
 
     @EventHandler
     public void onMultiplierUse(MultiplierEnableEvent e) {

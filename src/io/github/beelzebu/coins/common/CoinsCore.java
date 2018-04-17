@@ -20,11 +20,24 @@ package io.github.beelzebu.coins.common;
 
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
+import io.github.beelzebu.coins.Multiplier;
+import io.github.beelzebu.coins.bungee.BungeeMethods;
+import io.github.beelzebu.coins.common.database.CoinsDatabase;
+import io.github.beelzebu.coins.common.database.MySQL;
+import io.github.beelzebu.coins.common.database.Redis;
+import io.github.beelzebu.coins.common.database.SQLite;
+import io.github.beelzebu.coins.common.database.StorageType;
+import io.github.beelzebu.coins.common.executor.ExecutorManager;
+import io.github.beelzebu.coins.common.interfaces.IMethods;
+import io.github.beelzebu.coins.common.utils.CoinsConfig;
+import io.github.beelzebu.coins.common.utils.FileManager;
+import io.github.beelzebu.coins.common.utils.MessagesManager;
+import io.github.beelzebu.coins.common.utils.MessagingService;
+import io.github.beelzebu.coins.common.utils.dependencies.DependencyManager;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.sql.SQLException;
@@ -40,30 +53,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
-import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.bungee.BungeeMethods;
-import io.github.beelzebu.coins.common.database.CoinsDatabase;
-import io.github.beelzebu.coins.common.database.MySQL;
-import io.github.beelzebu.coins.common.database.Redis;
-import io.github.beelzebu.coins.common.database.SQLite;
-import io.github.beelzebu.coins.common.database.StorageType;
-import io.github.beelzebu.coins.common.executor.ExecutorManager;
-import io.github.beelzebu.coins.common.interfaces.IMethods;
-import io.github.beelzebu.coins.common.utils.CoinsConfig;
-import io.github.beelzebu.coins.common.utils.FileManager;
-import io.github.beelzebu.coins.common.utils.MessagesManager;
-import io.github.beelzebu.coins.common.utils.MessagingService;
-import io.github.beelzebu.coins.common.utils.dependencies.DependencyManager;
 import org.apache.commons.io.FileUtils;
 
 /**
  *
  * @author Beelzebu
  */
-public class Core {
+public class CoinsCore {
 
-    private static Core instance;
-    private IMethods mi;
+    private static CoinsCore instance;
+    @Getter
+    private IMethods methods;
     @Getter
     private FileManager fileUpdater;
     private CoinsDatabase db;
@@ -71,17 +71,22 @@ public class Core {
     private Redis redis;
     @Getter
     private StorageType storageType;
+    @Getter
     private ExecutorManager executorManager;
     private HashMap<String, MessagesManager> messagesMap;
     @Getter
     private final Gson gson = new Gson();
 
-    public static Core getInstance() {
-        return instance == null ? instance = new Core() : instance;
+    public static CoinsCore getInstance() {
+        return instance == null ? instance = new CoinsCore() : instance;
     }
 
-    public void setup(IMethods methodinterface) {
-        mi = methodinterface;
+    public void setup(IMethods imethods) {
+        methods = imethods;
+        fileUpdater = new FileManager(this);
+        fileUpdater.copyFiles();
+        methods.loadConfig();
+        fileUpdater.updateFiles();
         try {
             if (getConfig().getBoolean("MySQL.Use")) {
                 storageType = StorageType.MYSQL;
@@ -93,10 +98,7 @@ public class Core {
             log("Invalid Storage Type selected in the config, possible values: " + Arrays.toString(StorageType.values()));
         }
         DependencyManager.loadAllDependencies();
-        fileUpdater = new FileManager(this);
-        fileUpdater.copyFiles();
         messagesMap = new HashMap<>();
-        fileUpdater.updateFiles();
     }
 
     public void shutdown() {
@@ -118,7 +120,7 @@ public class Core {
         getConfig().reload();
         motd(true);
         try {
-            Iterator<String> lines = FileUtils.readLines(new File(getDataFolder(), "multipliers.json"), Charsets.UTF_8).iterator();
+            Iterator<String> lines = FileUtils.readLines(new File(methods.getDataFolder(), "multipliers.json"), Charsets.UTF_8).iterator();
             while (lines.hasNext()) {
                 try {
                     Multiplier multiplier = Multiplier.fromJson(lines.next(), false);
@@ -140,7 +142,7 @@ public class Core {
         }
         if (storageType.equals(StorageType.SQLITE) && getConfig().getInt("Database Version", 1) < 2) {
             try {
-                Files.move(new File(getDataFolder(), "database.db").toPath(), new File(getDataFolder(), "database.old.db").toPath());
+                Files.move(new File(methods.getDataFolder(), "database.db").toPath(), new File(methods.getDataFolder(), "database.old.db").toPath());
             } catch (IOException ex) {
                 log("An error has ocurred moving the old database");
                 debug(ex.getMessage());
@@ -151,19 +153,19 @@ public class Core {
     }
 
     private void motd(boolean enable) {
-        mi.sendMessage(mi.getConsole(), rep(""));
-        mi.sendMessage(mi.getConsole(), rep("&6-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"));
-        mi.sendMessage(mi.getConsole(), rep("           &4Coins &fBy:  &7Beelzebu"));
-        mi.sendMessage(mi.getConsole(), rep(""));
+        methods.sendMessage(methods.getConsole(), rep(""));
+        methods.sendMessage(methods.getConsole(), rep("&6-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"));
+        methods.sendMessage(methods.getConsole(), rep("           &4Coins &fBy:  &7Beelzebu"));
+        methods.sendMessage(methods.getConsole(), rep(""));
         StringBuilder version = new StringBuilder();
-        int spaces = (42 - ("v: " + mi.getVersion()).length()) / 2;
+        int spaces = (42 - ("v: " + methods.getVersion()).length()) / 2;
         for (int i = 0; i < spaces; i++) {
             version.append(" ");
         }
-        version.append(rep("&4v: &f" + mi.getVersion()));
-        mi.sendMessage(mi.getConsole(), version.toString());
-        mi.sendMessage(mi.getConsole(), rep("&6-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"));
-        mi.sendMessage(mi.getConsole(), rep(""));
+        version.append(rep("&4v: &f" + methods.getVersion()));
+        methods.sendMessage(methods.getConsole(), version.toString());
+        methods.sendMessage(methods.getConsole(), rep("&6-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"));
+        methods.sendMessage(methods.getConsole(), rep(""));
         // Only send this in the onEnable
         if (enable) {
             if (getConfig().getBoolean("Debug", false)) {
@@ -175,7 +177,7 @@ public class Core {
             String response = getFromURL("https://api.spigotmc.org/legacy/update.php?resource=48536");
             if (response == null) {
                 upt = "Failed to check for updates :(";
-            } else if (!response.equalsIgnoreCase(mi.getVersion())) {
+            } else if (!response.equalsIgnoreCase(methods.getVersion())) {
                 upt = "There is a new version available! [" + response + "]";
             }
             log(upt);
@@ -183,13 +185,9 @@ public class Core {
         }
     }
 
-    public IMethods getMethods() {
-        return mi;
-    }
-
     public void debug(Object msg) {
         if (getConfig().getBoolean("Debug")) {
-            mi.sendMessage(mi.getConsole(), rep("&8[&cCoins&8] &cDebug: &7" + msg));
+            methods.sendMessage(methods.getConsole(), rep("&8[&cCoins&8] &cDebug: &7" + msg));
         }
         logToFile(msg);
     }
@@ -207,18 +205,18 @@ public class Core {
     }
 
     public void log(Object msg) {
-        mi.log(msg);
+        methods.log(msg);
         logToFile(msg);
     }
 
     private void logToFile(Object msg) {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-        File log = new File(getDataFolder(), "/logs/latest.log");
+        File log = new File(methods.getDataFolder(), "/logs/latest.log");
         if (!log.exists()) {
             try {
                 log.createNewFile();
             } catch (IOException ex) {
-                Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(CoinsCore.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(log, true))) {
@@ -229,16 +227,8 @@ public class Core {
                 writer.close();
             }
         } catch (IOException ex) {
-            Logger.getLogger(Core.class.getName()).log(Level.WARNING, "Can''t save the debug to the file", ex);
+            Logger.getLogger(CoinsCore.class.getName()).log(Level.WARNING, "Can''t save the debug to the file", ex);
         }
-    }
-
-    public boolean isOnline(UUID uuid) {
-        return mi.isOnline(uuid);
-    }
-
-    public boolean isOnline(String name) {
-        return mi.isOnline(name);
     }
 
     @Deprecated
@@ -247,8 +237,8 @@ public class Core {
     }
 
     public String getNick(UUID uuid, boolean fromdb) {
-        if (!fromdb && mi.getName(uuid) != null) {
-            return mi.getName(uuid);
+        if (!fromdb && methods.getName(uuid) != null) {
+            return methods.getName(uuid);
         }
         return getDatabase().getNick(uuid);
     }
@@ -259,8 +249,8 @@ public class Core {
     }
 
     public UUID getUUID(String name, boolean fromdb) {
-        if (!fromdb && mi.getUUID(name) != null) {
-            return mi.getUUID(name);
+        if (!fromdb && methods.getUUID(name) != null) {
+            return methods.getUUID(name);
         }
         return getDatabase().getUUID(name.toLowerCase());
     }
@@ -284,7 +274,7 @@ public class Core {
         }
         String message = msg;
         if (getConfig() != null) {
-            message = message.replaceAll("%prefix%", getConfig().getString("Prefix"));
+            message = message.replaceAll("%prefix%", getConfig().getString("Prefix", "&c&lCoins &6&l>&7"));
         }
         return message.replaceAll("&", "§");
     }
@@ -318,15 +308,7 @@ public class Core {
     }
 
     public CoinsConfig getConfig() {
-        return mi.getConfig();
-    }
-
-    public File getDataFolder() {
-        return mi.getDataFolder();
-    }
-
-    public InputStream getResource(String filename) {
-        return mi.getResource(filename);
+        return methods.getConfig();
     }
 
     public MessagesManager getMessages(String lang) {
@@ -335,10 +317,10 @@ public class Core {
         }
         lang = lang.split("_")[0];
         if (!messagesMap.containsKey(lang)) {
-            if (new File(getDataFolder() + "/messages", "messages_" + lang + ".yml").exists()) {
-                messagesMap.put(lang, mi.getMessages("_" + lang));
+            if (new File(methods.getDataFolder() + "/messages", "messages_" + lang + ".yml").exists()) {
+                messagesMap.put(lang, methods.getMessages("_" + lang));
             } else {
-                messagesMap.put(lang, mi.getMessages(""));
+                messagesMap.put(lang, methods.getMessages(""));
             }
         }
         return messagesMap.get(lang);
@@ -348,18 +330,14 @@ public class Core {
         try {
             return rep(getMessages(lang).getString(path));
         } catch (NullPointerException ex) {
-            mi.log("The string " + path + " does not exists in the messages_" + lang.split("_")[0] + ".yml file.");
+            methods.log("The string " + path + " does not exists in the messages_" + lang.split("_")[0] + ".yml file.");
             debug(ex);
             return rep(getMessages("").getString(path, ""));
         }
     }
 
-    public ExecutorManager getExecutorManager() {
-        return executorManager;
-    }
-
     public boolean isBungee() {
-        return mi instanceof BungeeMethods;
+        return methods instanceof BungeeMethods;
     }
 
     public void reloadMessages() {

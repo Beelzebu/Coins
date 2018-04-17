@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import net.md_5.bungee.api.config.ServerInfo;
 import io.github.beelzebu.coins.bungee.Main;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.interfaces.IConfiguration;
 
 /**
@@ -36,7 +36,7 @@ import io.github.beelzebu.coins.common.interfaces.IConfiguration;
 public abstract class CoinsBungeeListener {
 
     protected final Main plugin = Main.getInstance();
-    protected final Core core = Core.getInstance();
+    protected final CoinsCore core = CoinsCore.getInstance();
     protected final IConfiguration config = core.getConfig();
     protected final List<String> message = Collections.synchronizedList(new ArrayList<>());
 

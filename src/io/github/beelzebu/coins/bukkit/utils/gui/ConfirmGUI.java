@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -38,7 +38,7 @@ import org.bukkit.potion.PotionEffectType;
  */
 public class ConfirmGUI extends BaseGUI {
 
-    private final Core core = Core.getInstance();
+    private final CoinsCore core = CoinsCore.getInstance();
     private final Multiplier multiplier;
     private final Player p;
 

@@ -24,7 +24,7 @@ import java.util.UUID;
 import io.github.beelzebu.coins.CoinsResponse;
 import io.github.beelzebu.coins.Multiplier;
 import io.github.beelzebu.coins.MultiplierType;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 
 /**
  *
@@ -32,7 +32,7 @@ import io.github.beelzebu.coins.common.Core;
  */
 public interface CoinsDatabase {
 
-    public final Core core = Core.getInstance();
+    public final CoinsCore core = CoinsCore.getInstance();
     public static final String prefix = core.getConfig().getString("MySQL.Prefix");
 
     void setup();

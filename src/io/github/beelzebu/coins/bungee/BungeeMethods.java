@@ -19,24 +19,26 @@
 package io.github.beelzebu.coins.bungee;
 
 import com.imaginarycode.minecraft.redisbungee.RedisBungee;
+import io.github.beelzebu.coins.Multiplier;
+import io.github.beelzebu.coins.bungee.events.CoinsChangeEvent;
+import io.github.beelzebu.coins.bungee.events.MultiplierEnableEvent;
+import io.github.beelzebu.coins.bungee.utils.Configuration;
+import io.github.beelzebu.coins.bungee.utils.Messages;
+import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.common.interfaces.IMethods;
+import io.github.beelzebu.coins.common.utils.CoinsConfig;
+import io.github.beelzebu.coins.common.utils.MessagesManager;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.plugin.Plugin;
-import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.bungee.events.CoinsChangeEvent;
-import io.github.beelzebu.coins.bungee.events.MultiplierEnableEvent;
-import io.github.beelzebu.coins.bungee.utils.Messages;
-import io.github.beelzebu.coins.common.Core;
-import io.github.beelzebu.coins.common.interfaces.IMethods;
-import io.github.beelzebu.coins.common.utils.CoinsConfig;
-import io.github.beelzebu.coins.common.utils.MessagesManager;
 
 /**
  *
@@ -46,6 +48,7 @@ public class BungeeMethods implements IMethods {
 
     private final Main plugin = Main.getInstance();
     private final CommandSender console = ProxyServer.getInstance().getConsole();
+    private Configuration config;
 
     @Override
     public Object getPlugin() {
@@ -53,8 +56,14 @@ public class BungeeMethods implements IMethods {
     }
 
     @Override
+    public void loadConfig() {
+        config = new Configuration();
+
+    }
+
+    @Override
     public CoinsConfig getConfig() {
-        return plugin.getConfiguration();
+        return config == null ? config = new Configuration() : config;
     }
 
     @Override
@@ -84,7 +93,7 @@ public class BungeeMethods implements IMethods {
 
     @Override
     public void log(Object log) {
-        console.sendMessage(Core.getInstance().rep("&8[&cCoins&8] &7" + log));
+        console.sendMessage(CoinsCore.getInstance().rep("&8[&cCoins&8] &7" + log));
     }
 
     @Override
@@ -161,5 +170,10 @@ public class BungeeMethods implements IMethods {
             permissions.addAll(ProxyServer.getInstance().getPlayer(uuid).getPermissions());
         }
         return permissions;
+    }
+
+    @Override
+    public Logger getLogger() {
+        return plugin.getLogger();
     }
 }

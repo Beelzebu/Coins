@@ -19,7 +19,7 @@
 package io.github.beelzebu.coins.common.utils;
 
 import com.google.common.base.Charsets;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -44,15 +44,15 @@ import org.apache.commons.io.FileUtils;
  */
 public class FileManager {
 
-    private final Core core;
+    private final CoinsCore core;
     private final File messagesFolder;
     private final Map<String, File> messagesFiles;
     private final File configFile;
     private final File logsFolder;
 
-    public FileManager(Core c) {
+    public FileManager(CoinsCore c) {
         core = c;
-        messagesFolder = new File(core.getDataFolder(), "messages");
+        messagesFolder = new File(core.getMethods().getDataFolder(), "messages");
         messagesFiles = new HashMap<>();
         messagesFiles.put("default", new File(messagesFolder, "messages.yml"));
         messagesFiles.put("es", new File(messagesFolder, "messages_es.yml"));
@@ -60,8 +60,8 @@ public class FileManager {
         messagesFiles.put("cz", new File(messagesFolder, "messages_cz.yml"));
         messagesFiles.put("hu", new File(messagesFolder, "messages_hu.yml"));
         messagesFiles.put("ru", new File(messagesFolder, "messages_ru.yml"));
-        configFile = new File(core.getDataFolder(), "config.yml");
-        logsFolder = new File(core.getDataFolder(), "logs");
+        configFile = new File(core.getMethods().getDataFolder(), "config.yml");
+        logsFolder = new File(core.getMethods().getDataFolder(), "logs");
     }
 
     public void copy(InputStream in, File file) {
@@ -384,32 +384,29 @@ public class FileManager {
         if (!messagesFolder.exists()) {
             messagesFolder.mkdirs();
         }
-        {
-            File[] files = core.getDataFolder().listFiles();
-            for (File f : files) {
-                if (f.isFile() && f.getName().startsWith("messages")) {
-                    try {
-                        Files.move(f.toPath(), new File(messagesFolder, f.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    } catch (IOException ex) {
-                        Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while moving messages files to the new messages folder.", ex);
-                    }
+        File[] files = core.getMethods().getDataFolder().listFiles();
+        for (File f : files) {
+            if (f.isFile() && f.getName().startsWith("messages")) {
+                try {
+                    Files.move(f.toPath(), new File(messagesFolder, f.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException ex) {
+                    Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while moving messages files to the new messages folder.", ex);
                 }
             }
         }
         messagesFiles.keySet().forEach(filename -> {
             File messages = messagesFiles.get(filename);
             if (!messages.exists()) {
-                copy(core.getResource(messages.getName()), messages);
+                copy(core.getMethods().getResource(messages.getName()), messages);
             }
         });
         if (!configFile.exists()) {
-            copy(core.getResource("config.yml"), configFile);
+            copy(core.getMethods().getResource("config.yml"), configFile);
         }
     }
 
     public void updateFiles() {
         updateMessages();
-        core.getConfig().reload();
         updateConfig();
         checkLogs();
     }

@@ -1,4 +1,4 @@
-name: Coins
-main: io.github.beelzebu.coins.bungee.Main
+name: ${project.artifactId}
+main: ${project.groupId}.coins.bungee.Main
 version: ${project.version}
 author: Beelzebu

@@ -18,13 +18,14 @@
  */
 package io.github.beelzebu.coins.common.interfaces;
 
+import io.github.beelzebu.coins.Multiplier;
+import io.github.beelzebu.coins.common.utils.CoinsConfig;
+import io.github.beelzebu.coins.common.utils.MessagesManager;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
-import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.common.utils.CoinsConfig;
-import io.github.beelzebu.coins.common.utils.MessagesManager;
+import java.util.logging.Logger;
 
 /**
  *
@@ -32,35 +33,37 @@ import io.github.beelzebu.coins.common.utils.MessagesManager;
  */
 public interface IMethods {
 
-    Object getPlugin();
+    public Object getPlugin();
 
-    CoinsConfig getConfig();
+    public void loadConfig();
 
-    MessagesManager getMessages(String lang);
+    public CoinsConfig getConfig();
 
-    void runAsync(Runnable rn);
+    public MessagesManager getMessages(String lang);
 
-    void runAsync(Runnable rn, Long timer);
+    public void runAsync(Runnable rn);
 
-    void runSync(Runnable rn);
+    public void runAsync(Runnable rn, Long timer);
 
-    void executeCommand(String cmd);
+    public void runSync(Runnable rn);
 
-    void log(Object log);
+    public void executeCommand(String cmd);
 
-    Object getConsole();
+    public void log(Object log);
 
-    void sendMessage(Object CommandSender, String msg);
+    public Object getConsole();
 
-    File getDataFolder();
+    public void sendMessage(Object CommandSender, String msg);
 
-    InputStream getResource(String filename);
+    public File getDataFolder();
 
-    String getVersion();
+    public InputStream getResource(String filename);
 
-    boolean isOnline(UUID uuid);
+    public String getVersion();
 
-    boolean isOnline(String name);
+    public boolean isOnline(UUID uuid);
+
+    public boolean isOnline(String name);
 
     /**
      * Get the UUID of a online player by his name.
@@ -69,7 +72,7 @@ public interface IMethods {
      * @return The uuid of the online player.
      * @throws NullPointerException if the player with that name is offline.
      */
-    UUID getUUID(String name) throws NullPointerException;
+    public UUID getUUID(String name) throws NullPointerException;
 
     /**
      * Get the name of a online player by his UUID.
@@ -78,11 +81,13 @@ public interface IMethods {
      * @return The uuid of the online player.
      * @throws NullPointerException if the player with that uuid is offline.
      */
-    String getName(UUID uuid) throws NullPointerException;
+    public String getName(UUID uuid) throws NullPointerException;
 
-    void callCoinsChangeEvent(UUID uuid, double oldCoins, double newCoins);
+    public void callCoinsChangeEvent(UUID uuid, double oldCoins, double newCoins);
 
-    void callMultiplierEnableEvent(Multiplier multiplier);
+    public void callMultiplierEnableEvent(Multiplier multiplier);
 
-    List<String> getPermissions(UUID uuid);
+    public List<String> getPermissions(UUID uuid);
+
+    public Logger getLogger();
 }

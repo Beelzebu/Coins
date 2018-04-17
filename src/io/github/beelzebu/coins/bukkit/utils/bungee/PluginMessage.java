@@ -22,17 +22,17 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
 import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.Multiplier;
 import io.github.beelzebu.coins.MultiplierType;
 import io.github.beelzebu.coins.bukkit.Main;
 import io.github.beelzebu.coins.common.CacheManager;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.executor.Executor;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -43,7 +43,7 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
  */
 public class PluginMessage implements PluginMessageListener {
 
-    private final Core core = Core.getInstance();
+    private final CoinsCore core = CoinsCore.getInstance();
 
     @Override
     public synchronized void onPluginMessageReceived(String channel, Player player, byte[] message) {
@@ -119,7 +119,7 @@ public class PluginMessage implements PluginMessageListener {
         Player p = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
         if (p != null) {
             try {
-                p.sendPluginMessage(Main.getInstance(), "Coins", out.toByteArray());
+                Bukkit.getServer().sendPluginMessage(Main.getInstance(), "Coins", out.toByteArray());
             } catch (Exception ex) {
                 core.log("Hey, you need to install the plugin in BungeeCord if you have bungeecord enabled in spigot.yml!");
             }

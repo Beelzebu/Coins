@@ -28,7 +28,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import io.github.beelzebu.coins.CoinsAPI;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.database.CoinsDatabase;
 import io.github.beelzebu.coins.common.database.MySQL;
 import io.github.beelzebu.coins.common.database.Redis;
@@ -45,9 +45,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
  */
 public class ImportManager {
 
-    private final Core core;
+    private final CoinsCore core;
 
-    public ImportManager(Core core) {
+    public ImportManager(CoinsCore core) {
         this.core = core;
     }
 

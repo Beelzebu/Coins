@@ -19,7 +19,7 @@
 package io.github.beelzebu.coins.bukkit.listener;
 
 import io.github.beelzebu.coins.CoinsAPI;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -30,19 +30,19 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
  */
 public class CommandListener implements Listener {
 
-    private final Core core = Core.getInstance();
+    private final CoinsCore core = CoinsCore.getInstance();
 
     @EventHandler
     public void onCommandEvent(PlayerCommandPreprocessEvent e) {
         String msg = e.getMessage().toLowerCase();
-        Core.getInstance().getMethods().runAsync(() -> {
+        CoinsCore.getInstance().getMethods().runAsync(() -> {
             if (msg.replaceFirst("/", "").startsWith(core.getConfig().getCommand()) || core.getConfig().getCommandAliases().contains(msg.split(" ")[0].replaceFirst("/", ""))) {
                 core.debug(e.getPlayer().getName() + " issued command: " + msg);
             }
             if (core.getConfig().getDouble("Command Cost." + msg) != 0) {
                 if (CoinsAPI.getCoins(e.getPlayer().getUniqueId()) < core.getConfig().getDouble("Command Cost." + msg)) {
                     e.setCancelled(true);
-                    e.getPlayer().sendMessage(Core.getInstance().rep(Core.getInstance().getMessages(e.getPlayer().spigot().getLocale()).getString("Errors.No Coins")));
+                    e.getPlayer().sendMessage(CoinsCore.getInstance().rep(CoinsCore.getInstance().getMessages(e.getPlayer().spigot().getLocale()).getString("Errors.No Coins")));
                 } else {
                     core.debug("Applied command cost for " + e.getPlayer().getName() + " in command: " + msg);
                     CoinsAPI.takeCoins(e.getPlayer().getName(), core.getConfig().getDouble("Command Cost." + msg));

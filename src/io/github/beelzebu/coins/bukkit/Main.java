@@ -25,24 +25,21 @@ import io.github.beelzebu.coins.bukkit.listener.InternalListener;
 import io.github.beelzebu.coins.bukkit.listener.LoginListener;
 import io.github.beelzebu.coins.bukkit.listener.SignListener;
 import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
-import io.github.beelzebu.coins.bukkit.utils.Configuration;
 import io.github.beelzebu.coins.bukkit.utils.bungee.PluginMessage;
 import io.github.beelzebu.coins.bukkit.utils.leaderheads.LeaderHeadsHook;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.CoinsPlaceholders;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.MultipliersPlaceholders;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.executor.Executor;
-import io.github.beelzebu.coins.common.utils.CoinsConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
 
-    private final Core core = Core.getInstance();
+    private final CoinsCore core = CoinsCore.getInstance();
     private static Main instance;
     private CommandManager commandManager;
-    private CoinsConfig configuration;
 
     public static Main getInstance() {
         return instance;
@@ -51,7 +48,6 @@ public class Main extends JavaPlugin {
     @Override
     public void onLoad() {
         instance = this;
-        configuration = new Configuration(this);
         core.setup(new BukkitMethods());
         if (getConfig().getBoolean("Vault.Use", false)) {
             if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
@@ -93,14 +89,6 @@ public class Main extends JavaPlugin {
             new CoinsPlaceholders(this).hook();
             new MultipliersPlaceholders(this).hook();
         }
-        if (getConfig().getBoolean("Vault.Use", false)) {
-            if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
-                core.getMethods().log("Vault found, hooking into it.");
-                new CoinsEconomy(this).setup();
-            } else {
-                core.log("You enabled Vault in the config, but the plugin Vault can't be found.");
-            }
-        }
         if (Bukkit.getPluginManager().getPlugin("LeaderHeads") != null) {
             core.getMethods().log("LeaderHeads found, hooking into it.");
             new LeaderHeadsHook();
@@ -125,9 +113,5 @@ public class Main extends JavaPlugin {
                 pmsg.sendToBungeeCord("Coins", "getExecutors");
             }, 20);
         }
-    }
-
-    public CoinsConfig getConfiguration() {
-        return configuration;
     }
 }

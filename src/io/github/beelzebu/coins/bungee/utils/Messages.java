@@ -18,6 +18,8 @@
  */
 package io.github.beelzebu.coins.bungee.utils;
 
+import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.common.utils.MessagesManager;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -26,8 +28,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
-import io.github.beelzebu.coins.common.Core;
-import io.github.beelzebu.coins.common.utils.MessagesManager;
 
 /**
  *
@@ -40,7 +40,7 @@ public class Messages extends MessagesManager {
 
     public Messages(String lang) {
         super(lang);
-        load(new File(Core.getInstance().getDataFolder() + "/messages", "messages" + lang + ".yml"));
+        load(new File(CoinsCore.getInstance().getMethods().getDataFolder() + "/messages", "messages" + lang + ".yml"));
     }
 
     @Override

@@ -30,12 +30,10 @@ import org.bukkit.configuration.file.FileConfiguration;
  */
 public class Configuration extends CoinsConfig {
 
-    private final Main plugin;
-    private final FileConfiguration config;
+    private final FileConfiguration config = Main.getInstance().getConfig();
 
-    public Configuration(Main main) {
-        plugin = main;
-        config = main.getConfig();
+    public Configuration() {
+        reload();
     }
 
     @Override
@@ -109,7 +107,7 @@ public class Configuration extends CoinsConfig {
     }
 
     @Override
-    public void reload() {
-        plugin.reloadConfig();
+    public final void reload() {
+        Main.getInstance().reloadConfig();
     }
 }

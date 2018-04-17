@@ -21,7 +21,7 @@ package io.github.beelzebu.coins.bukkit.utils.gui;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.interfaces.IConfiguration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -36,7 +36,7 @@ import org.bukkit.inventory.meta.ItemMeta;
  */
 public abstract class BaseGUI {
 
-    private final Core core = Core.getInstance();
+    private final CoinsCore core = CoinsCore.getInstance();
     private final Inventory inv;
     private final Map<Integer, GUIAction> actions;
     private static final Map<UUID, BaseGUI> inventoriesByUUID = new HashMap<>();

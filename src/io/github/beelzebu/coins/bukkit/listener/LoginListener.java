@@ -22,7 +22,7 @@ import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.bukkit.Main;
 import io.github.beelzebu.coins.bukkit.utils.bungee.PluginMessage;
 import io.github.beelzebu.coins.common.CacheManager;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -36,7 +36,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
  */
 public class LoginListener implements Listener {
 
-    private final Core core = Core.getInstance();
+    private final CoinsCore core = CoinsCore.getInstance();
     private static boolean first = true;
 
     @EventHandler(priority = EventPriority.LOWEST)

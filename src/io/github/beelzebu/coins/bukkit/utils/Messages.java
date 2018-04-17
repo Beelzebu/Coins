@@ -18,11 +18,11 @@
  */
 package io.github.beelzebu.coins.bukkit.utils;
 
+import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.common.utils.MessagesManager;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
-import io.github.beelzebu.coins.common.Core;
-import io.github.beelzebu.coins.common.utils.MessagesManager;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 /**
@@ -36,7 +36,7 @@ public class Messages extends MessagesManager {
 
     public Messages(String lang) {
         super(lang);
-        messages = YamlConfiguration.loadConfiguration(new File(Core.getInstance().getDataFolder() + "/messages", "messages" + lang + ".yml"));
+        messages = YamlConfiguration.loadConfiguration(new File(CoinsCore.getInstance().getMethods().getDataFolder() + "/messages", "messages" + lang + ".yml"));
     }
 
     @Override

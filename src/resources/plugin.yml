@@ -1,7 +1,8 @@
-name: Coins
+name: ${project.artifactId}
 load: STARTUP
 loadbefore: [Vault]
 softdepend: [PlaceholderAPI, Vault, LeaderHeads]
-main: io.github.beelzebu.coins.bukkit.Main
+main: ${project.groupId}.coins.bukkit.Main
 version: ${project.version}
 author: Beelzebu
+website: https://www.spigotmc.org/resources/48536/

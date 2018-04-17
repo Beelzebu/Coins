@@ -19,11 +19,11 @@
  */
 package io.github.beelzebu.coins.common.utils;
 
-import java.util.Collections;
-import java.util.List;
-import io.github.beelzebu.coins.common.Core;
+import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.interfaces.IConfiguration;
+import java.util.Collections;
+import java.util.List;
 import org.bukkit.Bukkit;
 
 /**
@@ -32,7 +32,7 @@ import org.bukkit.Bukkit;
  */
 public abstract class CoinsConfig implements IConfiguration {
 
-    private final Core core = Core.getInstance();
+    protected final CoinsCore core = CoinsCore.getInstance();
 
     // #EasterEgg
     public boolean vaultMultipliers() {
