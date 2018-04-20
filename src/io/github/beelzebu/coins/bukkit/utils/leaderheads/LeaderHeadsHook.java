@@ -38,5 +38,4 @@ public class LeaderHeadsHook extends OnlineDataCollector {
     public Double getScore(Player player) {
         return CoinsAPI.getCoins(player.getUniqueId());
     }
-
 }
