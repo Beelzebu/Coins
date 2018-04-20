@@ -73,7 +73,7 @@ public class CoinsCore {
     private StorageType storageType;
     @Getter
     private ExecutorManager executorManager;
-    private HashMap<String, MessagesManager> messagesMap;
+    private HashMap<String, MessagesManager> messagesMap = new HashMap<>();
     @Getter
     private final Gson gson = new Gson();
 
@@ -98,7 +98,6 @@ public class CoinsCore {
             log("Invalid Storage Type selected in the config, possible values: " + Arrays.toString(StorageType.values()));
         }
         DependencyManager.loadAllDependencies();
-        messagesMap = new HashMap<>();
     }
 
     public void shutdown() {
