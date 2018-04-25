@@ -20,16 +20,12 @@ package io.github.beelzebu.coins.bungee.listener;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import com.google.gson.JsonObject;
 import com.imaginarycode.minecraft.redisbungee.RedisBungee;
-import java.util.Collections;
-import java.util.Iterator;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.config.ServerInfo;
+import io.github.beelzebu.coins.Multiplier;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
-import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.common.CacheManager;
 
 /**
  *
@@ -43,74 +39,59 @@ public class PluginMessageListener extends CoinsBungeeListener implements Listen
             return;
         }
         ByteArrayDataInput in = ByteStreams.newDataInput(e.getData());
-        String channel = in.readUTF();
-        switch (channel) {
-            case "Coins": {
-                ServerInfo server = ProxyServer.getInstance().getPlayer(e.getReceiver().toString()).getServer().getInfo();
-                String input = in.readUTF();
-                if (input.startsWith("getExecutors")) {
-                    if (plugin.useRedis()) {
-                        RedisBungee.getApi().sendChannelMessage("Coins", "getExecutors");
-                    } else {
-                        sendExecutors(server);
-                    }
-                } else if (input.startsWith("execute ")) {
-                    String[] msg = input.split(" ");
-                    ProxyServer.getInstance().getPluginManager().dispatchCommand(ProxyServer.getInstance().getPlayer(msg[1]), input.substring((msg[0] + msg[1]).length() + 2));
+        String subchannel = in.readUTF();
+        switch (subchannel) {
+            case "Executors":
+                if (plugin.useRedisBungee()) {
+                    RedisBungee.getApi().sendChannelMessage(subchannel, "");
+                } else {
+                    core.getMessagingService().getExecutors();
                 }
                 break;
-            }
-            case "Update": {
-                String input = in.readUTF();
-                if (input.startsWith("updateCache")) {
-                    String[] updatemsg = input.split(" ");
-                    if (updatemsg.length == 3) {
-                        if (plugin.useRedis()) {
-                            RedisBungee.getApi().sendChannelMessage("Update", updatemsg[1] + " " + updatemsg[2]);
-                        } else {
-                            ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                                sendToBukkit("Update", Collections.singletonList(updatemsg[1] + " " + updatemsg[2]), ProxyServer.getInstance().getServerInfo(server), true);
-                            });
-                        }
-                    }
+            case "Update":
+                JsonObject data = core.getGson().fromJson(in.readUTF(), JsonObject.class);
+                if (plugin.useRedisBungee()) {
+                    RedisBungee.getApi().sendChannelMessage(subchannel, data.toString());
+                } else {
+                    publishUser(data);
                 }
                 break;
-            }
             case "Multiplier":
                 String input = in.readUTF();
-                if (input.startsWith("get ")) { // update the multiplier for the specified server
-                    Multiplier multiplier = CacheManager.getMultiplier(input.split(" ")[1]);
-                    if (multiplier != null) {
-                        CacheManager.updateMultiplier(multiplier);
-                    }
-                } else if (input.equals("getAllMultipliers")) { // update all multipliers
-                    Iterator<String> it = CacheManager.getMultipliersData().asMap().keySet().iterator();
-                    while (it.hasNext()) {
-                        String server = it.next();
-                        CacheManager.updateMultiplier(CacheManager.getMultiplier(server));
-                    }
-                } else if (input.startsWith("disable ")) {
-                    Multiplier multiplier = CacheManager.getMultiplier(input.split(" ")[1]);
-                    if (multiplier != null) {
-                        if (plugin.useRedis()) {
-                            RedisBungee.getApi().sendChannelMessage("Multiplier", input);
+                switch (input) {
+                    case "getMultipliers":
+                        // update all multipliers
+                        if (plugin.useRedisBungee()) {
+                            sendRedisMessage("Multiplier", "getmultipliers", null);
                         } else {
-                            multiplier.disable();
+                            sendMultipliers();
                         }
-                    }
-                } else { // store the data
-                    Multiplier multiplier = Multiplier.fromJson(input, true);
-                    if (plugin.useRedis()) { // update in all servers if use redis
-                        RedisBungee.getApi().sendChannelMessage("Multiplier", input);
-                    } else { // just upadte this
-                        CacheManager.addMultiplier(multiplier.getServer(), multiplier);
-                        ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                            sendToBukkit("Multiplier", Collections.singletonList(multiplier.toJson().toString()), ProxyServer.getInstance().getServerInfo(server), false);
-                        });
-                    }
+                        break;
+                    case "disable":
+                        Multiplier multiplier = Multiplier.fromJson(in.readUTF(), false);
+                        if (multiplier != null) {
+                            if (plugin.useRedisBungee()) {
+                                sendRedisMessage("Multiplier", "disable", multiplier.toJson().toString());
+                                RedisBungee.getApi().sendChannelMessage("Multiplier", "{\"sub\":\"disable\",\"message:\":" + multiplier.toJson() + "}");
+                            } else {
+                                disableMultiplier(multiplier);
+                            }
+                        }
+                        break;
+                    default:
+                        // store the data
+                        Multiplier receivedMultiplier = Multiplier.fromJson(input, false);
+                        if (receivedMultiplier != null) {
+                            if (plugin.useRedisBungee()) { // update in all servers if use redis
+                                RedisBungee.getApi().sendChannelMessage("Multiplier", input);
+                            } else { // just upadte
+                                handleReceivedMultiplier(receivedMultiplier);
+                            }
+                        }
+                        break;
                 }
                 break;
-            default:
+            case "Multiplier-Enable":
                 break;
         }
     }

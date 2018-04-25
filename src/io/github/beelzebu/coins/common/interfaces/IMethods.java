@@ -19,8 +19,9 @@
 package io.github.beelzebu.coins.common.interfaces;
 
 import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.common.utils.CoinsConfig;
-import io.github.beelzebu.coins.common.utils.MessagesManager;
+import io.github.beelzebu.coins.common.messaging.BungeeMessaging;
+import io.github.beelzebu.coins.common.config.CoinsConfig;
+import io.github.beelzebu.coins.common.config.MessagesConfig;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
@@ -39,7 +40,7 @@ public interface IMethods {
 
     public CoinsConfig getConfig();
 
-    public MessagesManager getMessages(String lang);
+    public MessagesConfig getMessages(String lang);
 
     public void runAsync(Runnable rn);
 
@@ -90,4 +91,6 @@ public interface IMethods {
     public List<String> getPermissions(UUID uuid);
 
     public Logger getLogger();
+
+    public BungeeMessaging getBungeeMessaging();
 }

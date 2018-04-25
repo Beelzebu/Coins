@@ -22,7 +22,6 @@ import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.MultiplierType;
 import io.github.beelzebu.coins.bukkit.Main;
 import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
-import io.github.beelzebu.coins.bukkit.utils.bungee.PluginMessage;
 import io.github.beelzebu.coins.bukkit.utils.gui.MultipliersGUI;
 import io.github.beelzebu.coins.common.CacheManager;
 import io.github.beelzebu.coins.common.CoinsCore;
@@ -468,9 +467,8 @@ public class CoinsCommand extends Command {
                 core.getExecutorManager().addExecutor(new Executor(id, plugin.getConfig().getString("Command executor." + id + ".Displayname", id), plugin.getConfig().getDouble("Command executor." + id + ".Cost", 0), plugin.getConfig().getStringList("Command executor." + id + ".Command")));
             });
             if (core.getConfig().useBungee()) {
-                PluginMessage pm = new PluginMessage();
-                pm.sendToBungeeCord("Multiplier", "getAllMultipliers");
-                pm.sendToBungeeCord("Coins", "getExecutors");
+                core.getMessagingService().getMultipliers();
+                core.getMessagingService().getExecutors();
             }
             sender.sendMessage(core.rep("%prefix% Reloaded config and all loaded messages files. If you want reload the command, you need to restart the server."));
         }

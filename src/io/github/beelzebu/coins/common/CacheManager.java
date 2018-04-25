@@ -24,6 +24,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
+import io.github.beelzebu.coins.Multiplier;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,23 +33,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import lombok.AccessLevel;
 import lombok.Getter;
-import net.md_5.bungee.api.ProxyServer;
-import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.bukkit.utils.bungee.PluginMessage;
-import io.github.beelzebu.coins.bungee.listener.PluginMessageListener;
-import io.github.beelzebu.coins.common.utils.MessagingService;
+import lombok.NoArgsConstructor;
 import org.apache.commons.io.FileUtils;
-import redis.clients.jedis.Jedis;
 
 /**
  *
  * @author Beelzebu
  */
+@NoArgsConstructor(access = AccessLevel.NONE)
 public class CacheManager {
 
     private static final CoinsCore core = CoinsCore.getInstance();
-    private static final File multipliersFile = new File(core.getMethods().getDataFolder(), "multipliers.json");
+    public static final File MULTIPLIERS_FILE = new File(core.getMethods().getDataFolder(), "multipliers.json");
     @Getter
     private static final LoadingCache<UUID, Double> playersData = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<UUID, Double>() {
         @Override
@@ -64,7 +62,7 @@ public class CacheManager {
             Iterator<Multiplier> mult = queuedMultipliers.iterator();
             if (mult.hasNext()) {
                 Multiplier multi = mult.next();
-                callEnable(multi);
+                core.getMessagingService().enableMultiplier(multi);
                 multi.enable(multi.getEnablerUUID(), multi.getEnablerName(), false);
                 mult.remove();
                 return multi;
@@ -93,10 +91,10 @@ public class CacheManager {
         multiplier.setServer(multiplier.getServer().toLowerCase());
         multipliersData.put(server, multiplier);
         try {
-            if (!multipliersFile.exists()) {
-                multipliersFile.createNewFile();
+            if (!MULTIPLIERS_FILE.exists()) {
+                MULTIPLIERS_FILE.createNewFile();
             }
-            Iterator<String> lines = FileUtils.readLines(multipliersFile, Charsets.UTF_8).iterator();
+            Iterator<String> lines = FileUtils.readLines(MULTIPLIERS_FILE, Charsets.UTF_8).iterator();
             boolean exists = false;
             while (lines.hasNext()) {
                 String line = lines.next();
@@ -108,9 +106,9 @@ public class CacheManager {
                 }
             }
             if (!exists) {
-                callEnable(multiplier);
+                core.getMessagingService().enableMultiplier(multiplier);
                 try {
-                    FileUtils.writeLines(multipliersFile, Collections.singletonList(multiplier.toJson().toString() + "\n"), true);
+                    FileUtils.writeLines(MULTIPLIERS_FILE, Collections.singletonList(multiplier.toJson().toString() + "\n"), true);
                 } catch (IOException ex) {
                     core.log("An error has ocurred saving a multiplier in the local storage.");
                     core.debug(ex.getMessage());
@@ -138,22 +136,12 @@ public class CacheManager {
         return multiplier;
     }
 
-    private static void callEnable(Multiplier multiplier) {
-        if (core.getConfig().getMessagingService() != MessagingService.REDIS) {
-            core.getMethods().callMultiplierEnableEvent(multiplier);
-        } else {
-            try (Jedis jedis = core.getRedis().getPool().getResource()) {
-                jedis.publish("coins-event", "{\"event\":\"MultiplierEnableEvent\",\"multiplier\":" + multiplier.toJson() + "}");
-            }
-        }
-    }
-
     public static void deleteMultiplier(Multiplier multplier) {
         if (multplier == null) {
             return;
         }
         try {
-            Iterator<String> lines = FileUtils.readLines(multipliersFile, Charsets.UTF_8).iterator();
+            Iterator<String> lines = FileUtils.readLines(MULTIPLIERS_FILE, Charsets.UTF_8).iterator();
             while (lines.hasNext()) {
                 Multiplier multiplier = Multiplier.fromJson(lines.next(), false);
                 if (multiplier.getId() == multplier.getId()) {
@@ -162,7 +150,7 @@ public class CacheManager {
                     break;
                 }
             }
-            FileUtils.writeLines(multipliersFile, Lists.newArrayList(lines));
+            FileUtils.writeLines(MULTIPLIERS_FILE, Lists.newArrayList(lines));
         } catch (IOException ex) {
             core.log("An error has ocurred removing a multiplier from local storage.");
             core.debug(ex.getMessage());
@@ -171,40 +159,18 @@ public class CacheManager {
     }
 
     public static void updateCache(UUID uuid, double amount) {
-        Preconditions.checkNotNull(uuid, "The uuid can't be null");
-        if (core.getConfig().getMessagingService().equals(MessagingService.REDIS)) { // Update using redis pub/sub
-            try (Jedis jedis = core.getRedis().getPool().getResource()) {
-                jedis.publish("coins-data-update", uuid + " " + amount);
-            }
-        } else if (core.getConfig().getMessagingService().equals(MessagingService.BUNGEECORD)) {
-            CacheManager.updateCoins(uuid, amount);
-            if (core.isBungee()) { // Update using bungee or redisbungee if is present.
-                ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                    PluginMessageListener pml = new PluginMessageListener();
-                    pml.sendToBukkit("Update", Collections.singletonList(uuid + " " + amount), ProxyServer.getInstance().getServerInfo(server), false);
-                });
-            } else if (core.getConfig().useBungee()) { // Update using plugin message
-                PluginMessage pm = new PluginMessage();
-                pm.sendToBungeeCord("Update", "updateCache " + uuid + " " + amount);
-            }
-        }
+        Preconditions.checkNotNull(uuid, "UUID can't be null");
+        core.getMessagingService().publishUser(uuid, amount);
     }
 
-    public static void updateMultiplier(Multiplier multiplier) {
-        if (core.getConfig().getMessagingService().equals(MessagingService.REDIS)) { // Update using redis pub/sub
-            try (Jedis jedis = core.getRedis().getPool().getResource()) {
-                jedis.publish("coins-multiplier", multiplier.toJson().toString());
-            }
-        } else if (core.getConfig().getMessagingService().equals(MessagingService.BUNGEECORD)) {
-            if (core.isBungee()) {
-                ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                    PluginMessageListener pml = new PluginMessageListener();
-                    pml.sendToBukkit("Multiplier", Collections.singletonList(multiplier.toJson().toString()), ProxyServer.getInstance().getServerInfo(server), false);
-                });
-            } else if (core.getConfig().useBungee()) {
-                PluginMessage pm = new PluginMessage();
-                pm.sendToBungeeCord("Multiplier", multiplier.toJson().toString());
-            }
+    public static void updateMultiplier(Multiplier multiplier, boolean callenable) {
+        Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
+        addMultiplier(multiplier.getServer(), multiplier);
+        if (callenable) {
+            multiplier.enable(multiplier.getEnablerUUID(), multiplier.getEnablerName(), true);
+            core.getMessagingService().enableMultiplier(multiplier);
+        } else {
+            core.getMessagingService().publishMultiplier(multiplier);
         }
     }
 }

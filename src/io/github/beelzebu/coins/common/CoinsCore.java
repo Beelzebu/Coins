@@ -22,17 +22,18 @@ import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import io.github.beelzebu.coins.Multiplier;
 import io.github.beelzebu.coins.bungee.BungeeMethods;
+import io.github.beelzebu.coins.common.config.CoinsConfig;
+import io.github.beelzebu.coins.common.config.MessagesConfig;
 import io.github.beelzebu.coins.common.database.CoinsDatabase;
 import io.github.beelzebu.coins.common.database.MySQL;
 import io.github.beelzebu.coins.common.database.Redis;
 import io.github.beelzebu.coins.common.database.SQLite;
 import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.executor.ExecutorManager;
+import io.github.beelzebu.coins.common.interfaces.IMessagingService;
 import io.github.beelzebu.coins.common.interfaces.IMethods;
-import io.github.beelzebu.coins.common.utils.CoinsConfig;
+import io.github.beelzebu.coins.common.messaging.RedisMessaging;
 import io.github.beelzebu.coins.common.utils.FileManager;
-import io.github.beelzebu.coins.common.utils.MessagesManager;
-import io.github.beelzebu.coins.common.utils.MessagingService;
 import io.github.beelzebu.coins.common.utils.dependencies.DependencyManager;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -51,7 +52,9 @@ import java.util.Scanner;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.io.FileUtils;
 
@@ -59,23 +62,24 @@ import org.apache.commons.io.FileUtils;
  *
  * @author Beelzebu
  */
+@NoArgsConstructor(access = AccessLevel.NONE)
 public class CoinsCore {
 
     private static CoinsCore instance;
     @Getter
     private IMethods methods;
-    @Getter
-    private FileManager fileUpdater;
     private CoinsDatabase db;
-    @Getter
-    private Redis redis;
     @Getter
     private StorageType storageType;
     @Getter
+    private IMessagingService messagingService;
+    @Getter
     private ExecutorManager executorManager;
-    private HashMap<String, MessagesManager> messagesMap = new HashMap<>();
+    private HashMap<String, MessagesConfig> messagesMap = new HashMap<>();
     @Getter
     private final Gson gson = new Gson();
+    @Getter
+    private boolean enabled = false;
 
     public static CoinsCore getInstance() {
         return instance == null ? instance = new CoinsCore() : instance;
@@ -83,7 +87,7 @@ public class CoinsCore {
 
     public void setup(IMethods imethods) {
         methods = imethods;
-        fileUpdater = new FileManager(this);
+        FileManager fileUpdater = new FileManager(this);
         fileUpdater.copyFiles();
         methods.loadConfig();
         fileUpdater.updateFiles();
@@ -93,9 +97,15 @@ public class CoinsCore {
             } else {
                 storageType = StorageType.valueOf(getConfig().getString("Storage Type", "SQLITE").toUpperCase());
             }
-        } catch (Exception ex) { // invalid storage type
+        } catch (IllegalArgumentException ex) { // invalid storage type
             storageType = StorageType.SQLITE;
             log("Invalid Storage Type selected in the config, possible values: " + Arrays.toString(StorageType.values()));
+        }
+        if (storageType.equals(StorageType.REDIS)) { // force redis messaging service if you're using it for storage
+            messagingService = new RedisMessaging();
+        }
+        if (getConfig().getString("Messaging Service").equalsIgnoreCase("bungeecord")) {
+            messagingService = methods.getBungeeMessaging();
         }
         DependencyManager.loadAllDependencies();
     }
@@ -117,9 +127,12 @@ public class CoinsCore {
             return;
         }
         getConfig().reload();
-        motd(true);
         try {
-            Iterator<String> lines = FileUtils.readLines(new File(methods.getDataFolder(), "multipliers.json"), Charsets.UTF_8).iterator();
+            if (!CacheManager.MULTIPLIERS_FILE.exists()) {
+                CacheManager.MULTIPLIERS_FILE.mkdirs();
+                CacheManager.MULTIPLIERS_FILE.createNewFile();
+            }
+            Iterator<String> lines = FileUtils.readLines(CacheManager.MULTIPLIERS_FILE, Charsets.UTF_8).iterator();
             while (lines.hasNext()) {
                 try {
                     Multiplier multiplier = Multiplier.fromJson(lines.next(), false);
@@ -131,14 +144,6 @@ public class CoinsCore {
             log("An error has ocurred loading multipliers from local storage.");
             debug(ex.getMessage());
         }
-        if (getConfig().getMessagingService().equals(MessagingService.REDIS)) {
-            if (storageType.equals(StorageType.REDIS)) {
-                redis = (Redis) getDatabase();
-            } else {
-                redis = new Redis();
-                redis.setup();
-            }
-        }
         if (storageType.equals(StorageType.SQLITE) && getConfig().getInt("Database Version", 1) < 2) {
             try {
                 Files.move(new File(methods.getDataFolder(), "database.db").toPath(), new File(methods.getDataFolder(), "database.old.db").toPath());
@@ -148,7 +153,10 @@ public class CoinsCore {
             }
         }
         getDatabase().setup();
+        messagingService.start();
         executorManager = new ExecutorManager();
+        enabled = true;
+        motd(true);
     }
 
     private void motd(boolean enable) {
@@ -167,11 +175,12 @@ public class CoinsCore {
         methods.sendMessage(methods.getConsole(), rep(""));
         // Only send this in the onEnable
         if (enable) {
+            logToFile("Enabled Coins v: " + methods.getVersion());
             if (getConfig().getBoolean("Debug", false)) {
                 log("Debug mode is enabled.");
             }
             log("Using \"" + storageType.toString().toLowerCase() + "\" for storage.");
-            log("Using \"" + getConfig().getMessagingService().toString().toLowerCase() + "\" as messaging service.");
+            log("Using \"" + messagingService.getType().toString().toLowerCase() + "\" as messaging service.");
             String upt = "You have the newest version";
             String response = getFromURL("https://api.spigotmc.org/legacy/update.php?resource=48536");
             if (response == null) {
@@ -209,6 +218,9 @@ public class CoinsCore {
     }
 
     private void logToFile(Object msg) {
+        if (!enabled) {
+            return;
+        }
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
         File log = new File(methods.getDataFolder(), "/logs/latest.log");
         if (!log.exists()) {
@@ -230,21 +242,11 @@ public class CoinsCore {
         }
     }
 
-    @Deprecated
-    public String getNick(UUID uuid) {
-        return getNick(uuid, false);
-    }
-
     public String getNick(UUID uuid, boolean fromdb) {
         if (!fromdb && methods.getName(uuid) != null) {
             return methods.getName(uuid);
         }
         return getDatabase().getNick(uuid);
-    }
-
-    @Deprecated
-    public UUID getUUID(String name) {
-        return getUUID(name, false);
     }
 
     public UUID getUUID(String name, boolean fromdb) {
@@ -255,13 +257,16 @@ public class CoinsCore {
     }
 
     public CoinsDatabase getDatabase() {
+        if (db != null) {
+            return db;
+        }
         switch (storageType) {
             case MYSQL:
-                return db == null ? db = new MySQL() : db;
+                return db = new MySQL();
             case SQLITE:
-                return db == null ? db = new SQLite() : db;
+                return db = new SQLite();
             case REDIS:
-                return db == null ? db = new Redis() : db;
+                return db = new Redis();
             default:
                 return null;
         }
@@ -281,11 +286,7 @@ public class CoinsCore {
     public String rep(String msg, Multiplier multiplier) {
         String string = msg;
         if (multiplier != null) {
-            string = msg.replaceAll("%enabler%", multiplier.getEnablerName())
-                    .replaceAll("%server%", multiplier.getServer())
-                    .replaceAll("%amount%", String.valueOf(multiplier.getAmount()))
-                    .replaceAll("%minutes%", String.valueOf(multiplier.getMinutes()))
-                    .replaceAll("%id%", String.valueOf(multiplier.getId()));
+            string = msg.replaceAll("%enabler%", multiplier.getEnablerName()).replaceAll("%server%", multiplier.getServer()).replaceAll("%amount%", String.valueOf(multiplier.getAmount())).replaceAll("%minutes%", String.valueOf(multiplier.getMinutes())).replaceAll("%id%", String.valueOf(multiplier.getId()));
         }
         return rep(string);
     }
@@ -310,7 +311,7 @@ public class CoinsCore {
         return methods.getConfig();
     }
 
-    public MessagesManager getMessages(String lang) {
+    public MessagesConfig getMessages(String lang) {
         if (lang == null || lang.equals("")) {
             lang = "default";
         }

@@ -18,16 +18,15 @@
  */
 package io.github.beelzebu.coins.bungee.listener;
 
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import net.md_5.bungee.api.config.ServerInfo;
+import com.google.gson.JsonObject;
+import com.imaginarycode.minecraft.redisbungee.RedisBungee;
+import io.github.beelzebu.coins.CoinsAPI;
+import io.github.beelzebu.coins.Multiplier;
 import io.github.beelzebu.coins.bungee.Main;
+import io.github.beelzebu.coins.common.CacheManager;
 import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.interfaces.IConfiguration;
+import java.util.Iterator;
+import java.util.UUID;
 
 /**
  *
@@ -37,33 +36,48 @@ public abstract class CoinsBungeeListener {
 
     protected final Main plugin = Main.getInstance();
     protected final CoinsCore core = CoinsCore.getInstance();
-    protected final IConfiguration config = core.getConfig();
-    protected final List<String> message = Collections.synchronizedList(new ArrayList<>());
 
-    public void sendExecutors(ServerInfo server) {
-        config.getConfigurationSection("Command executor").forEach((String id) -> {
-            synchronized (message) {
-                message.clear();
-                List<String> commands = config.getStringList("Command executor." + id + ".Command");
-                List<String> messages = Arrays.asList(
-                        id,
-                        config.getString("Command executor." + id + ".Displayname", id),
-                        String.valueOf(config.getDouble("Command executor." + id + ".Cost")),
-                        String.valueOf(commands.size())
-                );
-                message.addAll(messages);
-                message.addAll(messages.size(), commands);
-                sendToBukkit("Coins", message, server, true);
-            }
-        });
+    protected void publishUser(JsonObject data) {
+        if (data != null) {
+            UUID uuid = UUID.fromString(data.get("uuid").getAsString());
+            double coins = data.get("coins").getAsDouble();
+            CacheManager.updateCoins(uuid, coins);
+            core.getMessagingService().publishUser(uuid, coins);
+        }
     }
 
-    public void sendToBukkit(String channel, List<String> messages, ServerInfo server, boolean wait) {
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF(channel);
-        messages.forEach((msg) -> {
-            out.writeUTF(msg);
-        });
-        server.sendData("Coins", out.toByteArray(), wait);
+    protected void disableMultiplier(Multiplier multiplier) {
+        Multiplier localMultiplier = CacheManager.getMultiplier(multiplier.getServer());
+        multiplier.disable();
+        if (localMultiplier != null) {
+            multiplier.disable();
+        } else {
+            core.getMessagingService().publishMultiplier(multiplier);
+        }
+    }
+
+    protected void handleReceivedMultiplier(Multiplier multiplier) {
+        CacheManager.addMultiplier(multiplier.getServer(), multiplier);
+        core.getMessagingService().publishMultiplier(multiplier);
+    }
+
+    protected void enableMultiplier(Multiplier multiplier) {
+        Multiplier current = CoinsAPI.getMultiplier(multiplier.getServer());
+        if (current != null) {
+            current.disable();
+        }
+        CacheManager.addMultiplier(multiplier.getServer(), multiplier);
+    }
+
+    protected void sendMultipliers() {
+        Iterator<String> it = CacheManager.getMultipliersData().asMap().keySet().iterator();
+        while (it.hasNext()) {
+            String server = it.next();
+            CacheManager.updateMultiplier(CacheManager.getMultiplier(server), true);
+        }
+    }
+
+    protected void sendRedisMessage(String channel, String subchannel, String message) {
+        RedisBungee.getApi().sendChannelMessage(channel, "{\"sub\":\"" + subchannel + "\",\"message\":\"" + message + "\"}");
     }
 }

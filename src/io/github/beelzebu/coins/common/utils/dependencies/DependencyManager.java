@@ -26,6 +26,7 @@ package io.github.beelzebu.coins.common.utils.dependencies;
 
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.database.StorageType;
+import io.github.beelzebu.coins.common.messaging.MessagingServiceType;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -76,11 +77,12 @@ public class DependencyManager {
         if (classExists("org.apache.commons.io.FileUtils")) {
             dependencies.remove(Dependency.COMMONS_IO);
         }
-        if (!core.getStorageType().equals(StorageType.REDIS)) {
+        if (!core.getStorageType().equals(StorageType.MYSQL) && !core.getStorageType().equals(StorageType.SQLITE)) {
+            dependencies.remove(Dependency.HIKARI);
+        }
+        if (!core.getMessagingService().getType().equals(MessagingServiceType.REDIS) && !core.getStorageType().equals(StorageType.REDIS)) {
             dependencies.remove(Dependency.COMMONS_POOL);
             dependencies.remove(Dependency.JEDIS);
-        } else {
-            dependencies.remove(Dependency.HIKARI);
         }
         if (!dependencies.isEmpty()) {
             loadDependencies(dependencies);

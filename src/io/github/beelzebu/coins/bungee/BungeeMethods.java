@@ -20,14 +20,16 @@ package io.github.beelzebu.coins.bungee;
 
 import com.imaginarycode.minecraft.redisbungee.RedisBungee;
 import io.github.beelzebu.coins.Multiplier;
+import io.github.beelzebu.coins.bungee.config.BungeeConfig;
+import io.github.beelzebu.coins.bungee.config.BungeeMessages;
 import io.github.beelzebu.coins.bungee.events.CoinsChangeEvent;
 import io.github.beelzebu.coins.bungee.events.MultiplierEnableEvent;
-import io.github.beelzebu.coins.bungee.utils.Configuration;
-import io.github.beelzebu.coins.bungee.utils.Messages;
+import io.github.beelzebu.coins.bungee.messaging.BungeeBungeeMessaging;
 import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.common.config.CoinsConfig;
+import io.github.beelzebu.coins.common.config.MessagesConfig;
 import io.github.beelzebu.coins.common.interfaces.IMethods;
-import io.github.beelzebu.coins.common.utils.CoinsConfig;
-import io.github.beelzebu.coins.common.utils.MessagesManager;
+import io.github.beelzebu.coins.common.messaging.BungeeMessaging;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -48,7 +50,8 @@ public class BungeeMethods implements IMethods {
 
     private final Main plugin = Main.getInstance();
     private final CommandSender console = ProxyServer.getInstance().getConsole();
-    private Configuration config;
+    private BungeeBungeeMessaging bbmessaging;
+    private BungeeConfig config;
 
     @Override
     public Object getPlugin() {
@@ -57,18 +60,18 @@ public class BungeeMethods implements IMethods {
 
     @Override
     public void loadConfig() {
-        config = new Configuration();
+        config = new BungeeConfig();
 
     }
 
     @Override
     public CoinsConfig getConfig() {
-        return config == null ? config = new Configuration() : config;
+        return config == null ? config = new BungeeConfig() : config;
     }
 
     @Override
-    public MessagesManager getMessages(String lang) {
-        return new Messages(lang);
+    public MessagesConfig getMessages(String lang) {
+        return new BungeeMessages(lang);
     }
 
     @Override
@@ -123,7 +126,7 @@ public class BungeeMethods implements IMethods {
 
     @Override
     public boolean isOnline(UUID uuid) {
-        if (plugin.useRedis()) {
+        if (plugin.useRedisBungee()) {
             return RedisBungee.getApi().isPlayerOnline(uuid);
         }
         return ProxyServer.getInstance().getPlayer(uuid) != null;
@@ -131,7 +134,7 @@ public class BungeeMethods implements IMethods {
 
     @Override
     public boolean isOnline(String name) {
-        if (plugin.useRedis()) {
+        if (plugin.useRedisBungee()) {
             return RedisBungee.getApi().isPlayerOnline(RedisBungee.getApi().getUuidFromName(name));
         }
         return ProxyServer.getInstance().getPlayer(name) != null;
@@ -139,7 +142,7 @@ public class BungeeMethods implements IMethods {
 
     @Override
     public UUID getUUID(String name) {
-        if (plugin.useRedis()) {
+        if (plugin.useRedisBungee()) {
             return RedisBungee.getApi().getUuidFromName(name);
         }
         return ProxyServer.getInstance().getPlayer(name) != null ? ProxyServer.getInstance().getPlayer(name).getUniqueId() : null;
@@ -147,7 +150,7 @@ public class BungeeMethods implements IMethods {
 
     @Override
     public String getName(UUID uuid) {
-        if (plugin.useRedis()) {
+        if (plugin.useRedisBungee()) {
             return RedisBungee.getApi().getNameFromUuid(uuid);
         }
         return ProxyServer.getInstance().getPlayer(uuid) != null ? ProxyServer.getInstance().getPlayer(uuid).getName() : null;
@@ -175,5 +178,10 @@ public class BungeeMethods implements IMethods {
     @Override
     public Logger getLogger() {
         return plugin.getLogger();
+    }
+
+    @Override
+    public BungeeMessaging getBungeeMessaging() {
+        return bbmessaging == null ? bbmessaging = new BungeeBungeeMessaging() : bbmessaging;
     }
 }

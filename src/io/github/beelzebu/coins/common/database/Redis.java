@@ -20,14 +20,6 @@ package io.github.beelzebu.coins.common.database;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.CoinsResponse;
 import io.github.beelzebu.coins.CoinsResponse.CoinsResponseType;
@@ -36,6 +28,14 @@ import io.github.beelzebu.coins.MultiplierBuilder;
 import io.github.beelzebu.coins.MultiplierData;
 import io.github.beelzebu.coins.MultiplierType;
 import io.github.beelzebu.coins.common.CacheManager;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -370,7 +370,8 @@ public class Redis implements CoinsDatabase {
             core.debug(message);
             switch (channel) {
                 case "coins-data-update":
-                    CacheManager.updateCoins(UUID.fromString(message.split(" ")[0]), Double.parseDouble(message.split(" ")[1]));
+                    JsonObject data = core.getGson().fromJson(message, JsonObject.class);
+                    CacheManager.updateCoins(UUID.fromString(data.get("uuid").getAsString()), data.get("coins").getAsDouble());
                     break;
                 case "coins-multiplier":
                     Multiplier multiplier = Multiplier.fromJson(message, false);

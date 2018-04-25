@@ -16,10 +16,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.beelzebu.coins.bukkit.utils;
+package io.github.beelzebu.coins.bukkit.config;
 
 import io.github.beelzebu.coins.bukkit.Main;
-import io.github.beelzebu.coins.common.utils.CoinsConfig;
+import io.github.beelzebu.coins.common.config.CoinsConfig;
 import java.util.List;
 import java.util.Set;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -28,11 +28,11 @@ import org.bukkit.configuration.file.FileConfiguration;
  *
  * @author Beelzebu
  */
-public class Configuration extends CoinsConfig {
+public class BukkitConfig extends CoinsConfig {
 
     private final FileConfiguration config = Main.getInstance().getConfig();
 
-    public Configuration() {
+    public BukkitConfig() {
         reload();
     }
 

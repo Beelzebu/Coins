@@ -1,5 +1,5 @@
 /**
- * This file is part of Coins
+ * This file is part of Coins.
  *
  * Copyright © 2018 Beelzebu
  *
@@ -16,16 +16,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.beelzebu.coins.common.utils;
-
-import io.github.beelzebu.coins.common.interfaces.IConfiguration;
+package io.github.beelzebu.coins.common.messaging;
 
 /**
  *
  * @author Beelzebu
  */
-public abstract class MessagesManager implements IConfiguration {
-
-    public MessagesManager(String lang) {
-    }
+public enum MessagingServiceType {
+    REDIS,
+    BUNGEECORD,
+    NONE;
 }

@@ -18,22 +18,22 @@
  */
 package io.github.beelzebu.coins;
 
+import io.github.beelzebu.coins.CoinsResponse.CoinsResponseType;
+import io.github.beelzebu.coins.common.CacheManager;
+import io.github.beelzebu.coins.common.CoinsCore;
 import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import io.github.beelzebu.coins.CoinsResponse.CoinsResponseType;
-import io.github.beelzebu.coins.common.CacheManager;
-import io.github.beelzebu.coins.common.CoinsCore;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  *
  * @author Beelzebu
  */
+@NoArgsConstructor(access = AccessLevel.NONE)
 public final class CoinsAPI {
-
-    private CoinsAPI() {
-    }
 
     private static final CoinsCore core = CoinsCore.getInstance();
     private static final DecimalFormat DF = new DecimalFormat("#.#");

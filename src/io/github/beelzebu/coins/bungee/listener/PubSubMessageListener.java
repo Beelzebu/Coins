@@ -18,13 +18,11 @@
  */
 package io.github.beelzebu.coins.bungee.listener;
 
+import com.google.gson.JsonObject;
 import com.imaginarycode.minecraft.redisbungee.events.PubSubMessageEvent;
-import java.util.Collections;
-import net.md_5.bungee.api.ProxyServer;
+import io.github.beelzebu.coins.Multiplier;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
-import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.common.CacheManager;
 
 /**
  *
@@ -35,32 +33,28 @@ public class PubSubMessageListener extends CoinsBungeeListener implements Listen
     @EventHandler
     public void onPubSubMessage(PubSubMessageEvent e) {
         switch (e.getChannel()) {
-            case "Coins":
-                if (e.getMessage().equals("getExecutors")) {
-                    core.debug("Sending executors");
-                    ProxyServer.getInstance().getServers().values().forEach((server) -> {
-                        sendExecutors(server);
-                        core.debug("Sending to " + server.getName());
-                    });
-                }
+            case "Executors":
+                core.getMessagingService().getExecutors();
                 break;
             case "Update":
-                ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                    sendToBukkit("Update", Collections.singletonList(e.getMessage()), ProxyServer.getInstance().getServerInfo(server), true);
-                });
+                publishUser(core.getGson().fromJson(e.getMessage(), JsonObject.class));
                 break;
             case "Multiplier":
-                if (e.getMessage().startsWith("disable ")) {
-                    CacheManager.getMultiplier(e.getMessage().split(" ")[1]).disable();
+                JsonObject message = core.getGson().fromJson(e.getMessage(), JsonObject.class);
+                if (message.get("sub") != null) {
+                    switch (message.get("sub").getAsString()) {
+                        case "getmultipliers":
+                            sendMultipliers();
+                            break;
+                        case "disable":
+                            Multiplier multiplier = Multiplier.fromJson(message.get("message").getAsJsonObject().toString(), false);
+                            disableMultiplier(multiplier);
+                            break;
+                    }
                 } else {
-                    Multiplier multiplier = Multiplier.fromJson(e.getMessage(), true);
-                    CacheManager.addMultiplier(multiplier.getServer(), multiplier);
-                    ProxyServer.getInstance().getServers().keySet().forEach(server -> {
-                        sendToBukkit("Multiplier", Collections.singletonList(multiplier.toJson().toString()), ProxyServer.getInstance().getServerInfo(server), false);
-                    });
+                    Multiplier multiplier = Multiplier.fromJson(e.getMessage(), false);
+                    handleReceivedMultiplier(multiplier);
                 }
-                break;
-            default:
                 break;
         }
     }

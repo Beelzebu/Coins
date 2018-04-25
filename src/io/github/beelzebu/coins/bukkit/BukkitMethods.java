@@ -19,14 +19,16 @@
 package io.github.beelzebu.coins.bukkit;
 
 import io.github.beelzebu.coins.Multiplier;
+import io.github.beelzebu.coins.bukkit.config.BukkitConfig;
+import io.github.beelzebu.coins.bukkit.config.BukkitMessages;
 import io.github.beelzebu.coins.bukkit.events.CoinsChangeEvent;
 import io.github.beelzebu.coins.bukkit.events.MultiplierEnableEvent;
-import io.github.beelzebu.coins.bukkit.utils.Configuration;
-import io.github.beelzebu.coins.bukkit.utils.Messages;
+import io.github.beelzebu.coins.bukkit.messaging.BukkitBungeeMessaging;
 import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.common.config.CoinsConfig;
+import io.github.beelzebu.coins.common.config.MessagesConfig;
 import io.github.beelzebu.coins.common.interfaces.IMethods;
-import io.github.beelzebu.coins.common.utils.CoinsConfig;
-import io.github.beelzebu.coins.common.utils.MessagesManager;
+import io.github.beelzebu.coins.common.messaging.BungeeMessaging;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -45,7 +47,8 @@ public class BukkitMethods implements IMethods {
 
     private final Main plugin = Main.getInstance();
     private final CommandSender console = Bukkit.getConsoleSender();
-    private Configuration config;
+    private BukkitBungeeMessaging bbmessaging;
+    private BukkitConfig config;
 
     @Override
     public Object getPlugin() {
@@ -54,17 +57,17 @@ public class BukkitMethods implements IMethods {
 
     @Override
     public void loadConfig() {
-        config = new Configuration();
+        config = new BukkitConfig();
     }
 
     @Override
     public CoinsConfig getConfig() {
-        return config == null ? config = new Configuration() : config;
+        return config == null ? config = new BukkitConfig() : config;
     }
 
     @Override
-    public MessagesManager getMessages(String lang) {
-        return new Messages(lang);
+    public MessagesConfig getMessages(String lang) {
+        return new BukkitMessages(lang);
     }
 
     @Override
@@ -165,5 +168,10 @@ public class BukkitMethods implements IMethods {
     @Override
     public Logger getLogger() {
         return plugin.getLogger();
+    }
+
+    @Override
+    public BungeeMessaging getBungeeMessaging() {
+        return bbmessaging == null ? bbmessaging = new BukkitBungeeMessaging() : bbmessaging;
     }
 }

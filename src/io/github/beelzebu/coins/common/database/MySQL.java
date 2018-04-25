@@ -21,15 +21,6 @@ package io.github.beelzebu.coins.common.database;
 import com.google.common.base.Preconditions;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.CoinsResponse;
 import io.github.beelzebu.coins.CoinsResponse.CoinsResponseType;
@@ -39,6 +30,16 @@ import io.github.beelzebu.coins.MultiplierData;
 import io.github.beelzebu.coins.MultiplierType;
 import io.github.beelzebu.coins.common.CacheManager;
 import io.github.beelzebu.coins.common.database.DatabaseUtils.SQLQuery;
+import io.github.beelzebu.coins.common.utils.FileManager;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  *
@@ -111,10 +112,8 @@ public class MySQL implements CoinsDatabase {
                                 core.debug("Migrated the data for " + res.getString("nick") + " (" + res.getString("uuid") + ")");
                             }
                             core.log("Successfully upadated database to version 2");
-                            core.getFileUpdater().updateDatabaseVersion(2);
-                        } else {
-                            core.getFileUpdater().updateDatabaseVersion(2);
                         }
+                        new FileManager(core).updateDatabaseVersion(2);
                     } catch (SQLException ex) {
                         for (int i = 0; i < 5; i++) {
                             core.log("An error has ocurred migrating the data from the old database, check the logs ASAP!");

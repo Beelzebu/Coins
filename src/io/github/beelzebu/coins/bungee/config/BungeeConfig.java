@@ -16,101 +16,107 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.beelzebu.coins.bukkit.utils;
+package io.github.beelzebu.coins.bungee.config;
 
-import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.utils.MessagesManager;
+import io.github.beelzebu.coins.bungee.Main;
+import io.github.beelzebu.coins.common.config.CoinsConfig;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import org.bukkit.configuration.file.YamlConfiguration;
+import java.util.logging.Level;
+import net.md_5.bungee.config.ConfigurationProvider;
+import net.md_5.bungee.config.YamlConfiguration;
 
 /**
  *
  * @author Beelzebu
  */
-public class Messages extends MessagesManager {
+public class BungeeConfig extends CoinsConfig {
 
-    private File langFile;
-    private YamlConfiguration messages;
+    private final File configFile = new File(Main.getInstance().getDataFolder(), "config.yml");
+    private net.md_5.bungee.config.Configuration config;
 
-    public Messages(String lang) {
-        super(lang);
-        messages = YamlConfiguration.loadConfiguration(new File(CoinsCore.getInstance().getMethods().getDataFolder() + "/messages", "messages" + lang + ".yml"));
+    public BungeeConfig() {
+        reload();
     }
 
     @Override
     public Object get(String path) {
-        return messages.get(path);
+        return config.get(path);
     }
 
     @Override
     public String getString(String path) {
-        return messages.getString(path);
+        return config.getString(path);
     }
 
     @Override
     public List<String> getStringList(String path) {
-        return messages.getStringList(path);
+        return config.getStringList(path);
     }
 
     @Override
     public boolean getBoolean(String path) {
-        return messages.getBoolean(path);
+        return config.getBoolean(path);
     }
 
     @Override
     public int getInt(String path) {
-        return messages.getInt(path);
+        return config.getInt(path);
     }
 
     @Override
     public double getDouble(String path) {
-        return messages.getDouble(path);
+        return config.getDouble(path);
     }
 
     @Override
     public Object get(String path, Object def) {
-        return (messages.get(path) == null ? def : messages.get(path));
+        return (config.get(path) == null ? def : config.get(path));
     }
 
     @Override
     public String getString(String path, String def) {
-        return (messages.get(path) == null ? def : messages.getString(path));
+        return (config.get(path) == null ? def : config.getString(path));
     }
 
     @Override
     public List<String> getStringList(String path, List<String> def) {
-        return (messages.get(path) == null ? def : messages.getStringList(path));
+        return (config.get(path) == null ? def : config.getStringList(path));
     }
 
     @Override
     public boolean getBoolean(String path, boolean def) {
-        return (messages.get(path) == null ? def : messages.getBoolean(path));
+        return (config.get(path) == null ? def : config.getBoolean(path));
     }
 
     @Override
     public int getInt(String path, int def) {
-        return (messages.get(path) == null ? def : messages.getInt(path));
+        return (config.get(path) == null ? def : config.getInt(path));
     }
 
     @Override
     public double getDouble(String path, double def) {
-        return (messages.get(path) == null ? def : messages.getDouble(path));
+        return (config.get(path) == null ? def : config.getDouble(path));
     }
 
     @Override
     public void set(String path, Object value) {
-        messages.set(path, value);
+        config.set(path, value);
     }
 
     @Override
     public Set<String> getConfigurationSection(String path) {
-        return messages.getConfigurationSection(path).getKeys(false);
+        return (Set<String>) config.getSection(path).getKeys();
     }
 
     @Override
-    public void reload() {
-        messages = YamlConfiguration.loadConfiguration(langFile);
+    public final void reload() {
+        try {
+            config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
+        } catch (IOException ex) {
+            core.getMethods().getLogger().log(Level.SEVERE, "An unexpected error has ocurred reloading the config. {0}", ex.getMessage());
+        }
     }
 }

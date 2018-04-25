@@ -19,16 +19,16 @@
 package io.github.beelzebu.coins.bungee;
 
 import com.imaginarycode.minecraft.redisbungee.RedisBungee;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.plugin.Plugin;
 import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.CoinsResponse.CoinsResponseType;
 import io.github.beelzebu.coins.bungee.listener.PluginMessageListener;
 import io.github.beelzebu.coins.bungee.listener.PubSubMessageListener;
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.executor.Executor;
-import io.github.beelzebu.coins.common.utils.MessagingService;
+import io.github.beelzebu.coins.common.messaging.MessagingServiceType;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.plugin.Plugin;
 
 /**
  *
@@ -38,7 +38,7 @@ public class Main extends Plugin {
 
     private static Main instance;
     private final CoinsCore core = CoinsCore.getInstance();
-    private static Boolean useRedis = false;
+    private static boolean useRedis = false;
 
     public static Main getInstance() {
         return instance;
@@ -53,10 +53,10 @@ public class Main extends Plugin {
     @Override
     public void onEnable() {
         core.start();
-        if (core.getConfig().getMessagingService().equals(MessagingService.BUNGEECORD)) {
+        if (core.getMessagingService().getType().equals(MessagingServiceType.BUNGEECORD)) {
             if (ProxyServer.getInstance().getPluginManager().getPlugin("RedisBungee") != null) {
                 ProxyServer.getInstance().getPluginManager().registerListener(this, new PubSubMessageListener());
-                RedisBungee.getApi().registerPubSubChannels("Coins", "Update", "Multiplier");
+                RedisBungee.getApi().registerPubSubChannels("Executors", "Update");
                 useRedis = true;
                 core.log("Using RedisBungee for plugin messaging.");
             }
@@ -78,7 +78,7 @@ public class Main extends Plugin {
         }
     }
 
-    public Boolean useRedis() {
+    public boolean useRedisBungee() {
         return useRedis;
     }
 }

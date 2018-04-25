@@ -20,7 +20,6 @@ package io.github.beelzebu.coins.bukkit.listener;
 
 import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.bukkit.Main;
-import io.github.beelzebu.coins.bukkit.utils.bungee.PluginMessage;
 import io.github.beelzebu.coins.common.CacheManager;
 import io.github.beelzebu.coins.common.CoinsCore;
 import org.bukkit.Bukkit;
@@ -47,12 +46,11 @@ public class LoginListener implements Listener {
         if (!core.getConfig().useBungee()) {
             return;
         }
-        PluginMessage pmsg = new PluginMessage();
         if (first) {
             Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(Main.getInstance(), () -> {
-                pmsg.sendToBungeeCord("Multiplier", "getAllMultipliers");
-                pmsg.sendToBungeeCord("Coins", "getExecutors");
-            }, 30);
+                core.getMessagingService().getMultipliers();
+                core.getMessagingService().getExecutors();
+            }, 10);
             first = false;
         }
     }

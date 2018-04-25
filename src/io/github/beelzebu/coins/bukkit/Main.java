@@ -25,7 +25,6 @@ import io.github.beelzebu.coins.bukkit.listener.InternalListener;
 import io.github.beelzebu.coins.bukkit.listener.LoginListener;
 import io.github.beelzebu.coins.bukkit.listener.SignListener;
 import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
-import io.github.beelzebu.coins.bukkit.utils.bungee.PluginMessage;
 import io.github.beelzebu.coins.bukkit.utils.leaderheads.LeaderHeadsHook;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.CoinsPlaceholders;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.MultipliersPlaceholders;
@@ -34,6 +33,7 @@ import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.executor.Executor;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.PluginMessageListener;
 
 public class Main extends JavaPlugin {
 
@@ -105,12 +105,11 @@ public class Main extends JavaPlugin {
 
     private void startTasks() {
         if (core.getConfig().useBungee() && !core.getStorageType().equals(StorageType.REDIS)) {
-            PluginMessage pmsg = new PluginMessage();
             Bukkit.getMessenger().registerOutgoingPluginChannel(this, "Coins");
-            Bukkit.getMessenger().registerIncomingPluginChannel(this, "Coins", pmsg);
+            Bukkit.getMessenger().registerIncomingPluginChannel(this, "Coins", (PluginMessageListener) core.getMethods().getBungeeMessaging());
             Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {
-                pmsg.sendToBungeeCord("Multiplier", "getAllMultipliers");
-                pmsg.sendToBungeeCord("Coins", "getExecutors");
+                core.getMessagingService().getMultipliers();
+                core.getMessagingService().getExecutors();
             }, 20);
         }
     }

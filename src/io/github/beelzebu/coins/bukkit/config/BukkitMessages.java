@@ -16,31 +16,27 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.beelzebu.coins.bungee.utils;
+package io.github.beelzebu.coins.bukkit.config;
 
 import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.utils.MessagesManager;
+import io.github.beelzebu.coins.common.config.MessagesConfig;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import net.md_5.bungee.config.ConfigurationProvider;
-import net.md_5.bungee.config.YamlConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 /**
  *
  * @author Beelzebu
  */
-public class Messages extends MessagesManager {
+public class BukkitMessages extends MessagesConfig {
 
     private File langFile;
-    private net.md_5.bungee.config.Configuration messages;
+    private YamlConfiguration messages;
 
-    public Messages(String lang) {
+    public BukkitMessages(String lang) {
         super(lang);
-        load(new File(CoinsCore.getInstance().getMethods().getDataFolder() + "/messages", "messages" + lang + ".yml"));
+        messages = YamlConfiguration.loadConfiguration(new File(CoinsCore.getInstance().getMethods().getDataFolder() + "/messages", "messages" + lang + ".yml"));
     }
 
     @Override
@@ -110,21 +106,11 @@ public class Messages extends MessagesManager {
 
     @Override
     public Set<String> getConfigurationSection(String path) {
-        return (Set<String>) messages.getSection(path).getKeys();
+        return messages.getConfigurationSection(path).getKeys(false);
     }
 
     @Override
-    public final void reload() {
-        load(langFile);
-    }
-
-    private net.md_5.bungee.config.Configuration load(File file) {
-        langFile = file;
-        try {
-            messages = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
-        } catch (IOException ex) {
-            Logger.getLogger(Configuration.class.getName()).log(Level.WARNING, "An unexpected error has ocurred reloading the messages file. {0}", ex.getMessage());
-        }
-        return messages;
+    public void reload() {
+        messages = YamlConfiguration.loadConfiguration(langFile);
     }
 }

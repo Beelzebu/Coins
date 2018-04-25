@@ -109,7 +109,7 @@ public final class Multiplier {
                 }
             }
             core.getDatabase().enableMultiplier(this);
-            CacheManager.updateMultiplier(this);
+            CacheManager.updateMultiplier(this, true);
         } else {
             CacheManager.getQueuedMultipliers().add(this);
         }
