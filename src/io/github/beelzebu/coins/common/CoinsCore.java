@@ -153,7 +153,9 @@ public class CoinsCore {
             }
         }
         getDatabase().setup();
-        messagingService.start();
+        if (messagingService != null) {
+            messagingService.start();
+        }
         executorManager = new ExecutorManager();
         enabled = true;
         motd(true);
@@ -180,7 +182,9 @@ public class CoinsCore {
                 log("Debug mode is enabled.");
             }
             log("Using \"" + storageType.toString().toLowerCase() + "\" for storage.");
-            log("Using \"" + messagingService.getType().toString().toLowerCase() + "\" as messaging service.");
+            if (messagingService != null) {
+                log("Using \"" + messagingService.getType().toString().toLowerCase() + "\" as messaging service.");
+            }
             String upt = "You have the newest version";
             String response = getFromURL("https://api.spigotmc.org/legacy/update.php?resource=48536");
             if (response == null) {
