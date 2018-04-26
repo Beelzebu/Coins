@@ -30,7 +30,7 @@ import lombok.Getter;
 public enum Dependency {
     MYSQL_DRIVER("mysql", "mysql-connector-java", "5.1.44"),
     SQLITE_DRIVER("org.xerial", "sqlite-jdbc", "3.20.0"),
-    HIKARI("com.zaxxer", "HikariCP", "2.7.8"),
+    HIKARI("com.zaxxer", "HikariCP", "3.1.0"),
     SLF4J_SIMPLE("org.slf4j", "slf4j-simple", "1.7.25"),
     SLF4J_API("org.slf4j", "slf4j-api", "1.7.25"),
     COMMONS_IO("commons-io", "commons-io", "2.6"),
