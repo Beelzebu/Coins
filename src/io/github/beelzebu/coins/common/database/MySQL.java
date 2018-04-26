@@ -54,7 +54,7 @@ public class MySQL implements CoinsDatabase {
         HikariConfig hc = new HikariConfig();
         hc.setPoolName("Coins MySQL Connection Pool");
         hc.setDriverClassName("com.mysql.jdbc.Driver");
-        hc.setJdbcUrl("jdbc:mysql://" + core.getConfig().getString("MySQL.Host") + ":" + core.getConfig().getInt("MySQL.Port") + "/" + core.getConfig().getString("MySQL.Database") + "?autoReconnect=true&useSSL=false");
+        hc.setJdbcUrl("jdbc:mysql://" + core.getConfig().getString("MySQL.Host") + ":" + core.getConfig().getString("MySQL.Port") + "/" + core.getConfig().getString("MySQL.Database") + "?autoReconnect=true&useSSL=false");
         hc.addDataSourceProperty("cachePrepStmts", "true");
         hc.addDataSourceProperty("useServerPrepStmts", "true");
         hc.addDataSourceProperty("prepStmtCacheSize", "250");
