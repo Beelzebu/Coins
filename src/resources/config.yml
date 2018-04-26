@@ -58,6 +58,10 @@ MySQL:
   Connection Interval: 5
   # Don't change this value if you don't know what it does.
   Connection Pool: 8
+  # MySQL table names without prefix, you can change this to use same database
+  # for all servers and but keep different balances in every server.
+  Data Table: 'data'
+  Multipliers Table: 'multipliers'
 
 # Here are the Redis server settings.
 Redis:

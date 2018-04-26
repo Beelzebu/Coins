@@ -137,7 +137,6 @@ public class FileManager {
                                 "# Available options:",
                                 "#  -> sqlite    data is stored locally and can't be shared with other servers.",
                                 "#  -> mysql     data is stored on a mysql server and can be shared by several servers.",
-                                "#  -> redis     data is stored on a redis server and can be shared by several servers.",
                                 "Storage Type: sqlite",
                                 "",
                                 "# Don't touch this setting, this is only for internal usage to auto update the",
@@ -170,9 +169,13 @@ public class FileManager {
                             lines.set(index, "Messaging Service: bungeecord");
                         }
                         index = lines.indexOf("MySQL:") + 8;
-                        lines.addAll(index, Arrays.asList("  # Don't change this value if you don't know what it does.",
+                        lines.addAll(index, Arrays.asList(
+                                "  # Don't change this value if you don't know what it does.",
                                 "  Connection Pool: 8",
-                                "  ",
+                                "  # MySQL table names without prefix, you can change this to use same database",
+                                "  # for all servers and but keep different balances in every server.",
+                                "  Data Table: 'data'",
+                                "  Multipliers Table: 'multipliers'",
                                 "# Here are the Redis server settings.",
                                 "Redis:",
                                 "  Host: 'localhost'",
