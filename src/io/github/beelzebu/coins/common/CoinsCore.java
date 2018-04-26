@@ -26,12 +26,12 @@ import io.github.beelzebu.coins.common.config.CoinsConfig;
 import io.github.beelzebu.coins.common.config.MessagesConfig;
 import io.github.beelzebu.coins.common.database.CoinsDatabase;
 import io.github.beelzebu.coins.common.database.MySQL;
-import io.github.beelzebu.coins.common.database.Redis;
 import io.github.beelzebu.coins.common.database.SQLite;
 import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.executor.ExecutorManager;
 import io.github.beelzebu.coins.common.interfaces.IMessagingService;
 import io.github.beelzebu.coins.common.interfaces.IMethods;
+import io.github.beelzebu.coins.common.messaging.MessagingServiceType;
 import io.github.beelzebu.coins.common.messaging.RedisMessaging;
 import io.github.beelzebu.coins.common.utils.FileManager;
 import io.github.beelzebu.coins.common.utils.dependencies.DependencyManager;
@@ -101,11 +101,10 @@ public class CoinsCore {
             storageType = StorageType.SQLITE;
             log("Invalid Storage Type selected in the config, possible values: " + Arrays.toString(StorageType.values()));
         }
-        if (storageType.equals(StorageType.REDIS)) { // force redis messaging service if you're using it for storage
-            messagingService = new RedisMessaging();
-        }
-        if (getConfig().getString("Messaging Service").equalsIgnoreCase("bungeecord")) {
+        if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingServiceType.BUNGEECORD.toString())) {
             messagingService = methods.getBungeeMessaging();
+        } else if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingServiceType.REDIS.toString())) {
+            messagingService = new RedisMessaging();
         }
         DependencyManager.loadAllDependencies();
     }
@@ -269,8 +268,6 @@ public class CoinsCore {
                 return db = new MySQL();
             case SQLITE:
                 return db = new SQLite();
-            case REDIS:
-                return db = new Redis();
             default:
                 return null;
         }

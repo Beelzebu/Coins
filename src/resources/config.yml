@@ -29,7 +29,6 @@ Vault:
 # Available options:
 #  -> sqlite    data is stored locally and can't be shared with other servers.
 #  -> mysql     data is stored on a mysql server and can be shared by several servers.
-#  -> redis     data is stored on a redis server and can be shared by several servers.
 Storage Type: sqlite
 
 # Don't touch this setting, this is only for internal usage to auto update the
@@ -51,7 +50,7 @@ Messaging Service: none
 # Here are the MySQL server settings.
 MySQL:
   Host: 'localhost'
-  Port: '3306'
+  Port: 3306
   Database: 'minecraft'
   User: 'root'
   Password: 'S3CUR3P4SSW0RD'

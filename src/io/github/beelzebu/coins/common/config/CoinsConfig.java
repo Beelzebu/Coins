@@ -19,7 +19,6 @@
 package io.github.beelzebu.coins.common.config;
 
 import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.interfaces.IConfiguration;
 import java.util.Collections;
 import java.util.List;
@@ -43,7 +42,7 @@ public abstract class CoinsConfig implements IConfiguration {
             return true;
         }
         try {
-            return Bukkit.spigot().getConfig().getBoolean("settings.bungeecord") && !core.getStorageType().equals(StorageType.REDIS);
+            return Bukkit.spigot().getConfig().getBoolean("settings.bungeecord");
         } catch (Exception ex) {
             return false;
         }

@@ -29,7 +29,6 @@ import io.github.beelzebu.coins.bukkit.utils.leaderheads.LeaderHeadsHook;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.CoinsPlaceholders;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.MultipliersPlaceholders;
 import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.executor.Executor;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -104,7 +103,7 @@ public class Main extends JavaPlugin {
     }
 
     private void startTasks() {
-        if (core.getConfig().useBungee() && !core.getStorageType().equals(StorageType.REDIS)) {
+        if (core.getConfig().useBungee()) {
             Bukkit.getMessenger().registerOutgoingPluginChannel(this, "Coins");
             Bukkit.getMessenger().registerIncomingPluginChannel(this, "Coins", (PluginMessageListener) core.getMethods().getBungeeMessaging());
             Bukkit.getScheduler().runTaskLaterAsynchronously(this, () -> {

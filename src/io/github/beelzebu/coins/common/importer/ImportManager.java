@@ -18,6 +18,12 @@
  */
 package io.github.beelzebu.coins.common.importer;
 
+import io.github.beelzebu.coins.CoinsAPI;
+import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.common.database.CoinsDatabase;
+import io.github.beelzebu.coins.common.database.MySQL;
+import io.github.beelzebu.coins.common.database.SQLite;
+import io.github.beelzebu.coins.common.database.StorageType;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
@@ -27,13 +33,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import io.github.beelzebu.coins.CoinsAPI;
-import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.database.CoinsDatabase;
-import io.github.beelzebu.coins.common.database.MySQL;
-import io.github.beelzebu.coins.common.database.Redis;
-import io.github.beelzebu.coins.common.database.SQLite;
-import io.github.beelzebu.coins.common.database.StorageType;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -205,36 +204,6 @@ public class ImportManager {
                     core.log("There are no users to migrate in the database.");
                 }
                 sqlite.shutdown();
-                break;
-            case REDIS:
-                if (core.getStorageType().equals(StorageType.REDIS)) {
-                    core.log("You can't migrate information from the same database that you are using.");
-                    return;
-                }
-                CoinsDatabase redis = new Redis();
-                redis.setup();
-                Map<String, Double> redisData = redis.getAllPlayers();
-                if (!redisData.isEmpty()) {
-                    core.log("Starting the migration from Redis, this may take a moment.");
-                    redisData.entrySet().forEach(entry -> {
-                        String nick = null;
-                        UUID uuid = null;
-                        try {
-                            nick = entry.getKey().split(",")[0];
-                            uuid = UUID.fromString(entry.getKey().split(",")[1]);
-                            double balance = entry.getValue();
-                            CoinsAPI.createPlayer(nick, uuid, balance);
-                            core.debug("Migrated the data for: " + uuid);
-                        } catch (Exception ex) {
-                            core.log("An error has ocurred while migrating the data for: " + nick + " (" + uuid + ")");
-                            core.debug(ex);
-                        }
-                    });
-                    core.log("The migration was completed, check the plugin logs for more information.");
-                } else {
-                    core.log("There are no users to migrate in the database.");
-                }
-                redis.shutdown();
                 break;
             default:
                 break;
