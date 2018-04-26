@@ -22,7 +22,7 @@ import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.MultiplierType;
 import io.github.beelzebu.coins.bukkit.Main;
 import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
-import io.github.beelzebu.coins.bukkit.utils.gui.MultipliersGUI;
+import io.github.beelzebu.coins.bukkit.menus.MultipliersGUI;
 import io.github.beelzebu.coins.common.CacheManager;
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.database.StorageType;

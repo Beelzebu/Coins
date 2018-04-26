@@ -19,7 +19,7 @@
 package io.github.beelzebu.coins.bukkit.listener;
 
 import java.util.UUID;
-import io.github.beelzebu.coins.bukkit.utils.gui.BaseGUI;
+import io.github.beelzebu.coins.bukkit.menus.BaseGUI;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

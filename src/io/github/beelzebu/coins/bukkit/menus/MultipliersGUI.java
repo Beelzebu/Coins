@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.beelzebu.coins.bukkit.utils.gui;
+package io.github.beelzebu.coins.bukkit.menus;
 
 import java.util.ArrayList;
 import java.util.List;
