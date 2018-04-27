@@ -82,8 +82,11 @@ public final class Multiplier {
         this.enablerUUID = enablerUUID;
         this.enablerName = enablerName;
         this.enabled = true;
-        this.queue = queue;
         endTime = System.currentTimeMillis() + baseData.getMinutes() * 60000;
+        if (queue && (CoinsAPI.getMultiplier(server) == null || !CoinsAPI.getMultiplier(server).isEnabled())) {
+            queue = false;
+        }
+        this.queue = queue;
         if (!queue) {
             if (type.equals(MultiplierType.GLOBAL)) {
                 extradata.add(CoinsAPI.getMultiplier().getBaseData());
@@ -109,7 +112,7 @@ public final class Multiplier {
                 }
             }
             core.getDatabase().enableMultiplier(this);
-            CacheManager.updateMultiplier(this, true);
+            core.getMethods().callMultiplierEnableEvent(this);
         } else {
             CacheManager.getQueuedMultipliers().add(this);
         }

@@ -102,7 +102,7 @@ public abstract class CoinsDatabase {
         try (Connection c = getConnection()) {
             if (CoinsAPI.getCoins(uuid) > -1 || isindb(uuid)) {
                 DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_COINS_ONLINE, amount, uuid);
-                CacheManager.updateCache(uuid, amount);
+                CacheManager.publishUserdata(uuid, amount);
                 response = new CoinsResponse(CoinsResponse.CoinsResponseType.SUCCESS, "");
             } else {
                 response = new CoinsResponse(CoinsResponse.CoinsResponseType.FAILED, "This user isn't in the database or the cache.");

@@ -80,11 +80,28 @@ public class CacheManager {
         return -1;
     }
 
+    /**
+     * Update coins in this cache.
+     *
+     * @param uuid player to update.
+     * @param coins coins to set.
+     */
     public static void updateCoins(UUID uuid, double coins) {
         if (coins > -1) {
             core.debug("Updated " + uuid + " in cache.");
             playersData.put(uuid, coins);
         }
+    }
+
+    /**
+     * Publish userdata to all servers to update the cache.
+     *
+     * @param uuid player to publish.
+     * @param coins coins to publish.
+     */
+    public static void publishUserdata(UUID uuid, double coins) {
+        Preconditions.checkNotNull(uuid, "UUID can't be null");
+        core.getMessagingService().publishUser(uuid, coins);
     }
 
     public static void addMultiplier(String server, Multiplier multiplier) {
@@ -158,14 +175,8 @@ public class CacheManager {
         multipliersData.invalidate(multplier.getServer());
     }
 
-    public static void updateCache(UUID uuid, double amount) {
-        Preconditions.checkNotNull(uuid, "UUID can't be null");
-        core.getMessagingService().publishUser(uuid, amount);
-    }
-
     public static void updateMultiplier(Multiplier multiplier, boolean callenable) {
         Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
-        addMultiplier(multiplier.getServer(), multiplier);
         if (callenable) {
             multiplier.enable(multiplier.getEnablerUUID(), multiplier.getEnablerName(), true);
             core.getMessagingService().enableMultiplier(multiplier);

@@ -80,7 +80,7 @@ public class DependencyManager {
         if (!core.getStorageType().equals(StorageType.MYSQL) && !core.getStorageType().equals(StorageType.SQLITE)) {
             dependencies.remove(Dependency.HIKARI);
         }
-        if (core.getMessagingService() == null || !core.getMessagingService().getType().equals(MessagingServiceType.REDIS)) {
+        if (!core.getMessagingService().getType().equals(MessagingServiceType.REDIS)) {
             dependencies.remove(Dependency.COMMONS_POOL);
             dependencies.remove(Dependency.JEDIS);
         }

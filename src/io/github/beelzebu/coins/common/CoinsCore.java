@@ -31,6 +31,7 @@ import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.executor.ExecutorManager;
 import io.github.beelzebu.coins.common.interfaces.IMessagingService;
 import io.github.beelzebu.coins.common.interfaces.IMethods;
+import io.github.beelzebu.coins.common.messaging.DummyMessaging;
 import io.github.beelzebu.coins.common.messaging.MessagingServiceType;
 import io.github.beelzebu.coins.common.messaging.RedisMessaging;
 import io.github.beelzebu.coins.common.utils.FileManager;
@@ -105,6 +106,8 @@ public class CoinsCore {
             messagingService = methods.getBungeeMessaging();
         } else if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingServiceType.REDIS.toString())) {
             messagingService = new RedisMessaging();
+        } else {
+            messagingService = new DummyMessaging();
         }
         DependencyManager.loadAllDependencies();
     }
@@ -152,7 +155,7 @@ public class CoinsCore {
             }
         }
         getDatabase().setup();
-        if (messagingService != null) {
+        if (!messagingService.getType().equals(MessagingServiceType.NONE)) {
             messagingService.start();
         }
         executorManager = new ExecutorManager();
@@ -181,7 +184,7 @@ public class CoinsCore {
                 log("Debug mode is enabled.");
             }
             log("Using \"" + storageType.toString().toLowerCase() + "\" for storage.");
-            if (messagingService != null) {
+            if (!messagingService.getType().equals(MessagingServiceType.NONE)) {
                 log("Using \"" + messagingService.getType().toString().toLowerCase() + "\" as messaging service.");
             }
             String upt = "You have the newest version";
