@@ -63,9 +63,7 @@ public class Main extends JavaPlugin {
         commandManager = new CommandManager();
         loadManagers();
         startListeners();
-        getConfig().getConfigurationSection("Command executor").getKeys(false).forEach((id) -> {
-            core.getExecutorManager().addExecutor(new Executor(id, getConfig().getString("Command executor." + id + ".Displayname", id), getConfig().getDouble("Command executor." + id + ".Cost", 0), getConfig().getStringList("Command executor." + id + ".Command")));
-        });
+        getConfig().getConfigurationSection("Command executor").getKeys(false).forEach(id -> core.getExecutorManager().addExecutor(new Executor(id, getConfig().getString("Command executor." + id + ".Displayname", id), getConfig().getDouble("Command executor." + id + ".Cost", 0), getConfig().getStringList("Command executor." + id + ".Command"))));
         startTasks();
     }
 

@@ -30,7 +30,6 @@ import io.github.beelzebu.coins.bukkit.Main;
 import io.github.beelzebu.coins.common.CacheManager;
 import io.github.beelzebu.coins.common.executor.Executor;
 import io.github.beelzebu.coins.common.messaging.BungeeMessaging;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -78,29 +77,20 @@ public final class BukkitBungeeMessaging extends BungeeMessaging implements Plug
         String subchannel = in.readUTF();
         switch (subchannel) {
             case "Executors":
-                String id = in.readUTF();
-                String displayname = in.readUTF();
-                double cost = Double.parseDouble(in.readUTF());
-                int cmds = Integer.parseInt(in.readUTF());
-                List<String> commands = new ArrayList<>();
-                if (cmds > 0) {
-                    for (int i = 0; i < cmds; i++) {
-                        commands.add(in.readUTF());
-                    }
-                }
-                Executor ex = new Executor(id, displayname, cost, commands);
-                if (core.getExecutorManager().getExecutor(id) == null) {
+                String executor = in.readUTF();
+                Executor ex = Executor.fromJson(executor);
+                if (core.getExecutorManager().getExecutor(ex.getId()) == null) {
                     core.getExecutorManager().addExecutor(ex);
-                    core.log("The executor " + ex.getID() + " was received from BungeeCord.");
-                    core.debug("ID: " + ex.getID());
-                    core.debug("Displayname: " + ex.getDisplayName());
+                    core.log("The executor " + ex.getId() + " was received from BungeeCord.");
+                    core.debug("ID: " + ex.getId());
+                    core.debug("Displayname: " + ex.getDisplayname());
                     core.debug("Cost: " + ex.getCost());
                     core.debug("Commands: ");
                     ex.getCommands().forEach((command) -> {
                         core.debug(command);
                     });
                 } else {
-                    core.debug("An executor with the id: " + ex.getID() + " was received from BungeeCord but a local Executor with that id already exists.");
+                    core.debug("An executor with the id: " + ex.getId() + " was received from BungeeCord but a local Executor with that id already exists.");
                 }
                 break;
             case "Update":

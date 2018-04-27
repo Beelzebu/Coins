@@ -21,7 +21,6 @@ package io.github.beelzebu.coins.bungee.messaging;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import io.github.beelzebu.coins.common.messaging.BungeeMessaging;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -41,16 +40,7 @@ public final class BungeeBungeeMessaging extends BungeeMessaging {
 
     @Override
     public void getExecutors() {
-        core.getConfig().getConfigurationSection("Command executor").forEach(id -> {
-            List<String> messages = new ArrayList<>();
-            List<String> commands = core.getConfig().getStringList("Command executor." + id + ".Command");
-            messages.add(id);
-            messages.add(core.getConfig().getString("Command executor." + id + ".Displayname", id));
-            messages.add(Double.toString(core.getConfig().getDouble("Command executor." + id + ".Cost", 0)));
-            messages.add(Double.toString(commands.size()));
-            messages.addAll(commands);
-            sendMessage("Coins", "Executors", messages, true);
-        });
+        core.getExecutorManager().getExecutors().forEach(ex -> sendMessage("Coins", "Executors", Collections.singletonList(ex.toJson()), true));
     }
 
     @Override

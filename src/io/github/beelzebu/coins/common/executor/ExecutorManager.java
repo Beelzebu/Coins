@@ -40,7 +40,7 @@ public class ExecutorManager {
 
     public synchronized Executor getExecutor(String id) {
         for (Executor ex : executors) {
-            if (ex.getID().equals(id)) {
+            if (ex.getId().equals(id)) {
                 return ex;
             }
         }

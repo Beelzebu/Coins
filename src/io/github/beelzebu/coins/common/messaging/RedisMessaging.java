@@ -19,10 +19,12 @@
 package io.github.beelzebu.coins.common.messaging;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import io.github.beelzebu.coins.Multiplier;
 import io.github.beelzebu.coins.MultiplierType;
 import io.github.beelzebu.coins.common.CacheManager;
 import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.common.executor.Executor;
 import io.github.beelzebu.coins.common.interfaces.IMessagingService;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -91,7 +93,15 @@ public class RedisMessaging implements IMessagingService {
 
     @Override
     public void getExecutors() {
-        throw new UnsupportedOperationException("getExecutors is not finished yet");
+        try (Jedis jedis = pool.getResource()) {
+            jedis.publish("coins-executors", "get");
+        }
+    }
+
+    private void sendExecutor(Executor ex) {
+        try (Jedis jedis = pool.getResource()) {
+            jedis.publish("coins-executors", ex.toJson());
+        }
     }
 
     @NoArgsConstructor(access = AccessLevel.NONE)
@@ -105,7 +115,7 @@ public class RedisMessaging implements IMessagingService {
             try (Jedis rsc = pool.getResource()) {
                 try {
                     jpsh = new JedisPubSubHandler();
-                    rsc.subscribe(jpsh, "coins-data-update", "coins-multiplier", "coins-multiplier-disable", "coins-event");
+                    rsc.subscribe(jpsh, "coins-data-update", "coins-executors", "coins-multiplier", "coins-multiplier-disable", "coins-event");
                 } catch (Exception e) {
                     core.log("PubSub error, attempting to recover.");
                     try {
@@ -115,7 +125,6 @@ public class RedisMessaging implements IMessagingService {
                     broken = true;
                 }
             }
-
             if (broken) {
                 run();
             }
@@ -146,6 +155,28 @@ public class RedisMessaging implements IMessagingService {
                 case "coins-data-update":
                     JsonObject data = core.getGson().fromJson(message, JsonObject.class);
                     CacheManager.updateCoins(UUID.fromString(data.get("uuid").getAsString()), data.get("coins").getAsDouble());
+                    break;
+                case "coins-executors":
+                    try {
+                        Executor ex = Executor.fromJson(message);
+                        if (core.getExecutorManager().getExecutor(ex.getId()) == null) {
+                            core.getExecutorManager().addExecutor(ex);
+                            core.log("The executor " + ex.getId() + " was received from Redis PubSub.");
+                            core.debug("ID: " + ex.getId());
+                            core.debug("Displayname: " + ex.getDisplayname());
+                            core.debug("Cost: " + ex.getCost());
+                            core.debug("Commands: ");
+                            ex.getCommands().forEach((command) -> {
+                                core.debug(command);
+                            });
+                        } else {
+                            core.debug("An executor with the id: " + ex.getId() + " was received from Redis but a local Executor with that id already exists.");
+                        }
+                    } catch (JsonParseException ex) {
+                        if (message.equals("get")) {
+                            core.getExecutorManager().getExecutors().forEach(exec -> sendExecutor(exec));
+                        }
+                    }
                     break;
                 case "coins-multiplier":
                     Multiplier multiplier = Multiplier.fromJson(message, false);

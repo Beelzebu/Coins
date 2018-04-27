@@ -63,6 +63,7 @@ public class Main extends Plugin {
             ProxyServer.getInstance().getPluginManager().registerListener(this, new PluginMessageListener());
             ProxyServer.getInstance().registerChannel("Coins");
         }
+        loadExecutors();
     }
 
     @Override
@@ -80,5 +81,9 @@ public class Main extends Plugin {
 
     public boolean useRedisBungee() {
         return useRedis;
+    }
+
+    private void loadExecutors() {
+        core.getConfig().getConfigurationSection("Command executor").forEach(id -> core.getExecutorManager().addExecutor(new Executor(id, core.getConfig().getString("Command executor." + id + ".Displayname", id), core.getConfig().getDouble("Command executor." + id + ".Cost", 0), core.getConfig().getStringList("Command executor." + id + ".Command"))));
     }
 }

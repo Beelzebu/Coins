@@ -71,10 +71,10 @@ public class SignListener implements Listener {
                 signs.set(id + ".Executor", e.getLine(1));
                 try {
                     signs.save(signsFile);
-                    if (core.getConfig().getConfigurationSection("Command executor." + ex.getID() + ".Executor Sign") != null) {
-                        e.setLine(1, rep(core.getConfig().getString("Command executor." + ex.getID() + ".Executor Sign.2"), ex));
-                        e.setLine(2, rep(core.getConfig().getString("Command executor." + ex.getID() + ".Executor Sign.3"), ex));
-                        e.setLine(3, rep(core.getConfig().getString("Command executor." + ex.getID() + ".Executor Sign.4"), ex));
+                    if (core.getConfig().getConfigurationSection("Command executor." + ex.getId() + ".Executor Sign") != null) {
+                        e.setLine(1, rep(core.getConfig().getString("Command executor." + ex.getId() + ".Executor Sign.2"), ex));
+                        e.setLine(2, rep(core.getConfig().getString("Command executor." + ex.getId() + ".Executor Sign.3"), ex));
+                        e.setLine(3, rep(core.getConfig().getString("Command executor." + ex.getId() + ".Executor Sign.4"), ex));
                     } else {
                         e.setLine(1, rep(core.getConfig().getString("General.Executor Sign.2"), ex));
                         e.setLine(2, rep(core.getConfig().getString("General.Executor Sign.3"), ex));
@@ -160,6 +160,6 @@ public class SignListener implements Listener {
     }
 
     private String rep(String str, Executor ex) {
-        return core.rep(str).replaceAll("%executor_displayname%", ex.getDisplayName()).replaceAll("%executor_cost%", String.valueOf(ex.getCost()));
+        return core.rep(str).replaceAll("%executor_displayname%", ex.getDisplayname()).replaceAll("%executor_cost%", String.valueOf(ex.getCost()));
     }
 }

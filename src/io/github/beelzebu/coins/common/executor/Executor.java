@@ -18,6 +18,8 @@
  */
 package io.github.beelzebu.coins.common.executor;
 
+import com.google.gson.JsonParseException;
+import io.github.beelzebu.coins.common.CoinsCore;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,8 +32,21 @@ import lombok.Getter;
 @AllArgsConstructor
 public class Executor {
 
-    private final String ID;
-    private final String displayName;
+    private static final CoinsCore CORE = CoinsCore.getInstance();
+    private final String id;
+    private final String displayname;
     private final double cost;
     private final List<String> commands;
+
+    public String toJson() {
+        return toJson(this);
+    }
+
+    public static String toJson(Executor ex) {
+        return CORE.getGson().toJson(ex);
+    }
+
+    public static Executor fromJson(String json) throws JsonParseException {
+        return CORE.getGson().fromJson(json, Executor.class);
+    }
 }
