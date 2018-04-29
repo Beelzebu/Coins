@@ -59,5 +59,9 @@ public abstract class BungeeMessaging implements IMessagingService {
         sendMessage("Coins", "Multiplier", Collections.singletonList("getMultipliers"), false);
     }
 
+    @Override
+    public void stop() {
+    }
+
     protected abstract void sendMessage(String channel, String subchannel, List<String> messages, boolean wait);
 }

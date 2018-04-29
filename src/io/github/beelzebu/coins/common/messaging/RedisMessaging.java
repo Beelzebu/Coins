@@ -19,7 +19,6 @@
 package io.github.beelzebu.coins.common.messaging;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import io.github.beelzebu.coins.Multiplier;
 import io.github.beelzebu.coins.MultiplierType;
 import io.github.beelzebu.coins.common.CacheManager;
@@ -88,7 +87,9 @@ public class RedisMessaging implements IMessagingService {
 
     @Override
     public void getMultipliers() {
-        throw new UnsupportedOperationException("getMultipliers is not finished yet");
+        try (Jedis jedis = pool.getResource()) {
+            jedis.publish("coins-multiplier", "get");
+        }
     }
 
     @Override
@@ -98,9 +99,22 @@ public class RedisMessaging implements IMessagingService {
         }
     }
 
+    @Override
+    public void stop() {
+        psl.poison();
+        pool.close();
+        pool.destroy();
+    }
+
     private void sendExecutor(Executor ex) {
         try (Jedis jedis = pool.getResource()) {
             jedis.publish("coins-executors", ex.toJson());
+        }
+    }
+
+    private void sendMultiplier(Multiplier multiplier) {
+        try (Jedis jedis = pool.getResource()) {
+            jedis.publish("coins-multiplier", multiplier.toJson().toString());
         }
     }
 
@@ -157,7 +171,9 @@ public class RedisMessaging implements IMessagingService {
                     CacheManager.updateCoins(UUID.fromString(data.get("uuid").getAsString()), data.get("coins").getAsDouble());
                     break;
                 case "coins-executors":
-                    try {
+                    if (message.equals("get")) {
+                        core.getExecutorManager().getExecutors().forEach(exec -> sendExecutor(exec));
+                    } else {
                         Executor ex = Executor.fromJson(message);
                         if (core.getExecutorManager().getExecutor(ex.getId()) == null) {
                             core.getExecutorManager().addExecutor(ex);
@@ -166,24 +182,22 @@ public class RedisMessaging implements IMessagingService {
                             core.debug("Displayname: " + ex.getDisplayname());
                             core.debug("Cost: " + ex.getCost());
                             core.debug("Commands: ");
-                            ex.getCommands().forEach((command) -> {
-                                core.debug(command);
-                            });
+                            ex.getCommands().forEach(command -> core.debug(command));
                         } else {
                             core.debug("An executor with the id: " + ex.getId() + " was received from Redis but a local Executor with that id already exists.");
-                        }
-                    } catch (JsonParseException ex) {
-                        if (message.equals("get")) {
-                            core.getExecutorManager().getExecutors().forEach(exec -> sendExecutor(exec));
                         }
                     }
                     break;
                 case "coins-multiplier":
-                    Multiplier multiplier = Multiplier.fromJson(message, false);
-                    if (multiplier.getType().equals(MultiplierType.GLOBAL)) {
-                        multiplier.setServer(core.getConfig().getServerName());
+                    if (message.equals("get")) {
+                        CacheManager.getMultipliersData().asMap().values().forEach(multiplier -> sendMultiplier(multiplier));
+                    } else {
+                        Multiplier multiplier = Multiplier.fromJson(message, false);
+                        if (multiplier.getType().equals(MultiplierType.GLOBAL)) {
+                            multiplier.setServer(core.getConfig().getServerName());
+                        }
+                        CacheManager.addMultiplier(multiplier.getServer(), multiplier);
                     }
-                    CacheManager.addMultiplier(multiplier.getServer(), multiplier);
                     break;
                 case "coins-multiplier-disable":
                     Multiplier.fromJson(message, false).disable();

@@ -61,4 +61,8 @@ public class DummyMessaging implements IMessagingService {
     @Override
     public void getExecutors() {
     }
+
+    @Override
+    public void stop() {
+    }
 }

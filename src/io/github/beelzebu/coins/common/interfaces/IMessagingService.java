@@ -74,4 +74,9 @@ public interface IMessagingService {
      * instances if you're using more than one bungeecord server.
      */
     public void getExecutors();
+
+    /**
+     * Stop and shutdown this messaging service instance.
+     */
+    public void stop();
 }

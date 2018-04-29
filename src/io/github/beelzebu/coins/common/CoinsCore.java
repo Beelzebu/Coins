@@ -112,11 +112,6 @@ public class CoinsCore {
         DependencyManager.loadAllDependencies();
     }
 
-    public void shutdown() {
-        db.shutdown();
-        motd(false);
-    }
-
     public void start() {
         if (storageType.equals(StorageType.SQLITE) && isBungee()) {
             log(" ");
@@ -161,6 +156,12 @@ public class CoinsCore {
         executorManager = new ExecutorManager();
         enabled = true;
         motd(true);
+    }
+
+    public void shutdown() {
+        db.shutdown();
+        messagingService.stop();
+        motd(false);
     }
 
     private void motd(boolean enable) {
