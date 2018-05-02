@@ -18,11 +18,10 @@
  */
 package io.github.beelzebu.coins.bukkit.menus;
 
-import java.util.ArrayList;
-import java.util.List;
 import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.common.CoinsCore;
+import java.util.ArrayList;
+import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -36,20 +35,19 @@ import org.bukkit.potion.PotionEffectType;
  *
  * @author Beelzebu
  */
-public class ConfirmGUI extends BaseGUI {
+public class ConfirmMenu extends CoinsMenu {
 
-    private final CoinsCore core = CoinsCore.getInstance();
     private final Multiplier multiplier;
     private final Player p;
 
-    public ConfirmGUI(Player player, String name, Multiplier data) {
+    public ConfirmMenu(Player player, String name, Multiplier data) {
         super(9, name);
         p = player;
         multiplier = data;
-        setItems();
     }
 
-    private void setItems() {
+    @Override
+    public void setItems() {
         if (p == null) {
             return;
         }
@@ -63,10 +61,10 @@ public class ConfirmGUI extends BaseGUI {
                     multiplier.enable(player.getUniqueId(), player.getName(), false);
                     try {
                         player.playSound(player.getLocation(), Sound.valueOf(core.getConfig().getString("Multipliers.GUI.Use.Sound")), 10, 2);
-                    } catch (IllegalStateException ex) {
+                    } catch (IllegalArgumentException ex) {
                         try {
                             player.playSound(player.getLocation(), Sound.valueOf("LEVEL_UP"), 10, 2);
-                        } catch (IllegalStateException ignore) {
+                        } catch (IllegalArgumentException ignore) {
                         }
                         core.log("Seems that you're using an invalind sound, please edit the config and set the sound that corresponds for the version of your server.");
                         core.log("If you're using 1.8 please check http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html\n"
@@ -77,10 +75,10 @@ public class ConfirmGUI extends BaseGUI {
                     multiplier.enable(player.getUniqueId(), player.getName(), true);
                     try {
                         player.playSound(player.getLocation(), Sound.valueOf(core.getConfig().getString("Multipliers.GUI.Use.Fail.Sound")), 10, 1);
-                    } catch (IllegalStateException ex) {
+                    } catch (IllegalArgumentException ex) {
                         try {
                             player.playSound(player.getLocation(), Sound.valueOf("VILLAGER_NO"), 10, 2);
-                        } catch (IllegalStateException ignore) {
+                        } catch (IllegalArgumentException ignore) {
                         }
                         core.log("Seems that you're using an invalind sound, please edit the config and set the sound that corresponds for the version of your server.");
                         core.log("If you're using 1.8 please check http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html\n"

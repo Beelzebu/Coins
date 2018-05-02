@@ -44,7 +44,7 @@ import lombok.Setter;
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class Multiplier {
 
-    private static final CoinsCore core = CoinsCore.getInstance();
+    private static final CoinsCore CORE = CoinsCore.getInstance();
     private MultiplierData baseData;
     @Setter(AccessLevel.PACKAGE)
     private int id;
@@ -111,8 +111,8 @@ public final class Multiplier {
                         break;
                 }
             }
-            core.getDatabase().enableMultiplier(this);
-            core.getMethods().callMultiplierEnableEvent(this);
+            CORE.getDatabase().enableMultiplier(this);
+            CORE.getBootstrap().callMultiplierEnableEvent(this);
         } else {
             CacheManager.getQueuedMultipliers().add(this);
         }
@@ -128,7 +128,7 @@ public final class Multiplier {
         enablerName = null;
         enablerUUID = null;
         server = null;
-        core.getDatabase().deleteMultiplier(this);
+        CORE.getDatabase().deleteMultiplier(this);
         CacheManager.getQueuedMultipliers().remove(this);
         CacheManager.deleteMultiplier(this);
     }
@@ -217,7 +217,7 @@ public final class Multiplier {
 
     public static Multiplier fromJson(String multiplier, boolean callenable) {
         Preconditions.checkNotNull(multiplier, "Tried to load a null Multiplier");
-        core.debug("Loading multiplier from JSON: " + multiplier);
+        CORE.debug("Loading multiplier from JSON: " + multiplier);
         try {
             JsonObject data = CoinsCore.getInstance().getGson().fromJson(multiplier, JsonObject.class);
             MultiplierBuilder multi = MultiplierBuilder.newBuilder(data.get("server").getAsString(), MultiplierType.valueOf(data.get("type").getAsString()), new MultiplierData(UUID.fromString(data.get("enableruuid").getAsString()), data.get("enabler").getAsString(), data.get("amount").getAsInt(), data.get("minutes").getAsInt()))
@@ -231,7 +231,7 @@ public final class Multiplier {
             }
             return multi.build(callenable);
         } catch (JsonSyntaxException ex) {
-            core.debug(ex);
+            CORE.debug(ex);
         }
         return null;
     }

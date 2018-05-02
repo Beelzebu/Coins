@@ -19,11 +19,12 @@
 package io.github.beelzebu.coins.bukkit.utils;
 
 import io.github.beelzebu.coins.CoinsAPI;
-import io.github.beelzebu.coins.bukkit.Main;
+import io.github.beelzebu.coins.bukkit.CoinsBukkitMain;
 import io.github.beelzebu.coins.common.CoinsCore;
 import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
@@ -37,9 +38,9 @@ import org.bukkit.plugin.ServicePriority;
  */
 public class CoinsEconomy implements Economy {
 
-    private final Main plugin;
+    private final CoinsBukkitMain plugin;
 
-    public CoinsEconomy(Main main) {
+    public CoinsEconomy(CoinsBukkitMain main) {
         plugin = main;
     }
 
@@ -79,12 +80,12 @@ public class CoinsEconomy implements Economy {
 
     @Override
     public String currencyNamePlural() {
-        return plugin.getConfig().getString("Vault.Name.Plural");
+        return plugin.getPluginConfig().getString("Vault.Name.Plural", "Coins");
     }
 
     @Override
     public String currencyNameSingular() {
-        return plugin.getConfig().getString("Vault.Name.Singular");
+        return plugin.getPluginConfig().getString("Vault.Name.Singular", "Coin");
     }
 
     @Override
@@ -185,25 +186,25 @@ public class CoinsEconomy implements Economy {
 
     @Override
     public EconomyResponse depositPlayer(String string, double d) {
-        CoinsAPI.addCoins(string, d, CoinsCore.getInstance().getConfig().vaultMultipliers());
+        CoinsAPI.addCoins(string, d, plugin.getPluginConfig().vaultMultipliers());
         return new EconomyResponse(d, getBalance(string), ResponseType.SUCCESS, "");
     }
 
     @Override
     public EconomyResponse depositPlayer(OfflinePlayer op, double d) {
-        CoinsAPI.addCoins(op.getUniqueId(), d, CoinsCore.getInstance().getConfig().vaultMultipliers());
+        CoinsAPI.addCoins(op.getUniqueId(), d, plugin.getPluginConfig().vaultMultipliers());
         return new EconomyResponse(d, getBalance(op), ResponseType.SUCCESS, "");
     }
 
     @Override
     public EconomyResponse depositPlayer(String string, String string1, double d) {
-        CoinsAPI.addCoins(string, d, CoinsCore.getInstance().getConfig().vaultMultipliers());
+        CoinsAPI.addCoins(string, d, plugin.getPluginConfig().vaultMultipliers());
         return new EconomyResponse(d, getBalance(string), ResponseType.SUCCESS, "");
     }
 
     @Override
     public EconomyResponse depositPlayer(OfflinePlayer op, String string, double d) {
-        CoinsAPI.addCoins(op.getUniqueId(), d, CoinsCore.getInstance().getConfig().vaultMultipliers());
+        CoinsAPI.addCoins(op.getUniqueId(), d, plugin.getPluginConfig().vaultMultipliers());
         return new EconomyResponse(d, getBalance(op), ResponseType.SUCCESS, "");
     }
 
@@ -269,7 +270,8 @@ public class CoinsEconomy implements Economy {
 
     @Override
     public boolean createPlayerAccount(String string) {
-        CoinsAPI.createPlayer(string, CoinsCore.getInstance().getUUID(string, false));
+        UUID uuid = CoinsCore.getInstance().getUUID(string, false);
+        CoinsAPI.createPlayer(string, uuid != null ? uuid : UUID.randomUUID());
         return !CoinsAPI.getCoinsString(string).equals("This player isn't in the database");
     }
 
@@ -281,7 +283,8 @@ public class CoinsEconomy implements Economy {
 
     @Override
     public boolean createPlayerAccount(String string, String string1) {
-        CoinsAPI.createPlayer(string, CoinsCore.getInstance().getUUID(string, false));
+        UUID uuid = CoinsCore.getInstance().getUUID(string, false);
+        CoinsAPI.createPlayer(string, uuid != null ? uuid : UUID.randomUUID());
         return !CoinsAPI.getCoinsString(string).equals("This player isn't in the database");
     }
 
@@ -290,5 +293,4 @@ public class CoinsEconomy implements Economy {
         CoinsAPI.createPlayer(op.getName(), op.getUniqueId());
         return !CoinsAPI.getCoinsString(op.getName()).equals("This player isn't in the database");
     }
-
 }

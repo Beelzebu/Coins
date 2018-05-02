@@ -18,7 +18,6 @@
  */
 package io.github.beelzebu.coins.common.config;
 
-import io.github.beelzebu.coins.common.interfaces.IConfiguration;
 import lombok.RequiredArgsConstructor;
 
 /**

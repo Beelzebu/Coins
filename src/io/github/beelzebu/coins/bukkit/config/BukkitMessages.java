@@ -36,7 +36,7 @@ public class BukkitMessages extends MessagesConfig {
 
     public BukkitMessages(String lang) {
         super(lang);
-        messages = YamlConfiguration.loadConfiguration(new File(CoinsCore.getInstance().getMethods().getDataFolder() + "/messages", "messages" + lang + ".yml"));
+        messages = YamlConfiguration.loadConfiguration(new File(CoinsCore.getInstance().getBootstrap().getDataFolder() + "/messages", "messages" + lang + ".yml"));
     }
 
     @Override

@@ -18,13 +18,14 @@
  */
 package io.github.beelzebu.coins.common;
 
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import io.github.beelzebu.coins.Multiplier;
+import io.github.beelzebu.coins.common.database.StorageType;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,27 +43,27 @@ import org.apache.commons.io.FileUtils;
  *
  * @author Beelzebu
  */
-@NoArgsConstructor(access = AccessLevel.NONE)
-public class CacheManager {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class CacheManager {
 
-    private static final CoinsCore core = CoinsCore.getInstance();
-    public static final File MULTIPLIERS_FILE = new File(core.getMethods().getDataFolder(), "multipliers.json");
+    private static final CoinsCore CORE = CoinsCore.getInstance();
+    public static final File MULTIPLIERS_FILE = new File(CORE.getBootstrap().getDataFolder(), "multipliers.json");
     @Getter
-    private static final LoadingCache<UUID, Double> playersData = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<UUID, Double>() {
+    private static final LoadingCache<UUID, Double> playersData = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<UUID, Double>() {
         @Override
         public Double load(UUID key) {
-            core.getDatabase().updatePlayer(key, core.getNick(key, false).toLowerCase());
-            return core.getDatabase().getCoins(key);
+            CORE.getDatabase().updatePlayer(key, CORE.getNick(key, false).toLowerCase());
+            return CORE.getDatabase().getCoins(key);
         }
     });
     @Getter
-    private static final LoadingCache<String, Multiplier> multipliersData = CacheBuilder.newBuilder().build(new CacheLoader<String, Multiplier>() {
+    private static final LoadingCache<String, Multiplier> multipliersData = Caffeine.newBuilder().build(new CacheLoader<String, Multiplier>() {
         @Override
         public Multiplier load(String key) {
             Iterator<Multiplier> mult = queuedMultipliers.iterator();
             if (mult.hasNext()) {
                 Multiplier multi = mult.next();
-                core.getMessagingService().enableMultiplier(multi);
+                CORE.getMessagingService().enableMultiplier(multi);
                 multi.enable(multi.getEnablerUUID(), multi.getEnablerName(), false);
                 mult.remove();
                 return multi;
@@ -75,7 +76,7 @@ public class CacheManager {
 
     public static double getCoins(UUID uuid) {
         if (uuid != null) {
-            return playersData.getUnchecked(uuid);
+            return playersData.get(uuid);
         }
         return -1;
     }
@@ -88,8 +89,11 @@ public class CacheManager {
      */
     public static void updateCoins(UUID uuid, double coins) {
         if (coins > -1) {
-            core.debug("Updated " + uuid + " in cache.");
+            if (CORE.getStorageType().equals(StorageType.SQLITE)) {
+                CORE.getDatabase().setCoins(uuid, coins);
+            }
             playersData.put(uuid, coins);
+            CORE.debug("Updated local data for: " + uuid);
         }
     }
 
@@ -101,7 +105,7 @@ public class CacheManager {
      */
     public static void publishUserdata(UUID uuid, double coins) {
         Preconditions.checkNotNull(uuid, "UUID can't be null");
-        core.getMessagingService().publishUser(uuid, coins);
+        CORE.getMessagingService().publishUser(uuid, coins);
     }
 
     public static void addMultiplier(String server, Multiplier multiplier) {
@@ -118,22 +122,22 @@ public class CacheManager {
                 Multiplier mult = Multiplier.fromJson(line, false);
                 if (mult.getId() == multiplier.getId()) {
                     exists = true;
-                    core.debug("Trying to add an existent multiplier: " + mult.toJson());
+                    CORE.debug("Trying to add an existent multiplier: " + mult.toJson());
                     break;
                 }
             }
             if (!exists) {
-                core.getMessagingService().enableMultiplier(multiplier);
+                CORE.getMessagingService().enableMultiplier(multiplier);
                 try {
                     FileUtils.writeLines(MULTIPLIERS_FILE, Collections.singletonList(multiplier.toJson().toString() + "\n"), true);
                 } catch (IOException ex) {
-                    core.log("An error has ocurred saving a multiplier in the local storage.");
-                    core.debug(ex.getMessage());
+                    CORE.log("An error has ocurred saving a multiplier in the local storage.");
+                    CORE.debug(ex.getMessage());
                 }
             }
         } catch (IOException ex) {
-            core.log("An error has ocurred saving a multiplier in the local storage.");
-            core.debug(ex.getMessage());
+            CORE.log("An error has ocurred saving a multiplier in the local storage.");
+            CORE.debug(ex.getMessage());
         }
     }
 
@@ -169,8 +173,8 @@ public class CacheManager {
             }
             FileUtils.writeLines(MULTIPLIERS_FILE, Lists.newArrayList(lines));
         } catch (IOException ex) {
-            core.log("An error has ocurred removing a multiplier from local storage.");
-            core.debug(ex.getMessage());
+            CORE.log("An error has ocurred removing a multiplier from local storage.");
+            CORE.debug(ex.getMessage());
         }
         multipliersData.invalidate(multplier.getServer());
     }
@@ -179,9 +183,9 @@ public class CacheManager {
         Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
         if (callenable) {
             multiplier.enable(multiplier.getEnablerUUID(), multiplier.getEnablerName(), true);
-            core.getMessagingService().enableMultiplier(multiplier);
+            CORE.getMessagingService().enableMultiplier(multiplier);
         } else {
-            core.getMessagingService().publishMultiplier(multiplier);
+            CORE.getMessagingService().publishMultiplier(multiplier);
         }
     }
 }

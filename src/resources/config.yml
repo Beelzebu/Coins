@@ -29,6 +29,7 @@ Vault:
 # Available options:
 #  -> sqlite    data is stored locally and can't be shared with other servers.
 #  -> mysql     data is stored on a mysql server and can be shared by several servers.
+#  -> mariadb   we will use mariadb driver instead of mysql driver.
 Storage Type: sqlite
 
 # Don't touch this setting, this is only for internal usage to auto update the
@@ -55,7 +56,6 @@ MySQL:
   User: 'root'
   Password: 'S3CUR3P4SSW0RD'
   Prefix: 'Coins_'
-  Connection Interval: 5
   # Don't change this value if you don't know what it does.
   Connection Pool: 8
   # MySQL table names without prefix, you can change this to use same database

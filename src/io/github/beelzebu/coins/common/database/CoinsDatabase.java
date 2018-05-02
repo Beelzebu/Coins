@@ -34,21 +34,24 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  *
  * @author Beelzebu
  */
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class CoinsDatabase {
 
-    protected static final CoinsCore core = CoinsCore.getInstance();
-    protected static final String PREFIX = core.getDatabase() instanceof MySQL ? core.getConfig().getString("MySQL.Prefix") : "";
-    public static final String DATA_TABLE = PREFIX + core.getConfig().getString("MySQL.Data Table", "data");
-    public static final String MULTIPLIERS_TABLE = PREFIX + core.getString("MySQL.Multipliers Table", "multipliers");
+    protected static final CoinsCore CORE = CoinsCore.getInstance();
+    protected static final String PREFIX = CORE.getDatabase() instanceof MySQL ? CORE.getConfig().getString("MySQL.Prefix") : "";
+    public static final String DATA_TABLE = PREFIX + CORE.getConfig().getString("MySQL.Data Table", "data");
+    public static final String MULTIPLIERS_TABLE = PREFIX + CORE.getConfig().getString("MySQL.Multipliers Table", "multipliers");
     protected HikariDataSource ds;
 
     public abstract void setup();
@@ -70,13 +73,13 @@ public abstract class CoinsDatabase {
         try (Connection c = getConnection(); ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SEARCH_USER_ONLINE, uuid).executeQuery();) {
             if (res.next()) {
                 coins = res.getDouble("balance");
-            } else if (core.getMethods().isOnline(uuid)) {
-                coins = core.getConfig().getDouble("General.Starting Coins", 0);
-                createPlayer(c, uuid, core.getNick(uuid, false).toLowerCase(), coins);
+            } else if (CORE.getBootstrap().isOnline(uuid)) {
+                coins = CORE.getConfig().getDouble("General.Starting Coins", 0);
+                createPlayer(c, uuid, CORE.getNick(uuid, false).toLowerCase(), coins);
             }
         } catch (SQLException ex) {
-            core.log("An internal error has occurred creating the data for player: " + uuid);
-            core.debug(ex);
+            CORE.log("An internal error has occurred creating the data for player: " + uuid);
+            CORE.debug(ex);
         }
         return coins;
     }
@@ -86,13 +89,13 @@ public abstract class CoinsDatabase {
         try (Connection c = getConnection(); ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SEARCH_USER_OFFLINE, name).executeQuery();) {
             if (res.next()) {
                 coins = res.getDouble("balance");
-            } else if (core.getMethods().isOnline(name)) {
-                coins = core.getConfig().getDouble("General.Starting Coins", 0);
-                createPlayer(c, core.getUUID(name, false), name, coins);
+            } else if (CORE.getBootstrap().isOnline(name)) {
+                coins = CORE.getConfig().getDouble("General.Starting Coins", 0);
+                createPlayer(c, CORE.getUUID(name, false), name, coins);
             }
         } catch (SQLException ex) {
-            core.log("An internal error has occurred creating the data for player: " + name);
-            core.debug(ex);
+            CORE.log("An internal error has occurred creating the data for player: " + name);
+            CORE.debug(ex);
         }
         return coins;
     }
@@ -109,8 +112,8 @@ public abstract class CoinsDatabase {
             }
         } catch (SQLException ex) {
             response = new CoinsResponse(CoinsResponse.CoinsResponseType.FAILED, "An exception as ocurred with the database.");
-            core.log("An internal error has occurred setting coins to the player: " + uuid);
-            core.debug(ex);
+            CORE.log("An internal error has occurred setting coins to the player: " + uuid);
+            CORE.debug(ex);
         }
         return response;
     }
@@ -122,8 +125,8 @@ public abstract class CoinsDatabase {
             response = new CoinsResponse(CoinsResponse.CoinsResponseType.SUCCESS, "");
         } catch (SQLException ex) {
             response = new CoinsResponse(CoinsResponse.CoinsResponseType.FAILED, "An exception as ocurred with the database.");
-            core.log("An internal error has occurred setting coins to the player: " + name);
-            core.debug(ex);
+            CORE.log("An internal error has occurred setting coins to the player: " + name);
+            CORE.debug(ex);
         }
         return response;
     }
@@ -134,8 +137,8 @@ public abstract class CoinsDatabase {
                 return res.getString("uuid") != null;
             }
         } catch (SQLException ex) {
-            core.log("An internal error has occurred cheking if the player: " + uuid + " exists in the database.");
-            core.debug(ex);
+            CORE.log("An internal error has occurred cheking if the player: " + uuid + " exists in the database.");
+            CORE.debug(ex);
         }
         return false;
     }
@@ -146,8 +149,8 @@ public abstract class CoinsDatabase {
                 return res.getString("uuid") != null;
             }
         } catch (SQLException ex) {
-            core.log("An internal error has occurred cheking if the player: " + name + " exists in the database.");
-            core.debug(ex);
+            CORE.log("An internal error has occurred cheking if the player: " + name + " exists in the database.");
+            CORE.debug(ex);
         }
         return false;
     }
@@ -156,8 +159,8 @@ public abstract class CoinsDatabase {
         try {
             createPlayer(getConnection(), uuid, name, balance);
         } catch (SQLException ex) {
-            core.log("An internal error has ocurred while creating the player " + name + " in the database, check the logs for more info.");
-            core.debug(ex);
+            CORE.log("An internal error has ocurred while creating the player " + name + " in the database, check the logs for more info.");
+            CORE.debug(ex);
         }
 
     }
@@ -171,21 +174,21 @@ public abstract class CoinsDatabase {
         try {
             ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SEARCH_USER_ONLINE, uuid).executeQuery();
             try {
-                core.debug("Creating data for player: " + name + " in the database.");
+                CORE.debug("Creating data for player: " + name + " in the database.");
                 if (!res.next()) {
                     DatabaseUtils.prepareStatement(c, SQLQuery.CREATE_USER, uuid, name, balance, System.currentTimeMillis()).executeUpdate();
-                    core.debug("An entry in the database was created for: " + name);
+                    CORE.debug("An entry in the database was created for: " + name);
                 }
             } finally {
                 if (res != null) {
                     res.close();
                 }
                 c.close();
-                core.debug("The connection was closed.");
+                CORE.debug("The connection was closed.");
             }
         } catch (SQLException ex) {
-            core.log("An internal error has occurred creating the player: " + name + " in the database.");
-            core.debug(ex);
+            CORE.log("An internal error has occurred creating the player: " + name + " in the database.");
+            CORE.debug(ex);
         }
     }
 
@@ -193,26 +196,26 @@ public abstract class CoinsDatabase {
         try {
             updatePlayer(getConnection(), uuid, name);
         } catch (SQLException ex) {
-            core.log("An internal error has ocurred updating the data for player '" + name + "', check the logs for more info.");
-            core.debug(ex);
+            CORE.log("An internal error has ocurred updating the data for player '" + name + "', check the logs for more info.");
+            CORE.debug(ex);
         }
     }
 
     public final void updatePlayer(Connection c, UUID uuid, String name) {
         try {
-            if (core.getConfig().isOnline() && CoinsAPI.isindb(uuid)) {
+            if (CORE.getConfig().isOnline() && CoinsAPI.isindb(uuid)) {
                 DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_USER_ONLINE, name, System.currentTimeMillis(), uuid).executeUpdate();
-                core.debug("Updated the name for '" + uuid + "' (" + name + ")");
-            } else if (!core.getConfig().isOnline() && CoinsAPI.isindb(name)) {
+                CORE.debug("Updated the name for '" + uuid + "' (" + name + ")");
+            } else if (!CORE.getConfig().isOnline() && CoinsAPI.isindb(name)) {
                 DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_USER_OFFLINE, uuid, System.currentTimeMillis(), name).executeUpdate();
-                core.debug("Updated the UUID for '" + name + "' (" + uuid + ")");
+                CORE.debug("Updated the UUID for '" + name + "' (" + uuid + ")");
             } else {
-                core.debug("Tried to update a player that isn't in the database.");
+                CORE.debug("Tried to update a player that isn't in the database.");
             }
             c.close();
         } catch (SQLException ex) {
-            core.log("An internal error has ocurred updating the data for player '" + name + "'");
-            core.debug(ex);
+            CORE.log("An internal error has ocurred updating the data for player '" + name + "'");
+            CORE.debug(ex);
         }
     }
 
@@ -225,8 +228,8 @@ public abstract class CoinsDatabase {
                 topplayers.put(playername, coins);
             }
         } catch (SQLException ex) {
-            core.log("An internal error has occurred generating the toplist");
-            core.debug(ex);
+            CORE.log("An internal error has occurred generating the toplist");
+            CORE.debug(ex);
         }
         return DatabaseUtils.sortByValue(topplayers);
     }
@@ -237,8 +240,8 @@ public abstract class CoinsDatabase {
                 return res.getString("nick");
             }
         } catch (SQLException ex) {
-            core.log("Something was wrong getting the nick for the uuid '" + uuid + "'");
-            core.debug(ex);
+            CORE.log("Something was wrong getting the nick for the uuid '" + uuid + "'");
+            CORE.debug(ex);
         }
         return null;
     }
@@ -249,8 +252,8 @@ public abstract class CoinsDatabase {
                 return UUID.fromString(res.getString("uuid"));
             }
         } catch (SQLException ex) {
-            core.log("Something was wrong getting the uuid for the nick '" + name + "'");
-            core.debug(ex);
+            CORE.log("Something was wrong getting the uuid for the nick '" + name + "'");
+            CORE.debug(ex);
         }
         return null;
     }
@@ -259,8 +262,8 @@ public abstract class CoinsDatabase {
         try (Connection c = getConnection()) {
             DatabaseUtils.prepareStatement(c, SQLQuery.CREATE_MULTIPLIER, server, uuid, type, amount, minutes, 0, false, false).executeUpdate();
         } catch (SQLException ex) {
-            core.log("Something was wrong when creating a multiplier for " + core.getNick(uuid, false));
-            core.debug(ex);
+            CORE.log("Something was wrong when creating a multiplier for " + CORE.getNick(uuid, false));
+            CORE.debug(ex);
         }
     }
 
@@ -268,8 +271,8 @@ public abstract class CoinsDatabase {
         try (Connection c = getConnection()) {
             DatabaseUtils.prepareStatement(c, SQLQuery.DELETE_MULTIPLIER, multiplier.getId()).executeUpdate();
         } catch (SQLException ex) {
-            core.log("An error has ocurred while deleting the multiplier #" + multiplier.getId());
-            core.debug(ex);
+            CORE.log("An error has ocurred while deleting the multiplier #" + multiplier.getId());
+            CORE.debug(ex);
         }
     }
 
@@ -277,20 +280,33 @@ public abstract class CoinsDatabase {
         try (Connection c = getConnection()) {
             DatabaseUtils.prepareStatement(c, SQLQuery.ENABLE_MULTIPLIER, multiplier.getId()).executeUpdate();
         } catch (SQLException ex) {
-            core.log("An error has ocurred enabling the multiplier #" + multiplier.getId());
-            core.debug(ex);
+            CORE.log("An error has ocurred enabling the multiplier #" + multiplier.getId());
+            CORE.debug(ex);
         }
     }
 
-    public final Set<Multiplier> getMultipliers(UUID uuid, boolean server) {
-        Set<Multiplier> multipliers = new HashSet<>();
-        try (Connection c = getConnection(); ResultSet res = server ? DatabaseUtils.prepareStatement(c, SQLQuery.SELECT_ALL_MULTIPLIERS_SERVER, uuid).executeQuery() : DatabaseUtils.prepareStatement(c, SQLQuery.SELECT_ALL_MULTIPLIERS, uuid).executeQuery();) {
+    public final Set<Multiplier> getMultipliers(UUID uuid) {
+        Set<Multiplier> multipliers = new LinkedHashSet<>();
+        try (Connection c = getConnection(); ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SELECT_ALL_MULTIPLIERS, uuid).executeQuery();) {
             while (res.next()) {
                 multipliers.add(getMultiplier(res.getInt("id")));
             }
         } catch (SQLException ex) {
-            core.log("An error has ocurred getting all the multipliers for " + uuid);
-            core.debug(ex);
+            CORE.log("An error has ocurred getting all the multipliers for " + uuid);
+            CORE.debug(ex);
+        }
+        return multipliers;
+    }
+
+    public final Set<Multiplier> getMultipliers(UUID uuid, String server) {
+        Set<Multiplier> multipliers = new LinkedHashSet<>();
+        try (Connection c = getConnection(); ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SELECT_ALL_MULTIPLIERS_SERVER, uuid, server).executeQuery();) {
+            while (res.next()) {
+                multipliers.add(getMultiplier(res.getInt("id")));
+            }
+        } catch (SQLException ex) {
+            CORE.log("An error has ocurred getting all the multipliers for " + uuid + " in server " + server);
+            CORE.debug(ex);
         }
         return multipliers;
     }
@@ -298,11 +314,11 @@ public abstract class CoinsDatabase {
     public final Multiplier getMultiplier(int id) {
         try (Connection c = getConnection(); ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SELECT_MULTIPLIER, id).executeQuery()) {
             if (res.next()) {
-                return MultiplierBuilder.newBuilder(res.getString("server"), MultiplierType.valueOf(res.getString("type")), new MultiplierData(UUID.fromString(res.getString("uuid")), core.getNick(UUID.fromString(res.getString("uuid")), false), res.getInt("amount"), res.getInt("minutes"))).setID(res.getInt("id")).setEnabled(res.getBoolean("enabled")).setQueue(res.getBoolean("queue")).build(false);
+                return MultiplierBuilder.newBuilder(res.getString("server"), MultiplierType.valueOf(res.getString("type")), new MultiplierData(UUID.fromString(res.getString("uuid")), CORE.getNick(UUID.fromString(res.getString("uuid")), false), res.getInt("amount"), res.getInt("minutes"))).setID(res.getInt("id")).setEnabled(res.getBoolean("enabled")).setQueue(res.getBoolean("queue")).build(false);
             }
         } catch (SQLException ex) {
-            core.log("An error has ocurred getting the multiplier with the id #" + id + " from the database.");
-            core.debug(ex);
+            CORE.log("An error has ocurred getting the multiplier with the id #" + id + " from the database.");
+            CORE.debug(ex);
         }
         return null;
     }
@@ -314,8 +330,8 @@ public abstract class CoinsDatabase {
                 data.put(res.getString("nick") + "," + res.getString("uuid"), res.getDouble("balance"));
             }
         } catch (SQLException ex) {
-            core.log("An error has ocurred getting all the players from the database, check the logs for more info.");
-            core.debug(ex);
+            CORE.log("An error has ocurred getting all the players from the database, check the logs for more info.");
+            CORE.debug(ex);
         }
         return data;
     }

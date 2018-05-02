@@ -25,5 +25,6 @@ package io.github.beelzebu.coins.common.database;
 public enum StorageType {
 
     MYSQL,
+    MARIADB,
     SQLITE;
 }

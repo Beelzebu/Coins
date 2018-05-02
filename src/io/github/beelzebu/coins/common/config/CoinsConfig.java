@@ -19,7 +19,8 @@
 package io.github.beelzebu.coins.common.config;
 
 import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.interfaces.IConfiguration;
+import io.github.beelzebu.coins.common.database.StorageType;
+import io.github.beelzebu.coins.common.messaging.MessagingService;
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.Bukkit;
@@ -38,8 +39,10 @@ public abstract class CoinsConfig implements IConfiguration {
     }
 
     public boolean useBungee() {
-        if (core.isBungee()) {
+        try {
+            Class.forName("");
             return true;
+        } catch (ClassNotFoundException ignore) {
         }
         try {
             return Bukkit.spigot().getConfig().getBoolean("settings.bungeecord");
@@ -62,5 +65,25 @@ public abstract class CoinsConfig implements IConfiguration {
 
     public String getServerName() {
         return getString("Multipliers.Server", "default");
+    }
+
+    public StorageType getStorageType() {
+        StorageType type = StorageType.SQLITE;
+        try {
+            return StorageType.valueOf(getString("Storage Type", "sqlite").toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            core.log("You have deffined a invalid storage type in the config.");
+        }
+        return type;
+    }
+
+    public MessagingService getMessagingService() {
+        MessagingService type = MessagingService.NONE;
+        try {
+            return MessagingService.valueOf(getString("Messaging Service", "none").toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            core.log("You have deffined a invalid storage type in the config.");
+        }
+        return type;
     }
 }

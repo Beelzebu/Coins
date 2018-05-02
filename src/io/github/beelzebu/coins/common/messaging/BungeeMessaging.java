@@ -20,17 +20,13 @@ package io.github.beelzebu.coins.common.messaging;
 
 import io.github.beelzebu.coins.Multiplier;
 import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.interfaces.IMessagingService;
 import java.util.Collections;
 import java.util.List;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 
 /**
  *
  * @author Beelzebu
  */
-@NoArgsConstructor(access = AccessLevel.NONE)
 public abstract class BungeeMessaging implements IMessagingService {
 
     protected final CoinsCore core = CoinsCore.getInstance();
@@ -40,8 +36,8 @@ public abstract class BungeeMessaging implements IMessagingService {
     }
 
     @Override
-    public MessagingServiceType getType() {
-        return MessagingServiceType.BUNGEECORD;
+    public MessagingService getType() {
+        return MessagingService.BUNGEECORD;
     }
 
     @Override

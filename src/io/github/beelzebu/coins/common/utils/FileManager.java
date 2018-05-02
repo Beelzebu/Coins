@@ -24,7 +24,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
@@ -44,39 +44,19 @@ import org.apache.commons.io.FileUtils;
  */
 public class FileManager {
 
-    private final CoinsCore core;
-    private final File messagesFolder;
-    private final Map<String, File> messagesFiles;
-    private final File configFile;
-    private final File logsFolder;
+    private final CoinsCore core = CoinsCore.getInstance();
+    private final File messagesFolder = new File(core.getBootstrap().getDataFolder(), "messages");
+    private final Map<String, File> messagesFiles = new HashMap<>();
+    private final File configFile = new File(core.getBootstrap().getDataFolder(), "config.yml");
+    private final File logsFolder = new File(core.getBootstrap().getDataFolder(), "logs");
 
-    public FileManager(CoinsCore c) {
-        core = c;
-        messagesFolder = new File(core.getMethods().getDataFolder(), "messages");
-        messagesFiles = new HashMap<>();
+    public FileManager() {
         messagesFiles.put("default", new File(messagesFolder, "messages.yml"));
         messagesFiles.put("es", new File(messagesFolder, "messages_es.yml"));
         messagesFiles.put("zh", new File(messagesFolder, "messages_zh.yml"));
         messagesFiles.put("cz", new File(messagesFolder, "messages_cz.yml"));
         messagesFiles.put("hu", new File(messagesFolder, "messages_hu.yml"));
         messagesFiles.put("ru", new File(messagesFolder, "messages_ru.yml"));
-        configFile = new File(core.getMethods().getDataFolder(), "config.yml");
-        logsFolder = new File(core.getMethods().getDataFolder(), "logs");
-    }
-
-    public void copy(InputStream in, File file) {
-        try {
-            OutputStream out = new FileOutputStream(file);
-            byte[] buf = new byte[1024];
-            int len;
-            while ((len = in.read(buf)) > 0) {
-                out.write(buf, 0, len);
-            }
-            out.close();
-            in.close();
-        } catch (IOException e) {
-            Logger.getLogger(FileManager.class.getName()).log(Level.WARNING, "Can''t copy the file {0} to the plugin data folder. {1}", new Object[]{file.getName(), e.getMessage()});
-        }
     }
 
     private void updateConfig() {
@@ -137,6 +117,7 @@ public class FileManager {
                                 "# Available options:",
                                 "#  -> sqlite    data is stored locally and can't be shared with other servers.",
                                 "#  -> mysql     data is stored on a mysql server and can be shared by several servers.",
+                                "#  -> mariadb   we will use mariadb driver instead of mysql driver.",
                                 "Storage Type: sqlite",
                                 "",
                                 "# Don't touch this setting, this is only for internal usage to auto update the",
@@ -164,7 +145,7 @@ public class FileManager {
                             index = lines.indexOf("  Use: false");
                             lines.remove(index);
                         }
-                        if (core.isBungee() || core.getConfig().useBungee()) {
+                        if (core.getConfig().useBungee()) {
                             index = lines.indexOf("Messaging Service: none");
                             lines.set(index, "Messaging Service: bungeecord");
                         }
@@ -182,6 +163,8 @@ public class FileManager {
                                 "  Port: 6379",
                                 "  Password: 'S3CUR3P4SSW0RD'"
                         ));
+                        index = lines.indexOf("  Connection Interval: " + core.getConfig().getInt("MySQL.Connection Interval"));
+                        lines.remove(index);
                         index = lines.indexOf("version: 13");
                         lines.set(index, "version: 14");
                         core.log("Configuration file updated to v14");
@@ -384,10 +367,13 @@ public class FileManager {
     }
 
     public void copyFiles() {
+        if (!logsFolder.exists()) {
+            logsFolder.mkdirs();
+        }
         if (!messagesFolder.exists()) {
             messagesFolder.mkdirs();
         }
-        File[] files = core.getMethods().getDataFolder().listFiles();
+        File[] files = core.getBootstrap().getDataFolder().listFiles();
         for (File f : files) {
             if (f.isFile() && f.getName().startsWith("messages")) {
                 try {
@@ -398,13 +384,20 @@ public class FileManager {
             }
         }
         messagesFiles.keySet().forEach(filename -> {
-            File messages = messagesFiles.get(filename);
-            if (!messages.exists()) {
-                copy(core.getMethods().getResource(messages.getName()), messages);
+            try {
+                Files.copy(core.getBootstrap().getResource(messagesFiles.get(filename).getName()), new File(messagesFolder, messagesFiles.get(filename).getName()).toPath());
+            } catch (FileAlreadyExistsException ignore) {
+            } catch (IOException ex) {
+                Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while saving messages files.", ex);
             }
         });
         if (!configFile.exists()) {
-            copy(core.getMethods().getResource("config.yml"), configFile);
+            try {
+                Files.copy(core.getBootstrap().getResource("config.yml"), configFile.toPath());
+            } catch (FileAlreadyExistsException ignore) {
+            } catch (IOException ex) {
+                Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while saving the default config.", ex);
+            }
         }
     }
 
@@ -415,9 +408,7 @@ public class FileManager {
     }
 
     private void checkLogs() {
-        if (!logsFolder.exists()) {
-            logsFolder.mkdirs();
-        }
+
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         File latestLog = new File(logsFolder, "latest.log");
         if (latestLog.exists()) {

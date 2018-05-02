@@ -26,15 +26,16 @@ import com.google.gson.JsonObject;
 import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.Multiplier;
 import io.github.beelzebu.coins.MultiplierType;
-import io.github.beelzebu.coins.bukkit.Main;
 import io.github.beelzebu.coins.common.CacheManager;
 import io.github.beelzebu.coins.common.executor.Executor;
+import io.github.beelzebu.coins.common.executor.ExecutorManager;
 import io.github.beelzebu.coins.common.messaging.BungeeMessaging;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 /**
@@ -61,7 +62,7 @@ public final class BukkitBungeeMessaging extends BungeeMessaging implements Plug
         Player p = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
         if (p != null) {
             try {
-                p.sendPluginMessage(Main.getInstance(), channel, out.toByteArray());
+                p.sendPluginMessage((Plugin) core.getBootstrap().getPlugin(), channel, out.toByteArray());
             } catch (Exception ex) {
                 core.log("Hey, you need to install the plugin in BungeeCord if you have bungeecord enabled in spigot.yml!");
             }
@@ -79,8 +80,8 @@ public final class BukkitBungeeMessaging extends BungeeMessaging implements Plug
             case "Executors":
                 String executor = in.readUTF();
                 Executor ex = Executor.fromJson(executor);
-                if (core.getExecutorManager().getExecutor(ex.getId()) == null) {
-                    core.getExecutorManager().addExecutor(ex);
+                if (ExecutorManager.getExecutor(ex.getId()) == null) {
+                    ExecutorManager.addExecutor(ex);
                     core.log("The executor " + ex.getId() + " was received from BungeeCord.");
                     core.debug("ID: " + ex.getId());
                     core.debug("Displayname: " + ex.getDisplayname());

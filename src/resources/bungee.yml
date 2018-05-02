@@ -1,4 +1,4 @@
 name: ${project.artifactId}
-main: ${project.groupId}.coins.bungee.Main
+main: ${project.groupId}.coins.bungee.CoinsBungeeMain
 version: ${project.version}
 author: Beelzebu

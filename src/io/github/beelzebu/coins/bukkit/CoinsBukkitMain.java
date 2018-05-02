@@ -19,50 +19,70 @@
 package io.github.beelzebu.coins.bukkit;
 
 import io.github.beelzebu.coins.Multiplier;
+import io.github.beelzebu.coins.bukkit.command.CommandManager;
 import io.github.beelzebu.coins.bukkit.config.BukkitConfig;
 import io.github.beelzebu.coins.bukkit.config.BukkitMessages;
 import io.github.beelzebu.coins.bukkit.events.CoinsChangeEvent;
 import io.github.beelzebu.coins.bukkit.events.MultiplierEnableEvent;
 import io.github.beelzebu.coins.bukkit.messaging.BukkitBungeeMessaging;
+import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.config.CoinsConfig;
 import io.github.beelzebu.coins.common.config.MessagesConfig;
-import io.github.beelzebu.coins.common.interfaces.IMethods;
 import io.github.beelzebu.coins.common.messaging.BungeeMessaging;
-import java.io.File;
-import java.io.InputStream;
+import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
+import io.github.beelzebu.coins.common.utils.dependencies.classloader.PluginClassLoader;
+import io.github.beelzebu.coins.common.utils.dependencies.classloader.ReflectionClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Logger;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
-/**
- *
- * @author Beelzebu
- */
-public class BukkitMethods implements IMethods {
+public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
 
-    private final Main plugin = Main.getInstance();
-    private final CommandSender console = Bukkit.getConsoleSender();
-    private BukkitBungeeMessaging bbmessaging;
+    protected final CoinsCore core = CoinsCore.getInstance();
+    @Getter
+    private final CommandManager commandManager;
+    @Getter
+    private final CoinsBukkitPlugin plugin;
     private BukkitConfig config;
+    private BukkitBungeeMessaging bbmessaging;
 
-    @Override
-    public Object getPlugin() {
-        return plugin;
+    public CoinsBukkitMain() {
+        plugin = new CoinsBukkitPlugin(this);
+        commandManager = new CommandManager();
     }
 
     @Override
-    public void loadConfig() {
-        config = new BukkitConfig();
+    public void onLoad() {
+        core.setup(this);
+        if (getConfig().getBoolean("Vault.Use", false)) {
+            if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
+                log("Vault found, hooking into it.");
+                new CoinsEconomy(this).setup();
+            } else {
+                core.log("You enabled Vault in the config, but the plugin Vault can't be found.");
+            }
+        }
     }
 
     @Override
-    public CoinsConfig getConfig() {
-        return config == null ? config = new BukkitConfig() : config;
+    public void onEnable() {
+        config = new BukkitConfig(plugin);
+        core.start();
+    }
+
+    @Override
+    public void onDisable() {
+        core.shutdown();
+    }
+
+    @Override
+    public CoinsConfig getPluginConfig() {
+        return config;
     }
 
     @Override
@@ -72,27 +92,32 @@ public class BukkitMethods implements IMethods {
 
     @Override
     public void runAsync(Runnable rn) {
-        Bukkit.getScheduler().runTaskAsynchronously((Plugin) getPlugin(), rn);
+        Bukkit.getScheduler().runTaskAsynchronously(this, rn);
     }
 
     @Override
-    public void runAsync(Runnable rn, Long timer) {
-        Bukkit.getScheduler().runTaskTimerAsynchronously((Plugin) getPlugin(), rn, 0, timer);
+    public void runAsyncTimmer(Runnable rn, long timer) {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, rn, 0, timer);
+    }
+
+    @Override
+    public void runTaskLater(Runnable rn, long ticks) {
+        Bukkit.getScheduler().runTaskLater(this, rn, ticks);
     }
 
     @Override
     public void runSync(Runnable rn) {
-        Bukkit.getScheduler().runTask((Plugin) getPlugin(), rn);
+        Bukkit.getScheduler().runTask(this, rn);
     }
 
     @Override
     public void executeCommand(String cmd) {
-        Bukkit.getServer().dispatchCommand(console, cmd);
+        Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
     }
 
     @Override
     public void log(Object log) {
-        console.sendMessage(CoinsCore.getInstance().rep("&8[&cCoins&8] &7" + log));
+        Bukkit.getConsoleSender().sendMessage(CoinsCore.getInstance().rep("&8[&cCoins&8] &7" + log));
     }
 
     @Override
@@ -106,18 +131,8 @@ public class BukkitMethods implements IMethods {
     }
 
     @Override
-    public File getDataFolder() {
-        return plugin.getDataFolder();
-    }
-
-    @Override
-    public InputStream getResource(String file) {
-        return plugin.getResource(file);
-    }
-
-    @Override
     public String getVersion() {
-        return plugin.getDescription().getVersion();
+        return getDescription().getVersion();
     }
 
     @Override
@@ -142,16 +157,12 @@ public class BukkitMethods implements IMethods {
 
     @Override
     public void callCoinsChangeEvent(UUID uuid, double oldCoins, double newCoins) {
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            Bukkit.getPluginManager().callEvent(new CoinsChangeEvent(uuid, oldCoins, newCoins));
-        });
+        Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().callEvent(new CoinsChangeEvent(uuid, oldCoins, newCoins)));
     }
 
     @Override
     public void callMultiplierEnableEvent(Multiplier multiplier) {
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            Bukkit.getPluginManager().callEvent(new MultiplierEnableEvent(multiplier));
-        });
+        Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().callEvent(new MultiplierEnableEvent(multiplier)));
     }
 
     @Override
@@ -166,12 +177,12 @@ public class BukkitMethods implements IMethods {
     }
 
     @Override
-    public Logger getLogger() {
-        return plugin.getLogger();
+    public BungeeMessaging getBungeeMessaging() {
+        return bbmessaging == null ? bbmessaging = new BukkitBungeeMessaging() : bbmessaging;
     }
 
     @Override
-    public BungeeMessaging getBungeeMessaging() {
-        return bbmessaging == null ? bbmessaging = new BukkitBungeeMessaging() : bbmessaging;
+    public PluginClassLoader getPluginClassLoader() {
+        return new ReflectionClassLoader(plugin);
     }
 }

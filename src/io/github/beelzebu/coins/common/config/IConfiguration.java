@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.beelzebu.coins.common.interfaces;
+package io.github.beelzebu.coins.common.config;
 
 import java.util.List;
 import java.util.Set;

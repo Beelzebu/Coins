@@ -19,23 +19,23 @@
 package io.github.beelzebu.coins.common;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.bungee.BungeeMethods;
 import io.github.beelzebu.coins.common.config.CoinsConfig;
 import io.github.beelzebu.coins.common.config.MessagesConfig;
 import io.github.beelzebu.coins.common.database.CoinsDatabase;
 import io.github.beelzebu.coins.common.database.MySQL;
 import io.github.beelzebu.coins.common.database.SQLite;
 import io.github.beelzebu.coins.common.database.StorageType;
-import io.github.beelzebu.coins.common.executor.ExecutorManager;
-import io.github.beelzebu.coins.common.interfaces.IMessagingService;
-import io.github.beelzebu.coins.common.interfaces.IMethods;
 import io.github.beelzebu.coins.common.messaging.DummyMessaging;
-import io.github.beelzebu.coins.common.messaging.MessagingServiceType;
+import io.github.beelzebu.coins.common.messaging.IMessagingService;
+import io.github.beelzebu.coins.common.messaging.MessagingService;
 import io.github.beelzebu.coins.common.messaging.RedisMessaging;
+import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
 import io.github.beelzebu.coins.common.utils.FileManager;
-import io.github.beelzebu.coins.common.utils.dependencies.DependencyManager;
+import io.github.beelzebu.coins.common.utils.dependencies.Dependency;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -45,7 +45,7 @@ import java.nio.file.Files;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -63,19 +63,17 @@ import org.apache.commons.io.FileUtils;
  *
  * @author Beelzebu
  */
-@NoArgsConstructor(access = AccessLevel.NONE)
-public class CoinsCore {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class CoinsCore {
 
     private static CoinsCore instance;
     @Getter
-    private IMethods methods;
+    private CoinsBootstrap bootstrap;
     private CoinsDatabase db;
     @Getter
     private StorageType storageType;
     @Getter
     private IMessagingService messagingService;
-    @Getter
-    private ExecutorManager executorManager;
     private HashMap<String, MessagesConfig> messagesMap = new HashMap<>();
     @Getter
     private final Gson gson = new Gson();
@@ -86,55 +84,46 @@ public class CoinsCore {
         return instance == null ? instance = new CoinsCore() : instance;
     }
 
-    public void setup(IMethods imethods) {
-        methods = imethods;
-        FileManager fileUpdater = new FileManager(this);
-        fileUpdater.copyFiles();
-        methods.loadConfig();
-        fileUpdater.updateFiles();
-        try {
-            if (getConfig().getBoolean("MySQL.Use")) {
-                storageType = StorageType.MYSQL;
-            } else {
-                storageType = StorageType.valueOf(getConfig().getString("Storage Type", "SQLITE").toUpperCase());
-            }
-        } catch (IllegalArgumentException ex) { // invalid storage type
-            storageType = StorageType.SQLITE;
-            log("Invalid Storage Type selected in the config, possible values: " + Arrays.toString(StorageType.values()));
-        }
-        if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingServiceType.BUNGEECORD.toString())) {
-            messagingService = methods.getBungeeMessaging();
-        } else if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingServiceType.REDIS.toString())) {
+    public void setup(CoinsBootstrap bootstrap) { // the plugin was loaded, so copy files and download dependencies
+        this.bootstrap = bootstrap;
+        EnumSet<Dependency> dependencies = EnumSet.of(Dependency.CAFFEINE, Dependency.COMMONS_IO);
+        log("Loading main dependencies: " + dependencies);
+        bootstrap.getPlugin().getDependencyManager().loadDependencies(dependencies);
+        new FileManager().copyFiles();
+    }
+
+    public void start() { // now the plugin is enabled and we can read config files
+        enabled = true;
+        // update config files to avoid outdated config options
+        new FileManager().updateFiles();
+        // identify storage type and start messaging service before start things
+        storageType = getConfig().getStorageType();
+        bootstrap.getPlugin().getDependencyManager().loadStorageDependencies(storageType);
+        if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingService.BUNGEECORD.toString())) {
+            messagingService = bootstrap.getBungeeMessaging();
+        } else if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingService.REDIS.toString())) {
+            EnumSet dependencies = EnumSet.of(Dependency.COMMONS_POOL_2, Dependency.JEDIS);
+            bootstrap.getPlugin().getDependencyManager().loadDependencies(dependencies);
+            log("Loading messaging service dependencies: " + dependencies);
             messagingService = new RedisMessaging();
         } else {
             messagingService = new DummyMessaging();
         }
-        DependencyManager.loadAllDependencies();
-    }
-
-    public void start() {
-        if (storageType.equals(StorageType.SQLITE) && isBungee()) {
-            log(" ");
-            log("    WARNING");
-            log(" ");
-            log("Bungeecord doesn't support SQLite storage, change it to MySQL and reload the plugin.");
-            log(" ");
-            log("    WARNING");
-            log(" ");
-            return;
-        }
-        getConfig().reload();
+        bootstrap.getPlugin().enable(); // do stuff
         try {
             if (!CacheManager.MULTIPLIERS_FILE.exists()) {
-                CacheManager.MULTIPLIERS_FILE.mkdirs();
                 CacheManager.MULTIPLIERS_FILE.createNewFile();
             }
             Iterator<String> lines = FileUtils.readLines(CacheManager.MULTIPLIERS_FILE, Charsets.UTF_8).iterator();
             while (lines.hasNext()) {
+                String line = lines.next();
                 try {
-                    Multiplier multiplier = Multiplier.fromJson(lines.next(), false);
+                    Multiplier multiplier = Multiplier.fromJson(line, false);
                     CacheManager.getMultipliersData().put(multiplier.getServer().toLowerCase(), multiplier);
-                } catch (Exception ignore) { // Invalid line
+                } catch (JsonParseException ignore) { // Invalid line
+                    debug(line + " isn't a valid multiplier in json format.");
+                    lines.remove();
+                    FileUtils.writeLines(CacheManager.MULTIPLIERS_FILE, Lists.newArrayList(lines));
                 }
             }
         } catch (IOException ex) {
@@ -143,66 +132,68 @@ public class CoinsCore {
         }
         if (storageType.equals(StorageType.SQLITE) && getConfig().getInt("Database Version", 1) < 2) {
             try {
-                Files.move(new File(methods.getDataFolder(), "database.db").toPath(), new File(methods.getDataFolder(), "database.old.db").toPath());
+                Files.move(new File(bootstrap.getDataFolder(), "database.db").toPath(), new File(bootstrap.getDataFolder(), "database.old.db").toPath());
             } catch (IOException ex) {
                 log("An error has ocurred moving the old database");
                 debug(ex.getMessage());
             }
         }
         getDatabase().setup();
-        if (!messagingService.getType().equals(MessagingServiceType.NONE)) {
+        if (!messagingService.getType().equals(MessagingService.NONE)) {
             messagingService.start();
         }
-        executorManager = new ExecutorManager();
-        enabled = true;
         motd(true);
+        getMessagingService().getMultipliers();
+        getMessagingService().getExecutors();
     }
 
     public void shutdown() {
         db.shutdown();
         messagingService.stop();
+        bootstrap.getPlugin().disable();
         motd(false);
     }
 
     private void motd(boolean enable) {
-        methods.sendMessage(methods.getConsole(), rep(""));
-        methods.sendMessage(methods.getConsole(), rep("&6-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"));
-        methods.sendMessage(methods.getConsole(), rep("           &4Coins &fBy:  &7Beelzebu"));
-        methods.sendMessage(methods.getConsole(), rep(""));
+        bootstrap.sendMessage(bootstrap.getConsole(), rep(""));
+        bootstrap.sendMessage(bootstrap.getConsole(), rep("&6-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"));
+        bootstrap.sendMessage(bootstrap.getConsole(), rep("           &4Coins &fBy:  &7Beelzebu"));
+        bootstrap.sendMessage(bootstrap.getConsole(), rep(""));
         StringBuilder version = new StringBuilder();
-        int spaces = (42 - ("v: " + methods.getVersion()).length()) / 2;
+        int spaces = (42 - ("v: " + bootstrap.getVersion()).length()) / 2;
         for (int i = 0; i < spaces; i++) {
             version.append(" ");
         }
-        version.append(rep("&4v: &f" + methods.getVersion()));
-        methods.sendMessage(methods.getConsole(), version.toString());
-        methods.sendMessage(methods.getConsole(), rep("&6-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"));
-        methods.sendMessage(methods.getConsole(), rep(""));
+        version.append(rep("&4v: &f" + bootstrap.getVersion()));
+        bootstrap.sendMessage(bootstrap.getConsole(), version.toString());
+        bootstrap.sendMessage(bootstrap.getConsole(), rep("&6-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"));
+        bootstrap.sendMessage(bootstrap.getConsole(), rep(""));
         // Only send this in the onEnable
         if (enable) {
-            logToFile("Enabled Coins v: " + methods.getVersion());
+            logToFile("Enabled Coins v: " + bootstrap.getVersion());
             if (getConfig().getBoolean("Debug", false)) {
                 log("Debug mode is enabled.");
             }
             log("Using \"" + storageType.toString().toLowerCase() + "\" for storage.");
-            if (!messagingService.getType().equals(MessagingServiceType.NONE)) {
+            if (!messagingService.getType().equals(MessagingService.NONE)) {
                 log("Using \"" + messagingService.getType().toString().toLowerCase() + "\" as messaging service.");
             }
-            String upt = "You have the newest version";
-            String response = getFromURL("https://api.spigotmc.org/legacy/update.php?resource=48536");
-            if (response == null) {
-                upt = "Failed to check for updates :(";
-            } else if (!response.equalsIgnoreCase(methods.getVersion())) {
-                upt = "There is a new version available! [" + response + "]";
-            }
-            log(upt);
-
+            bootstrap.runAsync(() -> { // run update check async, so it doesn't delay the startup
+                String upt = "You have the newest version";
+                String response = getFromURL("https://api.spigotmc.org/legacy/update.php?resource=48536");
+                if (response == null) {
+                    upt = "Failed to check for updates :(";
+                } else if (!response.equalsIgnoreCase(bootstrap.getVersion())) {
+                    upt = "There is a new version available! [" + response + "]";
+                }
+                log(upt);
+            });
         }
     }
 
     public void debug(Object msg) {
-        if (getConfig().getBoolean("Debug")) {
-            methods.sendMessage(methods.getConsole(), rep("&8[&cCoins&8] &cDebug: &7" + msg));
+        if (!enabled || getConfig().getBoolean("Debug")) {
+            bootstrap.sendMessage(bootstrap.getConsole(), rep("&8[&cCoins&8] &cDebug: &7" + msg));
         }
         logToFile(msg);
     }
@@ -220,7 +211,7 @@ public class CoinsCore {
     }
 
     public void log(Object msg) {
-        methods.log(msg);
+        bootstrap.log(msg);
         logToFile(msg);
     }
 
@@ -229,7 +220,7 @@ public class CoinsCore {
             return;
         }
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-        File log = new File(methods.getDataFolder(), "/logs/latest.log");
+        File log = new File(bootstrap.getDataFolder(), "/logs/latest.log");
         if (!log.exists()) {
             try {
                 log.createNewFile();
@@ -238,27 +229,23 @@ public class CoinsCore {
             }
         }
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(log, true))) {
-            try {
-                writer.write("[" + sdf.format(System.currentTimeMillis()) + "] " + removeColor(msg.toString()));
-                writer.newLine();
-            } finally {
-                writer.close();
-            }
+            writer.write("[" + sdf.format(System.currentTimeMillis()) + "] " + removeColor(msg.toString()));
+            writer.newLine();
         } catch (IOException ex) {
             Logger.getLogger(CoinsCore.class.getName()).log(Level.WARNING, "Can''t save the debug to the file", ex);
         }
     }
 
     public String getNick(UUID uuid, boolean fromdb) {
-        if (!fromdb && methods.getName(uuid) != null) {
-            return methods.getName(uuid);
+        if (!fromdb && bootstrap.getName(uuid) != null) {
+            return bootstrap.getName(uuid);
         }
         return getDatabase().getNick(uuid);
     }
 
     public UUID getUUID(String name, boolean fromdb) {
-        if (!fromdb && methods.getUUID(name) != null) {
-            return methods.getUUID(name);
+        if (!fromdb && bootstrap.getUUID(name) != null) {
+            return bootstrap.getUUID(name);
         }
         return getDatabase().getUUID(name.toLowerCase());
     }
@@ -268,6 +255,7 @@ public class CoinsCore {
             return db;
         }
         switch (storageType) {
+            case MARIADB:
             case MYSQL:
                 return db = new MySQL();
             case SQLITE:
@@ -313,36 +301,33 @@ public class CoinsCore {
     }
 
     public CoinsConfig getConfig() {
-        return methods.getConfig();
+        return bootstrap.getPluginConfig();
     }
 
-    public MessagesConfig getMessages(String lang) {
+    public MessagesConfig getMessages(String locale) {
+        String lang = locale;
         if (lang == null || lang.equals("")) {
             lang = "default";
         }
         lang = lang.split("_")[0];
         if (!messagesMap.containsKey(lang)) {
-            if (new File(methods.getDataFolder() + "/messages", "messages_" + lang + ".yml").exists()) {
-                messagesMap.put(lang, methods.getMessages("_" + lang));
+            if (new File(bootstrap.getDataFolder() + "/messages", "messages_" + lang + ".yml").exists()) {
+                messagesMap.put(lang, bootstrap.getMessages("_" + lang));
             } else {
-                messagesMap.put(lang, methods.getMessages(""));
+                messagesMap.put(lang, bootstrap.getMessages(""));
             }
         }
         return messagesMap.get(lang);
     }
 
-    public String getString(String path, String lang) {
+    public String getString(String path, String locale) {
         try {
-            return rep(getMessages(lang).getString(path));
+            return rep(getMessages(locale).getString(path));
         } catch (NullPointerException ex) {
-            methods.log("The string " + path + " does not exists in the messages_" + lang.split("_")[0] + ".yml file.");
+            bootstrap.log("The string " + path + " does not exists in the messages_" + locale.split("_")[0] + ".yml file.");
             debug(ex);
             return rep(getMessages("").getString(path, ""));
         }
-    }
-
-    public boolean isBungee() {
-        return methods instanceof BungeeMethods;
     }
 
     public void reloadMessages() {

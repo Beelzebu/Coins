@@ -18,11 +18,12 @@
  */
 package io.github.beelzebu.coins.bukkit.menus;
 
+import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.common.config.IConfiguration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.interfaces.IConfiguration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -34,23 +35,24 @@ import org.bukkit.inventory.meta.ItemMeta;
  *
  * @author Beelzebu
  */
-public abstract class BaseGUI {
+public abstract class CoinsMenu {
 
-    private final CoinsCore core = CoinsCore.getInstance();
-    private final Inventory inv;
+    protected final CoinsCore core = CoinsCore.getInstance();
+    protected final Inventory inv;
     private final Map<Integer, GUIAction> actions;
-    private static final Map<UUID, BaseGUI> inventoriesByUUID = new HashMap<>();
-    private static final Map<UUID, UUID> openInventories = new HashMap<>();
     private final UUID uuid;
+    private static final Map<UUID, CoinsMenu> inventoriesByUUID = new HashMap<>();
+    private static final Map<UUID, UUID> openInventories = new HashMap<>();
 
-    public BaseGUI(int size, String name) {
+    public CoinsMenu(int size, String name) {
         inv = Bukkit.createInventory(null, size, name);
         actions = new HashMap<>();
         uuid = UUID.randomUUID();
         inventoriesByUUID.put(getUUID(), this);
+        setItems();
     }
 
-    public Inventory getInv() {
+    public final Inventory getInv() {
         return inv;
     }
 
@@ -59,40 +61,40 @@ public abstract class BaseGUI {
         void click(Player p);
     }
 
-    public void setItem(int slot, ItemStack is, GUIAction action) {
+    public final void setItem(int slot, ItemStack is, GUIAction action) {
         inv.setItem(slot, is);
         if (action != null) {
             actions.put(slot, action);
         }
     }
 
-    public void setItem(int slot, ItemStack is) {
+    public final void setItem(int slot, ItemStack is) {
         setItem(slot, is, null);
     }
 
-    public void open(Player p) {
+    public final void open(Player p) {
         p.closeInventory();
         p.openInventory(inv);
         openInventories.put(p.getUniqueId(), getUUID());
     }
 
-    private UUID getUUID() {
+    private final UUID getUUID() {
         return uuid;
     }
 
-    public static Map<UUID, BaseGUI> getInventoriesByUUID() {
-        return inventoriesByUUID;
+    public static Map<UUID, CoinsMenu> getInventoriesByUUID() {
+        return Collections.unmodifiableMap(inventoriesByUUID);
     }
 
     public static Map<UUID, UUID> getOpenInventories() {
-        return openInventories;
+        return Collections.unmodifiableMap(openInventories);
     }
 
-    public Map<Integer, GUIAction> getActions() {
-        return actions;
+    public final Map<Integer, GUIAction> getActions() {
+        return Collections.unmodifiableMap(actions);
     }
 
-    public void delete() {
+    public final void delete() {
         Bukkit.getOnlinePlayers().forEach((p) -> {
             UUID u = openInventories.get(p.getUniqueId());
             if (u.equals(getUUID())) {
@@ -129,4 +131,6 @@ public abstract class BaseGUI {
         is.setItemMeta(meta);
         return is;
     }
+
+    protected abstract void setItems();
 }

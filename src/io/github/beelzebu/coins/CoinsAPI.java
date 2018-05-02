@@ -32,10 +32,10 @@ import lombok.NoArgsConstructor;
  *
  * @author Beelzebu
  */
-@NoArgsConstructor(access = AccessLevel.NONE)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CoinsAPI {
 
-    private static final CoinsCore core = CoinsCore.getInstance();
+    private static final CoinsCore CORE = CoinsCore.getInstance();
     private static final DecimalFormat DF = new DecimalFormat("#.#");
 
     /**
@@ -45,7 +45,7 @@ public final class CoinsAPI {
      * @return
      */
     public static double getCoins(String name) {
-        return CacheManager.getCoins(core.getUUID(name, false));
+        return CacheManager.getCoins(CORE.getUUID(name, false));
     }
 
     /**
@@ -103,11 +103,11 @@ public final class CoinsAPI {
         }
         double finalCoins = coins;
         if (multiply && getMultiplier() != null) {
-            if (getMultiplier().getType().equals(MultiplierType.PERSONAL) && !getMultiplier().getEnablerUUID().equals(core.getUUID(name, false))) {
+            if (getMultiplier().getType().equals(MultiplierType.PERSONAL) && !getMultiplier().getEnablerUUID().equals(CORE.getUUID(name, false))) {
             } else {
                 finalCoins *= getMultiplier().getAmount();
             }
-            for (String perm : core.getMethods().getPermissions(core.getUUID(name, false))) {
+            for (String perm : CORE.getBootstrap().getPermissions(CORE.getUUID(name, false))) {
                 if (perm.startsWith("coins.multiplier.x")) {
                     try {
                         int i = Integer.parseInt(perm.split("coins.multiplier.x")[1]);
@@ -119,7 +119,7 @@ public final class CoinsAPI {
             }
         }
         finalCoins += getCoins(name);
-        core.getDatabase().setCoins(name.toLowerCase(), finalCoins);
+        CORE.getDatabase().setCoins(name.toLowerCase(), finalCoins);
         return new CoinsResponse(CoinsResponseType.SUCCESS, "");
     }
 
@@ -142,7 +142,7 @@ public final class CoinsAPI {
             } else {
                 finalCoins *= getMultiplier().getAmount();
             }
-            for (String perm : core.getMethods().getPermissions(uuid)) {
+            for (String perm : CORE.getBootstrap().getPermissions(uuid)) {
                 if (perm.startsWith("coins.multiplier.x")) {
                     try {
                         int i = Integer.parseInt(perm.split("coins.multiplier.x")[1]);
@@ -154,7 +154,7 @@ public final class CoinsAPI {
             }
         }
         finalCoins += getCoins(uuid);
-        core.getDatabase().setCoins(uuid, finalCoins);
+        CORE.getDatabase().setCoins(uuid, finalCoins);
         return new CoinsResponse(CoinsResponseType.SUCCESS, "");
     }
 
@@ -167,7 +167,7 @@ public final class CoinsAPI {
      */
     public static CoinsResponse takeCoins(String name, double coins) {
         if (isindb(name)) {
-            return core.getDatabase().setCoins(name.toLowerCase(), getCoins(name) - coins);
+            return CORE.getDatabase().setCoins(name.toLowerCase(), getCoins(name) - coins);
         } else {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + name + " isn't in the database.");
         }
@@ -182,7 +182,7 @@ public final class CoinsAPI {
      */
     public static CoinsResponse takeCoins(UUID uuid, double coins) {
         if (isindb(uuid)) {
-            return core.getDatabase().setCoins(uuid, getCoins(uuid) - coins);
+            return CORE.getDatabase().setCoins(uuid, getCoins(uuid) - coins);
         } else {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the database.");
         }
@@ -196,7 +196,7 @@ public final class CoinsAPI {
      */
     public static CoinsResponse resetCoins(String name) {
         if (isindb(name)) {
-            return core.getDatabase().setCoins(name.toLowerCase(), core.getConfig().getDouble("General.Starting Coins", 0));
+            return CORE.getDatabase().setCoins(name.toLowerCase(), CORE.getConfig().getDouble("General.Starting Coins", 0));
         } else {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + name + " isn't in the database.");
         }
@@ -210,7 +210,7 @@ public final class CoinsAPI {
      */
     public static CoinsResponse resetCoins(UUID uuid) {
         if (isindb(uuid)) {
-            core.getDatabase().setCoins(uuid, core.getConfig().getDouble("General.Starting Coins", 0));
+            CORE.getDatabase().setCoins(uuid, CORE.getConfig().getDouble("General.Starting Coins", 0));
             return new CoinsResponse(CoinsResponseType.SUCCESS, "");
         } else {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the database.");
@@ -226,7 +226,7 @@ public final class CoinsAPI {
      */
     public static CoinsResponse setCoins(String name, double coins) {
         if (isindb(name)) {
-            return core.getDatabase().setCoins(name.toLowerCase(), coins);
+            return CORE.getDatabase().setCoins(name.toLowerCase(), coins);
         } else {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + name + " isn't in the database.");
         }
@@ -241,7 +241,7 @@ public final class CoinsAPI {
      */
     public static CoinsResponse setCoins(UUID uuid, double coins) {
         if (isindb(uuid)) {
-            return core.getDatabase().setCoins(uuid, coins);
+            return CORE.getDatabase().setCoins(uuid, coins);
         } else {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the database.");
         }
@@ -289,11 +289,11 @@ public final class CoinsAPI {
      * @return true if the player exists in the database or false if not.
      */
     public static boolean isindb(String name) {
-        UUID uuid = core.getUUID(name, false);
+        UUID uuid = CORE.getUUID(name, false);
         if (CacheManager.getPlayersData().getIfPresent(uuid != null ? uuid : UUID.randomUUID()) != null && getCoins(name) > -1) { // If the player is in the cache it should be in the database.
             return true;
         }
-        return core.getDatabase().isindb(name);
+        return CORE.getDatabase().isindb(name);
     }
 
     /**
@@ -306,7 +306,7 @@ public final class CoinsAPI {
         if (CacheManager.getPlayersData().getIfPresent(uuid) != null && getCoins(uuid) > -1) { // If the player is in the cache it should be in the database.
             return true;
         }
-        return core.getDatabase().isindb(uuid);
+        return CORE.getDatabase().isindb(uuid);
     }
 
     /**
@@ -317,7 +317,7 @@ public final class CoinsAPI {
      * @return The ordered top list of players and his balance.
      */
     public static Map<String, Double> getTopPlayers(int top) {
-        return core.getDatabase().getTopPlayers(top);
+        return CORE.getDatabase().getTopPlayers(top);
     }
 
     /**
@@ -327,7 +327,7 @@ public final class CoinsAPI {
      * @param uuid The uuid of the user.
      */
     public static void createPlayer(String nick, UUID uuid) {
-        createPlayer(nick, uuid, core.getConfig().getDouble("General.Starting Coins", 0));
+        createPlayer(nick, uuid, CORE.getConfig().getDouble("General.Starting Coins", 0));
     }
 
     /**
@@ -338,7 +338,7 @@ public final class CoinsAPI {
      * @param balance The balance of the user.
      */
     public static void createPlayer(String nick, UUID uuid, double balance) {
-        core.getDatabase().createPlayer(uuid, nick, balance);
+        CORE.getDatabase().createPlayer(uuid, nick, balance);
     }
 
     /**
@@ -358,7 +358,7 @@ public final class CoinsAPI {
      * @return The multiplier from the Cache.
      */
     public static Multiplier getMultiplier(int id) {
-        Multiplier multiplier = core.getDatabase().getMultiplier(id);
+        Multiplier multiplier = CORE.getDatabase().getMultiplier(id);
         if (multiplier != null) {
             CacheManager.addMultiplier(multiplier.getServer(), multiplier);
             return CacheManager.getMultiplier(multiplier.getServer());
@@ -373,18 +373,37 @@ public final class CoinsAPI {
      * @return The active multiplier for this server.
      */
     public static Multiplier getMultiplier() {
-        return getMultiplier(core.getConfig().getString("Multipliers.Server", "default"));
+        return getMultiplier(CORE.getConfig().getString("Multipliers.Server", "default"));
     }
 
     /**
-     * Get all the multipliers for a Player.
+     * Get all multipliers for a player from the database.
      *
-     * @param uuid The UUID of the player.
-     * @param server If the multipliers should be only from the server the user
-     * is on.
-     * @return The multipliers of the player.
+     * @param uuid player to get the multipliers from the database.
+     * @return all multipliers that this player have.
      */
-    public static Set<Multiplier> getMultipliersFor(UUID uuid, boolean server) {
-        return core.getDatabase().getMultipliers(uuid, server);
+    public static Set<Multiplier> getAllMultipliersFor(UUID uuid) {
+        return CORE.getDatabase().getMultipliers(uuid);
+    }
+
+    /**
+     * Get all the multipliers for a player in the current server.
+     *
+     * @param uuid player to get multipliers from the database.
+     * @return multipliers of the player in this server.
+     */
+    public static Set<Multiplier> getMultipliersFor(UUID uuid) {
+        return CORE.getDatabase().getMultipliers(uuid, CoinsCore.getInstance().getConfig().getServerName());
+    }
+
+    /**
+     * Get all multipliers for a player in the specified server.
+     *
+     * @param uuid player to get multipliers from the database.
+     * @param server where we should get the multipliers.
+     * @return multipliers of the player in that server.
+     */
+    public static Set<Multiplier> getMultipliersFor(UUID uuid, String server) {
+        return CORE.getDatabase().getMultipliers(uuid, server);
     }
 }

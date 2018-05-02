@@ -1,6 +1,6 @@
 name: ${project.artifactId}
 softdepend: [PlaceholderAPI, Vault, LeaderHeads]
-main: ${project.groupId}.coins.bukkit.Main
+main: ${project.groupId}.coins.bukkit.CoinsBukkitMain
 version: ${project.version}
 author: Beelzebu
 website: https://www.spigotmc.org/resources/48536/

@@ -18,22 +18,42 @@
  */
 package io.github.beelzebu.coins.bukkit.utils.placeholders;
 
+import io.github.beelzebu.coins.CoinsAPI;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Map;
-import me.clip.placeholderapi.external.EZPlaceholderHook;
-import io.github.beelzebu.coins.CoinsAPI;
-import io.github.beelzebu.coins.bukkit.Main;
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
 /**
  *
  * @author Beelzebu
  */
-public class CoinsPlaceholders extends EZPlaceholderHook {
+public class CoinsPlaceholders extends PlaceholderExpansion {
 
-    public CoinsPlaceholders(Main main) {
-        super(main, "coins");
+    @Override
+    public String getIdentifier() {
+        return "coins";
+    }
+
+    @Override
+    public String getPlugin() {
+        return "Coins";
+    }
+
+    @Override
+    public String getAuthor() {
+        return "Beelzebu";
+    }
+
+    @Override
+    public String getVersion() {
+        return "1.0.0";
+    }
+
+    @Override
+    public boolean persist() {
+        return true;
     }
 
     @Override

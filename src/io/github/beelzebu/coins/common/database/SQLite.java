@@ -39,13 +39,12 @@ public final class SQLite extends CoinsDatabase {
     public void setup() {
         HikariConfig hc = new HikariConfig();
         hc.setPoolName("Coins SQLite Connection Pool");
+        hc.setDataSourceClassName("org.sqlite.SQLiteDataSource");
         hc.setJdbcUrl("jdbc:sqlite:plugins/Coins/database.db");
         hc.setConnectionTestQuery("SELECT 1");
-        hc.setMaxLifetime(60000);
         hc.setMinimumIdle(1);
-        hc.setIdleTimeout(30000);
         hc.setConnectionTimeout(10000);
-        hc.setMaximumPoolSize(1);
+        hc.setMaximumPoolSize(4);
         hc.setLeakDetectionThreshold(30000);
         hc.validate();
         ds = new HikariDataSource(hc);
@@ -74,33 +73,33 @@ public final class SQLite extends CoinsDatabase {
                     + "`enabled` BOOLEAN);";
             st.executeUpdate(data);
             st.executeUpdate(multiplier);
-            if (core.getConfig().getInt("Database Version", 1) < 2) {
+            if (CORE.getConfig().getInt("Database Version", 1) < 2) {
                 try {
                     if (DriverManager.getConnection("jdbc:sqlite:plugins/Coins/database.old.db").prepareStatement("SELECT * FROM Data;").executeQuery().next() && !c.prepareStatement("SELECT * FROM " + DATA_TABLE + ";").executeQuery().next()) {
-                        core.log("Seems that your database is outdated, we'll try to update it...");
+                        CORE.log("Seems that your database is outdated, we'll try to update it...");
                         ResultSet res = DriverManager.getConnection("jdbc:sqlite:plugins/Coins/database.old.db").prepareStatement("SELECT * FROM Data;").executeQuery();
                         while (res.next()) {
                             DatabaseUtils.prepareStatement(c, SQLQuery.CREATE_USER, res.getString("uuid"), res.getString("nick"), res.getDouble("balance"), res.getLong("lastlogin")).executeUpdate();
-                            core.debug("Migrated the data for " + res.getString("nick") + " (" + res.getString("uuid") + ")");
+                            CORE.debug("Migrated the data for " + res.getString("nick") + " (" + res.getString("uuid") + ")");
                         }
-                        core.log("Successfully upadated database to version 2");
+                        CORE.log("Successfully upadated database to version 2");
                     }
-                    new FileManager(core).updateDatabaseVersion(2);
+                    new FileManager().updateDatabaseVersion(2);
                 } catch (SQLException ex) {
                     for (int i = 0; i < 5; i++) {
-                        core.log("An error has ocurred migrating the data from the old database, check the logs ASAP!");
+                        CORE.log("An error has ocurred migrating the data from the old database, check the logs ASAP!");
                     }
-                    core.debug(ex);
+                    CORE.debug(ex);
                     return;
                 }
             }
-            if (core.getConfig().getBoolean("General.Purge.Enabled", true) && core.getConfig().getInt("General.Purge.Days") > 0) {
-                st.executeUpdate("DELETE FROM " + DATA_TABLE + " WHERE lastlogin < " + (System.currentTimeMillis() - (core.getConfig().getInt("General.Purge.Days", 60) * 86400000L)) + ";");
-                core.debug("Inactive users were removed from the database.");
+            if (CORE.getConfig().getBoolean("General.Purge.Enabled", true) && CORE.getConfig().getInt("General.Purge.Days") > 0) {
+                st.executeUpdate("DELETE FROM " + DATA_TABLE + " WHERE lastlogin < " + (System.currentTimeMillis() - (CORE.getConfig().getInt("General.Purge.Days", 60) * 86400000L)) + ";");
+                CORE.debug("Inactive users were removed from the database.");
             }
         } catch (SQLException ex) {
-            core.log("Something was wrong creating the default databases. Please check the debug log.");
-            core.debug(ex);
+            CORE.log("Something was wrong creating the default databases. Please check the debug log.");
+            CORE.debug(ex);
         }
     }
 }

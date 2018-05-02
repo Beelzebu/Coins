@@ -22,6 +22,7 @@ import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.bukkit.utils.LocationUtils;
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.executor.Executor;
+import io.github.beelzebu.coins.common.executor.ExecutorManager;
 import java.io.File;
 import java.io.IOException;
 import org.bukkit.Bukkit;
@@ -47,7 +48,7 @@ public class SignListener implements Listener {
     private final FileConfiguration signs;
 
     public SignListener() {
-        signsFile = new File(core.getMethods().getDataFolder(), "signs.yml");
+        signsFile = new File(core.getBootstrap().getDataFolder(), "signs.yml");
         if (!signsFile.exists()) {
             try {
                 signsFile.createNewFile();
@@ -63,7 +64,7 @@ public class SignListener implements Listener {
     public void onSignPlace(SignChangeEvent e) {
         if (e.getPlayer().hasPermission("coins.admin") && e.getLine(0).equalsIgnoreCase("[coins]") && !e.getLine(1).isEmpty()) {
             e.setLine(0, core.rep(core.getConfig().getString("General.Executor Sign.1")));
-            Executor ex = core.getExecutorManager().getExecutor(e.getLine(1));
+            Executor ex = ExecutorManager.getExecutor(e.getLine(1));
             if (ex != null) {
                 int id = 0;
                 id = signs.getKeys(false).stream().map(i -> 1).reduce(id, Integer::sum);
@@ -119,13 +120,13 @@ public class SignListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onSignUse(PlayerInteractEvent e) {
         if (e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && e.getClickedBlock().getState() instanceof Sign) {
             Player p = e.getPlayer();
             for (String id : signs.getKeys(false)) {
                 if (signs.getString(id + ".Location").equals(LocationUtils.locationToString(e.getClickedBlock().getLocation()))) {
-                    Executor ex = core.getExecutorManager().getExecutor(signs.getString(id + ".Executor"));
+                    Executor ex = ExecutorManager.getExecutor(signs.getString(id + ".Executor"));
                     if (ex == null) {
                         p.sendMessage(core.getString("Errors.No Execute", p.spigot().getLocale()));
                     } else {
@@ -138,7 +139,7 @@ public class SignListener implements Listener {
                             }
                         }
                         if (!ex.getCommands().isEmpty()) {
-                            core.getMethods().runSync(() -> {
+                            core.getBootstrap().runSync(() -> {
                                 String command;
                                 for (String str : ex.getCommands()) {
                                     command = core.rep(str).replaceAll("%player%", p.getName());

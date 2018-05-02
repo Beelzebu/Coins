@@ -19,10 +19,9 @@
 package io.github.beelzebu.coins.bukkit.listener;
 
 import io.github.beelzebu.coins.CoinsAPI;
-import io.github.beelzebu.coins.bukkit.Main;
 import io.github.beelzebu.coins.common.CacheManager;
 import io.github.beelzebu.coins.common.CoinsCore;
-import org.bukkit.Bukkit;
+import io.github.beelzebu.coins.common.messaging.MessagingService;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -43,21 +42,20 @@ public class LoginListener implements Listener {
         if (core.getConfig().getBoolean("General.Create Join", false)) {
             CoinsAPI.createPlayer(e.getPlayer().getName(), e.getPlayer().getUniqueId());
         }
-        if (!core.getConfig().useBungee()) {
-            return;
-        }
-        if (first) {
-            Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(Main.getInstance(), () -> {
+        if (first && core.getMessagingService().getType().equals(MessagingService.BUNGEECORD)) {
+            core.getBootstrap().runAsync(() -> {
                 core.getMessagingService().getMultipliers();
                 core.getMessagingService().getExecutors();
-            }, 10);
+            });
             first = false;
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent e) {
-        if (core.getConfig().useBungee()) {
+        // If you aren't using a messaging service is better invalidate the data
+        // to avoid different coins between servers
+        if (!core.getMessagingService().getType().equals(MessagingService.NONE)) {
             return;
         }
         CacheManager.getPlayersData().invalidate(e.getPlayer().getUniqueId());

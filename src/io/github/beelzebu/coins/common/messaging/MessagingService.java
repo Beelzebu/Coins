@@ -22,7 +22,7 @@ package io.github.beelzebu.coins.common.messaging;
  *
  * @author Beelzebu
  */
-public enum MessagingServiceType {
+public enum MessagingService {
     REDIS,
     BUNGEECORD,
     NONE;

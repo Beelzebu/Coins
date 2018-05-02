@@ -19,27 +19,32 @@
 package io.github.beelzebu.coins.common.executor;
 
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  *
  * @author Beelzebu
  */
-public class ExecutorManager {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ExecutorManager {
 
-    private final Set<Executor> executors = Collections.synchronizedSet(new HashSet<>());
+    private static final Set<Executor> EXECUTORS = Collections.synchronizedSet(new LinkedHashSet<>());
 
-    public synchronized void addExecutor(Executor ex) {
-        executors.add(ex);
+    public static synchronized void addExecutor(Executor ex) {
+        if (!EXECUTORS.stream().anyMatch(executor -> ex.getId().equals(executor.getId()))) {
+            EXECUTORS.add(ex);
+        }
     }
 
-    public synchronized Set<Executor> getExecutors() {
-        return executors;
+    public static synchronized Set<Executor> getExecutors() {
+        return Collections.unmodifiableSet(EXECUTORS);
     }
 
-    public synchronized Executor getExecutor(String id) {
-        for (Executor ex : executors) {
+    public static synchronized Executor getExecutor(String id) {
+        for (Executor ex : EXECUTORS) {
             if (ex.getId().equals(id)) {
                 return ex;
             }

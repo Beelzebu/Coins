@@ -38,22 +38,28 @@ public final class MySQL extends CoinsDatabase {
     public void setup() {
         HikariConfig hc = new HikariConfig();
         hc.setPoolName("Coins MySQL Connection Pool");
-        hc.setDriverClassName("com.mysql.jdbc.Driver");
-        hc.setJdbcUrl("jdbc:mysql://" + core.getConfig().getString("MySQL.Host") + ":" + core.getConfig().getString("MySQL.Port") + "/" + core.getConfig().getString("MySQL.Database") + "?autoReconnect=true&useSSL=false");
-        hc.addDataSourceProperty("cachePrepStmts", "true");
-        hc.addDataSourceProperty("useServerPrepStmts", "true");
-        hc.addDataSourceProperty("prepStmtCacheSize", "250");
-        hc.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-        hc.addDataSourceProperty("characterEncoding", "utf8");
-        hc.addDataSourceProperty("encoding", "UTF-8");
-        hc.addDataSourceProperty("useUnicode", "true");
-        hc.setUsername(core.getConfig().getString("MySQL.User"));
-        hc.setPassword(core.getConfig().getString("MySQL.Password"));
+        String urlprefix = "jdbc:mysql://";
+        if (CORE.getStorageType().equals(StorageType.MARIADB)) {
+            urlprefix = "jdbc:mariadb://";
+            hc.setDataSourceClassName("org.mariadb.jdbc.MariaDbDataSource");
+        } else {
+            hc.setDriverClassName("com.mysql.jdbc.Driver");
+            hc.addDataSourceProperty("cachePrepStmts", "true");
+            hc.addDataSourceProperty("useServerPrepStmts", "true");
+            hc.addDataSourceProperty("prepStmtCacheSize", "250");
+            hc.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+            hc.addDataSourceProperty("encoding", "UTF-8");
+            hc.addDataSourceProperty("characterEncoding", "utf8");
+            hc.addDataSourceProperty("useUnicode", "true");
+        }
+        hc.setJdbcUrl(urlprefix + CORE.getConfig().getString("MySQL.Host") + ":" + CORE.getConfig().get("MySQL.Port", "3306") + "/" + CORE.getConfig().getString("MySQL.Database") + "?autoReconnect=true&useSSL=false");
+        hc.setUsername(CORE.getConfig().getString("MySQL.User"));
+        hc.setPassword(CORE.getConfig().getString("MySQL.Password"));
         hc.setMaxLifetime(60000);
         hc.setMinimumIdle(4);
         hc.setIdleTimeout(30000);
         hc.setConnectionTimeout(10000);
-        hc.setMaximumPoolSize(core.getConfig().getInt("MySQL.Connection Pool", 8));
+        hc.setMaximumPoolSize(CORE.getConfig().getInt("MySQL.Connection Pool", 8));
         hc.setLeakDetectionThreshold(30000);
         hc.validate();
         ds = new HikariDataSource(hc);
@@ -84,33 +90,33 @@ public final class MySQL extends CoinsDatabase {
                     + "PRIMARY KEY (`id`));";
             st.executeUpdate(data);
             st.executeUpdate(multiplier);
-            if (core.getConfig().getInt("Database Version", 1) < 2) {
+            if (CORE.getConfig().getInt("Database Version", 1) < 2) {
                 try {
                     if (c.prepareStatement("SELECT * FROM " + PREFIX + "Data;").executeQuery().next() && !c.prepareStatement("SELECT * FROM " + DATA_TABLE + ";").executeQuery().next()) {
-                        core.log("Seems that your database is outdated, we'll try to update it...");
+                        CORE.log("Seems that your database is outdated, we'll try to update it...");
                         ResultSet res = c.prepareStatement("SELECT * FROM " + PREFIX + "Data;").executeQuery();
                         while (res.next()) {
                             DatabaseUtils.prepareStatement(c, SQLQuery.CREATE_USER, res.getString("uuid"), res.getString("nick"), res.getDouble("balance"), res.getLong("lastlogin")).executeUpdate();
-                            core.debug("Migrated the data for " + res.getString("nick") + " (" + res.getString("uuid") + ")");
+                            CORE.debug("Migrated the data for " + res.getString("nick") + " (" + res.getString("uuid") + ")");
                         }
-                        core.log("Successfully upadated database to version 2");
+                        CORE.log("Successfully upadated database to version 2");
                     }
-                    new FileManager(core).updateDatabaseVersion(2);
+                    new FileManager().updateDatabaseVersion(2);
                 } catch (SQLException ex) {
                     for (int i = 0; i < 5; i++) {
-                        core.log("An error has ocurred migrating the data from the old database, check the logs ASAP!");
+                        CORE.log("An error has ocurred migrating the data from the old database, check the logs ASAP!");
                     }
-                    core.debug(ex);
+                    CORE.debug(ex);
                     return;
                 }
             }
-            if (core.getConfig().getBoolean("General.Purge.Enabled", true) && core.getConfig().getInt("General.Purge.Days") > 0) {
-                st.executeUpdate("DELETE FROM " + DATA_TABLE + " WHERE lastlogin < " + (System.currentTimeMillis() - (core.getConfig().getInt("General.Purge.Days", 60) * 86400000L)) + ";");
-                core.debug("Inactive users were removed from the database.");
+            if (CORE.getConfig().getBoolean("General.Purge.Enabled", true) && CORE.getConfig().getInt("General.Purge.Days") > 0) {
+                st.executeUpdate("DELETE FROM " + DATA_TABLE + " WHERE lastlogin < " + (System.currentTimeMillis() - (CORE.getConfig().getInt("General.Purge.Days", 60) * 86400000L)) + ";");
+                CORE.debug("Inactive users were removed from the database.");
             }
         } catch (SQLException ex) {
-            core.log("Something was wrong creating the default databases. Please check the debug log.");
-            core.debug(ex);
+            CORE.log("Something was wrong creating the default databases. Please check the debug log.");
+            CORE.debug(ex);
         }
     }
 }

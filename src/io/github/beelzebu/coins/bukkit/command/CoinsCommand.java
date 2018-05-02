@@ -18,15 +18,17 @@
  */
 package io.github.beelzebu.coins.bukkit.command;
 
+import com.google.common.collect.Lists;
 import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.MultiplierType;
-import io.github.beelzebu.coins.bukkit.Main;
+import io.github.beelzebu.coins.bukkit.CoinsBukkitMain;
+import io.github.beelzebu.coins.bukkit.menus.PaginatedMenu;
 import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
-import io.github.beelzebu.coins.bukkit.menus.MultipliersGUI;
 import io.github.beelzebu.coins.common.CacheManager;
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.executor.Executor;
+import io.github.beelzebu.coins.common.executor.ExecutorManager;
 import io.github.beelzebu.coins.common.importer.ImportManager;
 import java.util.Arrays;
 import java.util.List;
@@ -43,7 +45,6 @@ import org.bukkit.entity.Player;
 public class CoinsCommand extends Command {
 
     private final CoinsCore core = CoinsCore.getInstance();
-    private final Main plugin = Main.getInstance();
     private String lang = "";
     private final String perm;
 
@@ -61,7 +62,7 @@ public class CoinsCommand extends Command {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return true;
         }
-        core.getMethods().runAsync(() -> {
+        core.getBootstrap().runAsync(() -> {
             if (sender instanceof Player) {
                 lang = ((Player) sender).spigot().getLocale().split("_")[0];
             } else {
@@ -184,7 +185,7 @@ public class CoinsCommand extends Command {
         boolean multiply = false;
         if (args.length == 3 || args.length == 4) {
             double coins = Double.parseDouble(args[2]);
-            if (core.getMethods().isOnline(core.getUUID(args[1], false)) && args.length == 4 && args[3].equalsIgnoreCase("true")) {
+            if (core.getBootstrap().isOnline(core.getUUID(args[1], false)) && args.length == 4 && args[3].equalsIgnoreCase("true")) {
                 multiply = true;
                 Player target = Bukkit.getPlayer(args[1]);
                 int amount = CoinsAPI.getMultiplier() != null ? CoinsAPI.getMultiplier().getBaseData().getAmount() : 1;
@@ -192,7 +193,7 @@ public class CoinsCommand extends Command {
                     multiplier = core.getString("Multipliers.Format", target.spigot().getLocale()).replaceAll("%multiplier%", String.valueOf(amount)).replaceAll("%enabler%", CoinsAPI.getMultiplier().getEnablerName());
                 }
             }
-            if (core.getMethods().isOnline(core.getUUID(args[1], false))) {
+            if (core.getBootstrap().isOnline(core.getUUID(args[1], false))) {
                 Player target = Bukkit.getPlayer(core.getUUID(args[1], false));
                 if (!core.getString("Coins.Give target", target.spigot().getLocale()).equals("")) {
                     target.sendMessage(core.getString("Coins.Give target", target.spigot().getLocale()).replaceAll("%coins%", String.valueOf(coins)).replaceAll("%multiplier_format%", multiplier));
@@ -352,7 +353,7 @@ public class CoinsCommand extends Command {
         }
         if (args.length == 1) {
             if (sender instanceof Player) {
-                new MultipliersGUI((Player) sender, core.getString("Multipliers.Menu.Title", lang)).open((Player) sender);
+                PaginatedMenu.createPaginatedGUI((Player) sender, Lists.newLinkedList(CoinsAPI.getAllMultipliersFor(((Player) sender).getUniqueId())));
             } else {
                 sender.sendMessage(core.getString("Errors.Console", lang));
             }
@@ -364,7 +365,7 @@ public class CoinsCommand extends Command {
 
     private boolean execute(CommandSender sender, String[] args) {
         if (sender instanceof Player) {
-            Executor ex = core.getExecutorManager().getExecutor(args[1]);
+            Executor ex = ExecutorManager.getExecutor(args[1]);
             if (ex == null) {
                 sender.sendMessage(core.getString("Errors.No Execute", lang));
             } else {
@@ -377,7 +378,7 @@ public class CoinsCommand extends Command {
                     }
                 }
                 if (!ex.getCommands().isEmpty()) {
-                    core.getMethods().runSync(() -> {
+                    core.getBootstrap().runSync(() -> {
                         String command;
                         for (String str : ex.getCommands()) {
                             command = core.rep(str).replaceAll("%player%", sender.getName());
@@ -405,7 +406,7 @@ public class CoinsCommand extends Command {
         }
         if (args.length == 2) {
             boolean worked = false;
-            ImportManager importManager = new ImportManager(core);
+            ImportManager importManager = new ImportManager();
             for (ImportManager.PluginToImport pluginToImport : ImportManager.PluginToImport.values()) {
                 if (pluginToImport.toString().equals(args[1].toUpperCase())) {
                     worked = true;
@@ -432,7 +433,7 @@ public class CoinsCommand extends Command {
         }
         if (args.length == 2) {
             boolean worked = false;
-            ImportManager importManager = new ImportManager(core);
+            ImportManager importManager = new ImportManager();
             for (StorageType storage : StorageType.values()) {
                 if (storage.toString().equals(args[1].toUpperCase())) {
                     worked = true;
@@ -454,17 +455,17 @@ public class CoinsCommand extends Command {
 
     private boolean reload(CommandSender sender) {
         if (sender.hasPermission("coins.admin.reload")) {
-            if (plugin.getConfig().getBoolean("Vault.Use", false)) {
-                new CoinsEconomy(plugin).shutdown();
+            if (core.getConfig().getBoolean("Vault.Use", false)) {
+                new CoinsEconomy((CoinsBukkitMain) core.getBootstrap()).shutdown();
             }
             core.getConfig().reload();
             core.reloadMessages();
-            if (plugin.getConfig().getBoolean("Vault.Use", false)) {
-                new CoinsEconomy(plugin).setup();
+            if (core.getConfig().getBoolean("Vault.Use", false)) {
+                new CoinsEconomy((CoinsBukkitMain) core.getBootstrap()).setup();
             }
-            core.getExecutorManager().getExecutors().clear();
-            plugin.getConfig().getConfigurationSection("Command executor").getKeys(false).forEach((id) -> {
-                core.getExecutorManager().addExecutor(new Executor(id, plugin.getConfig().getString("Command executor." + id + ".Displayname", id), plugin.getConfig().getDouble("Command executor." + id + ".Cost", 0), plugin.getConfig().getStringList("Command executor." + id + ".Command")));
+            ExecutorManager.getExecutors().clear();
+            core.getConfig().getConfigurationSection("Command executor").forEach(id -> {
+                ExecutorManager.addExecutor(new Executor(id, core.getConfig().getString("Command executor." + id + ".Displayname", id), core.getConfig().getDouble("Command executor." + id + ".Cost", 0), core.getConfig().getStringList("Command executor." + id + ".Command")));
             });
             if (core.getConfig().useBungee()) {
                 core.getMessagingService().getMultipliers();
@@ -479,11 +480,11 @@ public class CoinsCommand extends Command {
         if (sender.hasPermission("coins.admin") || sender.getName().equals("Beelzebu")) {
             sender.sendMessage(core.rep("%prefix% Plugin info:"));
             sender.sendMessage("");
-            sender.sendMessage(core.rep(" &cVersion:&7 " + core.getMethods().getVersion()));
-            sender.sendMessage(core.rep(" &cExecutors:&7 " + core.getExecutorManager().getExecutors().size()));
+            sender.sendMessage(core.rep(" &cVersion:&7 " + core.getBootstrap().getVersion()));
+            sender.sendMessage(core.rep(" &cExecutors:&7 " + ExecutorManager.getExecutors().size()));
             sender.sendMessage(core.rep(" &cStorage Type:&7 " + core.getStorageType()));
             sender.sendMessage(core.rep(" &cMultipliers in cache:&7 " + CacheManager.getMultipliersData().asMap().keySet()));
-            sender.sendMessage(core.rep(" &cPlayers in cache:&7 " + CacheManager.getPlayersData().size()));
+            sender.sendMessage(core.rep(" &cPlayers in cache:&7 " + CacheManager.getPlayersData().asMap().size()));
             sender.sendMessage("");
         }
         return true;

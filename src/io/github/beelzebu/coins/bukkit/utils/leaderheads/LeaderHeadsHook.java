@@ -18,10 +18,10 @@
  */
 package io.github.beelzebu.coins.bukkit.utils.leaderheads;
 
+import io.github.beelzebu.coins.CoinsAPI;
 import java.util.Arrays;
 import me.robin.leaderheads.datacollectors.OnlineDataCollector;
 import me.robin.leaderheads.objects.BoardType;
-import io.github.beelzebu.coins.CoinsAPI;
 import org.bukkit.entity.Player;
 
 /**

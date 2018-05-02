@@ -44,11 +44,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
  */
 public class ImportManager {
 
-    private final CoinsCore core;
-
-    public ImportManager(CoinsCore core) {
-        this.core = core;
-    }
+    private final CoinsCore core = CoinsCore.getInstance();
 
     public void importFrom(PluginToImport plugin) {
         switch (plugin) {

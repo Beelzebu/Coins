@@ -16,10 +16,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.beelzebu.coins.common.interfaces;
+package io.github.beelzebu.coins.common.messaging;
 
 import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.common.messaging.MessagingServiceType;
+import io.github.beelzebu.coins.common.messaging.MessagingService;
 import java.util.UUID;
 
 /**
@@ -38,7 +38,7 @@ public interface IMessagingService {
      *
      * @return messaging service type defined by implementing classes.
      */
-    public MessagingServiceType getType();
+    public MessagingService getType();
 
     /**
      * Publish user coins over all servers using this messaging service.

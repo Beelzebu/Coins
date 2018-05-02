@@ -35,7 +35,7 @@ public class CommandListener implements Listener {
     @EventHandler
     public void onCommandEvent(PlayerCommandPreprocessEvent e) {
         String msg = e.getMessage().toLowerCase();
-        CoinsCore.getInstance().getMethods().runAsync(() -> {
+        CoinsCore.getInstance().getBootstrap().runAsync(() -> {
             if (msg.replaceFirst("/", "").startsWith(core.getConfig().getCommand()) || core.getConfig().getCommandAliases().contains(msg.split(" ")[0].replaceFirst("/", ""))) {
                 core.debug(e.getPlayer().getName() + " issued command: " + msg);
             }

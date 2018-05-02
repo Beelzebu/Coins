@@ -20,7 +20,6 @@ package io.github.beelzebu.coins.common.messaging;
 
 import io.github.beelzebu.coins.Multiplier;
 import io.github.beelzebu.coins.common.CacheManager;
-import io.github.beelzebu.coins.common.interfaces.IMessagingService;
 import java.util.UUID;
 
 /**
@@ -34,8 +33,8 @@ public class DummyMessaging implements IMessagingService {
     }
 
     @Override
-    public MessagingServiceType getType() {
-        return MessagingServiceType.NONE;
+    public MessagingService getType() {
+        return MessagingService.NONE;
     }
 
     @Override

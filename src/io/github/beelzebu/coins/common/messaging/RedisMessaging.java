@@ -24,7 +24,7 @@ import io.github.beelzebu.coins.MultiplierType;
 import io.github.beelzebu.coins.common.CacheManager;
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.executor.Executor;
-import io.github.beelzebu.coins.common.interfaces.IMessagingService;
+import io.github.beelzebu.coins.common.executor.ExecutorManager;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -37,7 +37,6 @@ import redis.clients.jedis.JedisPubSub;
  *
  * @author Beelzebu
  */
-@NoArgsConstructor(access = AccessLevel.NONE)
 public class RedisMessaging implements IMessagingService {
 
     private final CoinsCore core = CoinsCore.getInstance();
@@ -56,12 +55,12 @@ public class RedisMessaging implements IMessagingService {
         } else {
             pool = new JedisPool(config, host, port);
         }
-        core.getMethods().runAsync(psl = new PubSubListener());
+        core.getBootstrap().runAsync(psl = new PubSubListener());
     }
 
     @Override
-    public MessagingServiceType getType() {
-        return MessagingServiceType.REDIS;
+    public MessagingService getType() {
+        return MessagingService.REDIS;
     }
 
     @Override
@@ -118,7 +117,7 @@ public class RedisMessaging implements IMessagingService {
         }
     }
 
-    @NoArgsConstructor(access = AccessLevel.NONE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     private class PubSubListener implements Runnable {
 
         private JedisPubSub jpsh = new JedisPubSubHandler();
@@ -157,13 +156,13 @@ public class RedisMessaging implements IMessagingService {
         }
     }
 
-    @NoArgsConstructor(access = AccessLevel.NONE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     private class JedisPubSubHandler extends JedisPubSub {
 
         @Override
         public void onMessage(String channel, String message) {
-            core.debug("Redis Log: Recived a message in channel: " + channel);
-            core.debug("Redis Log: Message is:");
+            core.debug("&6Redis Log: &7Recived a message in channel: " + channel);
+            core.debug("&6Redis Log: &7Message is:");
             core.debug(message);
             switch (channel) {
                 case "coins-data-update":
@@ -172,11 +171,11 @@ public class RedisMessaging implements IMessagingService {
                     break;
                 case "coins-executors":
                     if (message.equals("get")) {
-                        core.getExecutorManager().getExecutors().forEach(exec -> sendExecutor(exec));
+                        ExecutorManager.getExecutors().forEach(exec -> sendExecutor(exec));
                     } else {
                         Executor ex = Executor.fromJson(message);
-                        if (core.getExecutorManager().getExecutor(ex.getId()) == null) {
-                            core.getExecutorManager().addExecutor(ex);
+                        if (ExecutorManager.getExecutor(ex.getId()) == null) {
+                            ExecutorManager.addExecutor(ex);
                             core.log("The executor " + ex.getId() + " was received from Redis PubSub.");
                             core.debug("ID: " + ex.getId());
                             core.debug("Displayname: " + ex.getDisplayname());
@@ -206,7 +205,7 @@ public class RedisMessaging implements IMessagingService {
                     JsonObject event = core.getGson().fromJson(message, JsonObject.class);
                     switch (event.get("event").getAsString()) {
                         case "MultiplierEnableEvent":
-                            core.getMethods().callMultiplierEnableEvent(Multiplier.fromJson(event.getAsJsonObject("multiplier").toString(), false));
+                            core.getBootstrap().callMultiplierEnableEvent(Multiplier.fromJson(event.getAsJsonObject("multiplier").toString(), false));
                             break;
                         default:
                             core.debug("Invalid redis event");

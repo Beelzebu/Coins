@@ -22,7 +22,6 @@ import com.google.gson.JsonObject;
 import com.imaginarycode.minecraft.redisbungee.RedisBungee;
 import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.bungee.Main;
 import io.github.beelzebu.coins.common.CacheManager;
 import io.github.beelzebu.coins.common.CoinsCore;
 import java.util.Iterator;
@@ -34,7 +33,6 @@ import java.util.UUID;
  */
 public abstract class CoinsBungeeListener {
 
-    protected final Main plugin = Main.getInstance();
     protected final CoinsCore core = CoinsCore.getInstance();
 
     protected void publishUser(JsonObject data) {

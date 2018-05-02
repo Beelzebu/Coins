@@ -24,143 +24,118 @@
  */
 package io.github.beelzebu.coins.common.utils.dependencies;
 
+import com.google.common.io.ByteStreams;
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.database.StorageType;
-import io.github.beelzebu.coins.common.messaging.MessagingServiceType;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Set;
-import lombok.experimental.UtilityClass;
 
 /**
  * Responsible for loading runtime dependencies.
  */
-@UtilityClass
 public class DependencyManager {
 
-    private static final CoinsCore core = CoinsCore.getInstance();
-    private static final Method ADD_URL_METHOD;
+    private static final CoinsCore CORE = CoinsCore.getInstance();
+    private final DependencyRegistry registry = new DependencyRegistry();
+    private final EnumMap<Dependency, Path> loaded = new EnumMap<>(Dependency.class);
 
-    static {
-        Method addUrlMethod = null;
+    private Path getSaveDirectory() {
+        Path saveDirectory = new File(CORE.getBootstrap().getDataFolder(), "lib").toPath();
         try {
-            addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-            addUrlMethod.setAccessible(true);
-        } catch (NoSuchMethodException e) {
+            Files.createDirectories(saveDirectory);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to create lib directory", e);
         }
-        ADD_URL_METHOD = addUrlMethod;
+        return saveDirectory;
     }
 
-    public static void loadAllDependencies() {
-        Set<Dependency> dependencies = new LinkedHashSet<>();
-        dependencies.addAll(Arrays.asList(Dependency.values()));
-        if (classExists("org.sqlite.JDBC") || core.isBungee()) {
-            dependencies.remove(Dependency.SQLITE_DRIVER);
-        }
-        if (classExists("com.mysql.jdbc.Driver")) {
-            dependencies.remove(Dependency.MYSQL_DRIVER);
-        }
-        if (classExists("org.slf4j.Logger") && classExists("org.slf4j.LoggerFactory")) {
-            dependencies.remove(Dependency.SLF4J_API);
-            dependencies.remove(Dependency.SLF4J_SIMPLE);
-        }
-        if (classExists("org.apache.commons.io.FileUtils")) {
-            dependencies.remove(Dependency.COMMONS_IO);
-        }
-        if (!core.getStorageType().equals(StorageType.MYSQL) && !core.getStorageType().equals(StorageType.SQLITE)) {
-            dependencies.remove(Dependency.HIKARI);
-        }
-        if (!core.getMessagingService().getType().equals(MessagingServiceType.REDIS)) {
-            dependencies.remove(Dependency.COMMONS_POOL);
-            dependencies.remove(Dependency.JEDIS);
-        }
-        if (!dependencies.isEmpty()) {
-            loadDependencies(dependencies);
-        }
+    public void loadStorageDependencies(StorageType storageType) {
+        Set<Dependency> dependencies = registry.resolveStorageDependencies(storageType);
+        CORE.log("Identified following storage dependencies: " + dependencies);
+        loadDependencies(dependencies);
     }
 
-    public static void loadDependencies(Set<Dependency> dependencies) throws RuntimeException {
-        core.getMethods().log("Identified the following dependencies: " + dependencies.toString());
+    public void loadDependencies(Set<Dependency> dependencies) {
+        Path saveDirectory = getSaveDirectory();
 
-        File libDir = new File(core.getMethods().getDataFolder(), "lib");
-        if (!(libDir.exists() || libDir.mkdirs())) {
-            throw new RuntimeException("Unable to create lib dir - " + libDir.getPath());
-        }
+        // create a list of file sources
+        List<Source> sources = new ArrayList<>();
 
-        // Download files.
-        List<File> filesToLoad = new ArrayList<>();
-        dependencies.forEach(dependency -> {
-            try {
-                filesToLoad.add(downloadDependency(libDir, dependency));
-            } catch (Exception e) {
-                core.getMethods().log("Exception whilst downloading dependency " + dependency.name());
+        // obtain a file for each of the dependencies
+        for (Dependency dependency : dependencies) {
+            if (loaded.containsKey(dependency)) {
+                continue;
             }
-        });
 
-        // Load classes.
-        filesToLoad.forEach(file -> {
             try {
-                loadJar(file);
-            } catch (Throwable t) {
-                core.getMethods().log("Failed to load dependency jar " + file.getName());
+                Path file = downloadDependency(saveDirectory, dependency);
+                sources.add(new Source(dependency, file));
+            } catch (Throwable e) {
+                CORE.log("Exception whilst downloading dependency " + dependency.name());
+                e.printStackTrace();
             }
-        });
+        }
+
+        // load each of the jars
+        for (Source source : sources) {
+            try {
+                CORE.getBootstrap().getPluginClassLoader().loadJar(source.file);
+                loaded.put(source.dependency, source.file);
+            } catch (Throwable e) {
+                CORE.log("Failed to load dependency jar '" + source.file.getFileName().toString() + "'.");
+                e.printStackTrace();
+            }
+        }
     }
 
-    private static File downloadDependency(File libDir, Dependency dependency) throws Exception {
+    private Path downloadDependency(Path saveDirectory, Dependency dependency) throws Exception {
         String fileName = dependency.name().toLowerCase() + "-" + dependency.getVersion() + ".jar";
+        Path file = saveDirectory.resolve(fileName);
 
-        File file = new File(libDir, fileName);
-        if (file.exists()) {
+        // if the file already exists, don't attempt to re-download it.
+        if (Files.exists(file)) {
             return file;
         }
 
         URL url = new URL(dependency.getUrl());
-
-        core.getMethods().log("Dependency '" + fileName + "' could not be found. Attempting to download.");
         try (InputStream in = url.openStream()) {
-            Files.copy(in, file.toPath());
+
+            // download the jar content
+            byte[] bytes = ByteStreams.toByteArray(in);
+            if (bytes.length == 0) {
+                throw new RuntimeException("Empty stream");
+            }
+
+            CORE.log("Successfully downloaded '" + fileName + "'");
+
+            // if the checksum matches, save the content to disk
+            Files.write(file, bytes);
         }
 
-        if (!file.exists()) {
+        // ensure the file saved correctly
+        if (!Files.exists(file)) {
             throw new IllegalStateException("File not present. - " + file.toString());
         } else {
-            core.getMethods().log("Dependency '" + fileName + "' successfully downloaded.");
             return file;
         }
     }
 
-    private static void loadJar(File file) throws RuntimeException {
-        // get the classloader to load into
-        ClassLoader classLoader = core.getMethods().getPlugin().getClass().getClassLoader();
+    private static final class Source {
 
-        if (classLoader instanceof URLClassLoader) {
-            try {
-                ADD_URL_METHOD.invoke(classLoader, file.toURI().toURL());
-            } catch (IllegalAccessException | InvocationTargetException | MalformedURLException e) {
-                throw new RuntimeException("Unable to invoke URLClassLoader#addURL", e);
-            }
-        } else {
-            throw new RuntimeException("Unknown classloader type: " + classLoader.getClass());
-        }
-    }
+        private final Dependency dependency;
+        private final Path file;
 
-    private static boolean classExists(String className) {
-        try {
-            Class.forName(className);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
+        private Source(Dependency dependency, Path file) {
+            this.dependency = dependency;
+            this.file = file;
         }
     }
 }

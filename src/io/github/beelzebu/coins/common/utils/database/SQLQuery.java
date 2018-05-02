@@ -18,7 +18,6 @@
  */
 package io.github.beelzebu.coins.common.utils.database;
 
-import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.database.CoinsDatabase;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -103,7 +102,7 @@ public enum SQLQuery {
     DELETE_MULTIPLIER("DELETE FROM " + CoinsDatabase.MULTIPLIERS_TABLE + " WHERE id = ?;"),
     ENABLE_MULTIPLIER("UPDATE " + CoinsDatabase.MULTIPLIERS_TABLE + " SET enabled = true WHERE id = ;"),
     SELECT_ALL_MULTIPLIERS("SELECT * FROM " + CoinsDatabase.MULTIPLIERS_TABLE + " WHERE uuid = ? AND enabled = false AND queue = false;"),
-    SELECT_ALL_MULTIPLIERS_SERVER("SELECT * FROM " + CoinsDatabase.MULTIPLIERS_TABLE + " WHERE uuid = ? AND enabled = false AND queue = false AND server = '" + CoinsCore.getInstance().getConfig().getServerName() + "';"),
+    SELECT_ALL_MULTIPLIERS_SERVER("SELECT * FROM " + CoinsDatabase.MULTIPLIERS_TABLE + " WHERE uuid = ? AND enabled = false AND queue = false AND server = ?;"),
     SELECT_MULTIPLIER("SELECT * FROM " + CoinsDatabase.MULTIPLIERS_TABLE + " WHERE id = ?;"),
     SELECT_ALL_PLAYERS("SELECT * FROM " + CoinsDatabase.DATA_TABLE + ";");
 

@@ -18,9 +18,9 @@
  */
 package io.github.beelzebu.coins.bukkit.command;
 
+import io.github.beelzebu.coins.common.CoinsCore;
 import java.lang.reflect.Field;
 import java.util.Map;
-import io.github.beelzebu.coins.common.CoinsCore;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -47,7 +47,7 @@ public class CommandManager {
             commandMap.register("coins", cmd);
 
         } catch (SecurityException | IllegalArgumentException | NoSuchFieldException | IllegalAccessException ex) {
-            core.getMethods().log("An internal error has ocurred while registering the command for the plugin.");
+            core.log("An internal error has ocurred while registering the command for the plugin.");
             core.debug(ex.getCause().getMessage());
         }
     }
@@ -70,7 +70,7 @@ public class CommandManager {
                 }
             });
         } catch (IllegalAccessException | IllegalArgumentException | NoSuchFieldException | SecurityException ex) {
-            core.getMethods().log("An internal error has ocurred while unregistering the command for the plugin.");
+            core.log("An internal error has ocurred while unregistering the command for the plugin.");
             core.debug(ex.getCause().getMessage());
         }
     }

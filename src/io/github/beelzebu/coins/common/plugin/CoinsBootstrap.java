@@ -16,12 +16,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.beelzebu.coins.common.interfaces;
+package io.github.beelzebu.coins.common.plugin;
 
 import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.common.messaging.BungeeMessaging;
 import io.github.beelzebu.coins.common.config.CoinsConfig;
 import io.github.beelzebu.coins.common.config.MessagesConfig;
+import io.github.beelzebu.coins.common.messaging.BungeeMessaging;
+import io.github.beelzebu.coins.common.utils.dependencies.classloader.PluginClassLoader;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
@@ -32,19 +33,19 @@ import java.util.logging.Logger;
  *
  * @author Beelzebu
  */
-public interface IMethods {
+public interface CoinsBootstrap {
 
-    public Object getPlugin();
+    public CoinsPlugin getPlugin();
 
-    public void loadConfig();
-
-    public CoinsConfig getConfig();
+    public CoinsConfig getPluginConfig();
 
     public MessagesConfig getMessages(String lang);
 
     public void runAsync(Runnable rn);
 
-    public void runAsync(Runnable rn, Long timer);
+    public void runAsyncTimmer(Runnable rn, long timmer);
+
+    public void runTaskLater(Runnable rn, long ticks);
 
     public void runSync(Runnable rn);
 
@@ -93,4 +94,6 @@ public interface IMethods {
     public Logger getLogger();
 
     public BungeeMessaging getBungeeMessaging();
+
+    public PluginClassLoader getPluginClassLoader();
 }

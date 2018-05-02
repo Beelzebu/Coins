@@ -20,6 +20,7 @@ package io.github.beelzebu.coins.bungee.messaging;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import io.github.beelzebu.coins.common.executor.ExecutorManager;
 import io.github.beelzebu.coins.common.messaging.BungeeMessaging;
 import java.util.Collections;
 import java.util.List;
@@ -40,7 +41,7 @@ public final class BungeeBungeeMessaging extends BungeeMessaging {
 
     @Override
     public void getExecutors() {
-        core.getExecutorManager().getExecutors().forEach(ex -> sendMessage("Coins", "Executors", Collections.singletonList(ex.toJson()), true));
+        ExecutorManager.getExecutors().forEach(ex -> sendMessage("Coins", "Executors", Collections.singletonList(ex.toJson()), true));
     }
 
     @Override
