@@ -20,7 +20,6 @@ package io.github.beelzebu.coins.bukkit.menus;
 
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.config.IConfiguration;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -83,15 +82,15 @@ public abstract class CoinsMenu {
     }
 
     public static Map<UUID, CoinsMenu> getInventoriesByUUID() {
-        return Collections.unmodifiableMap(inventoriesByUUID);
+        return inventoriesByUUID;
     }
 
     public static Map<UUID, UUID> getOpenInventories() {
-        return Collections.unmodifiableMap(openInventories);
+        return openInventories;
     }
 
     public final Map<Integer, GUIAction> getActions() {
-        return Collections.unmodifiableMap(actions);
+        return actions;
     }
 
     public final void delete() {
