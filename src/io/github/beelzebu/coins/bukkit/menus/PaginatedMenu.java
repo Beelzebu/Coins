@@ -51,7 +51,7 @@ public class PaginatedMenu {
                     setItem(i, ItemBuilder.newBuilder(Material.STAINED_GLASS_PANE).setData(2).setDisplayName("&f").build());
                 }
                 setItem(49, getItem(core.getConfig(), "Multipliers.GUI.Close"), p -> handleSound(p));
-                if (contents.size() < 0) {
+                if (contents.size() <= 0) {
                     setItem(22, ItemBuilder.newBuilder(Material.POTION).setDisplayName(core.getString("Multipliers.Menu.No Multipliers.Name", player.spigot().getLocale())).setLore(core.rep(core.getMessages(player.spigot().getLocale()).getStringList("Multipliers.Menu.No Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build());
                 } else {
                     for (int i = 0; i < 36; i++) {
