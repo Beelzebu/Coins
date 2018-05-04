@@ -41,7 +41,7 @@ public final class MySQL extends CoinsDatabase {
         String urlprefix = "jdbc:mysql://";
         if (CORE.getStorageType().equals(StorageType.MARIADB)) {
             urlprefix = "jdbc:mariadb://";
-            hc.setDataSourceClassName("org.mariadb.jdbc.MariaDbDataSource");
+            hc.setDriverClassName("org.mariadb.jdbc.Driver");
         } else {
             hc.setDriverClassName("com.mysql.jdbc.Driver");
             hc.addDataSourceProperty("cachePrepStmts", "true");

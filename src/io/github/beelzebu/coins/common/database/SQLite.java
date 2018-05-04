@@ -39,7 +39,7 @@ public final class SQLite extends CoinsDatabase {
     public void setup() {
         HikariConfig hc = new HikariConfig();
         hc.setPoolName("Coins SQLite Connection Pool");
-        hc.setDataSourceClassName("org.sqlite.SQLiteDataSource");
+        hc.setDriverClassName("org.sqlite.JDBC");
         hc.setJdbcUrl("jdbc:sqlite:plugins/Coins/database.db");
         hc.setConnectionTestQuery("SELECT 1");
         hc.setMinimumIdle(1);
