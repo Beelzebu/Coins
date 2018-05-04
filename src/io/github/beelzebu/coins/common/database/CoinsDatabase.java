@@ -209,8 +209,11 @@ public abstract class CoinsDatabase {
             } else if (!CORE.getConfig().isOnline() && CoinsAPI.isindb(name)) {
                 DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_USER_OFFLINE, uuid, System.currentTimeMillis(), name).executeUpdate();
                 CORE.debug("Updated the UUID for '" + name + "' (" + uuid + ")");
+            } else if (CORE.getBootstrap().isOnline(name) && !CoinsAPI.isindb(name)) {
+                CORE.debug(name + " isn't in the database, but is online and a plugin is requesting his balance.");
+                CoinsAPI.createPlayer(name, uuid);
             } else {
-                CORE.debug("Tried to update a player that isn't in the database.");
+                CORE.debug("Tried to update a player that isn't in the database and is offline.");
             }
             c.close();
         } catch (SQLException ex) {
