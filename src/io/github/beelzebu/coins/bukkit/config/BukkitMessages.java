@@ -31,12 +31,12 @@ import org.bukkit.configuration.file.YamlConfiguration;
  */
 public class BukkitMessages extends MessagesConfig {
 
-    private File langFile;
+    private final File langFile;
     private YamlConfiguration messages;
 
     public BukkitMessages(String lang) {
         super(lang);
-        messages = YamlConfiguration.loadConfiguration(new File(CoinsCore.getInstance().getBootstrap().getDataFolder() + "/messages", "messages" + lang + ".yml"));
+        messages = YamlConfiguration.loadConfiguration(langFile = new File(CoinsCore.getInstance().getBootstrap().getDataFolder() + "/messages", "messages" + lang + ".yml"));
     }
 
     @Override

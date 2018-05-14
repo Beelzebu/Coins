@@ -33,17 +33,19 @@ public final class ExecutorManager {
 
     private static final Set<Executor> EXECUTORS = Collections.synchronizedSet(new LinkedHashSet<>());
 
-    public static synchronized void addExecutor(Executor ex) {
-        if (!EXECUTORS.stream().anyMatch(executor -> ex.getId().equals(executor.getId()))) {
-            EXECUTORS.add(ex);
+    public static void addExecutor(Executor ex) {
+        synchronized (EXECUTORS) {
+            if (!EXECUTORS.stream().anyMatch(executor -> ex.getId().equals(executor.getId()))) {
+                EXECUTORS.add(ex);
+            }
         }
     }
 
-    public static synchronized Set<Executor> getExecutors() {
-        return Collections.unmodifiableSet(EXECUTORS);
+    public static Set<Executor> getExecutors() {
+        return EXECUTORS;
     }
 
-    public static synchronized Executor getExecutor(String id) {
+    public static Executor getExecutor(String id) {
         for (Executor ex : EXECUTORS) {
             if (ex.getId().equals(id)) {
                 return ex;

@@ -63,22 +63,21 @@ import org.apache.commons.io.FileUtils;
  *
  * @author Beelzebu
  */
+@Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CoinsCore {
 
+    @Getter(AccessLevel.NONE)
     private static CoinsCore instance;
-    @Getter
-    private CoinsBootstrap bootstrap;
+    @Getter(AccessLevel.NONE)
     private CoinsDatabase db;
-    @Getter
+    private CoinsBootstrap bootstrap;
     private StorageType storageType;
-    @Getter
     private IMessagingService messagingService;
-    private HashMap<String, MessagesConfig> messagesMap = new HashMap<>();
-    @Getter
-    private final Gson gson = new Gson();
-    @Getter
     private boolean enabled = false;
+    @Getter(AccessLevel.NONE)
+    private final HashMap<String, MessagesConfig> messagesMap = new HashMap<>();
+    private final Gson gson = new Gson();
 
     public static CoinsCore getInstance() {
         return instance == null ? instance = new CoinsCore() : instance;
@@ -343,7 +342,7 @@ public final class CoinsCore {
                 response = s.next();
                 s.close();
             }
-        } catch (IOException exc) {
+        } catch (IOException ex) {
             debug("Failed to connect to URL: " + surl);
         }
         return response;

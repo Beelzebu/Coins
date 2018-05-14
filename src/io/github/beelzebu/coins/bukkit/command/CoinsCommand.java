@@ -454,9 +454,7 @@ public class CoinsCommand extends Command {
                 new CoinsEconomy((CoinsBukkitMain) core.getBootstrap()).setup();
             }
             ExecutorManager.getExecutors().clear();
-            core.getConfig().getConfigurationSection("Command executor").forEach(id -> {
-                ExecutorManager.addExecutor(new Executor(id, core.getConfig().getString("Command executor." + id + ".Displayname", id), core.getConfig().getDouble("Command executor." + id + ".Cost", 0), core.getConfig().getStringList("Command executor." + id + ".Command")));
-            });
+            core.getBootstrap().getPlugin().loadExecutors();
             if (core.getConfig().useBungee()) {
                 core.getMessagingService().getMultipliers();
                 core.getMessagingService().getExecutors();
