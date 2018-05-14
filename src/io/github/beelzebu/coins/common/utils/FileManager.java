@@ -49,6 +49,7 @@ public class FileManager {
     private final Map<String, File> messagesFiles = new HashMap<>();
     private final File configFile = new File(core.getBootstrap().getDataFolder(), "config.yml");
     private final File logsFolder = new File(core.getBootstrap().getDataFolder(), "logs");
+    private final int configVersion = 14;
 
     public FileManager() {
         messagesFiles.put("default", new File(messagesFolder, "messages.yml"));
@@ -63,120 +64,122 @@ public class FileManager {
         try {
             List<String> lines = FileUtils.readLines(configFile, Charsets.UTF_8);
             int index;
-            if (core.getConfig().getInt("version") == 14) {
+            if (core.getConfig().getInt("version") == configVersion) {
                 core.log("The config file is up to date.");
             } else {
-                switch (core.getConfig().getInt("version")) {
-                    case 10:
-                        index = lines.indexOf("    Close:") + 1;
-                        lines.addAll(index, Arrays.asList(
-                                "      # To see all possible values check https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html",
-                                "      Material: REDSTONE_BLOCK",
-                                "      Name: '&c&lClose'",
-                                "      Lore:",
-                                "      - ''",
-                                "      - '&7Click me to close this gui'"
-                        ));
-                        index = lines.indexOf("version: 10");
-                        lines.set(index, "version: 11");
-                        core.log("Configuraton file updated to v11");
-                        break;
-                    case 11:
-                        index = lines.indexOf("  Executor Sign:") + 5;
-                        lines.addAll(index, Arrays.asList(
-                                "  # If you want the users to be created when they join to the server, enable this,",
-                                "  # otherwise the players will be created when his coins are modified or consulted",
-                                "  # to the database for the first time (recommended for big servers).",
-                                "  Create Join: false"
-                        ));
-                        index = lines.indexOf("version: 11");
-                        lines.set(index, "version: 12");
-                        core.log("Configuration file updated to v12");
-                        break;
-                    case 12:
-                        index = lines.indexOf("version: 12");
-                        lines.set(index, "version: 13");
-                        core.log("Configuration file updated to v13");
-                        break;
-                    case 13:
-                        index = lines.indexOf(" Fail:");
-                        if (index != -1) {
-                            String fix = lines.get(index + 1);
-                            if (fix.startsWith(" Sound:")) {
-                                lines.set(index + 1, "    " + fix);
+                do {
+                    switch (core.getConfig().getInt("version")) {
+                        case 10:
+                            index = lines.indexOf("    Close:") + 1;
+                            lines.addAll(index, Arrays.asList(
+                                    "      # To see all possible values check https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html",
+                                    "      Material: REDSTONE_BLOCK",
+                                    "      Name: '&c&lClose'",
+                                    "      Lore:",
+                                    "      - ''",
+                                    "      - '&7Click me to close this gui'"
+                            ));
+                            index = lines.indexOf("version: 10");
+                            lines.set(index, "version: 11");
+                            core.log("Configuraton file updated to v11");
+                            break;
+                        case 11:
+                            index = lines.indexOf("  Executor Sign:") + 5;
+                            lines.addAll(index, Arrays.asList(
+                                    "  # If you want the users to be created when they join to the server, enable this,",
+                                    "  # otherwise the players will be created when his coins are modified or consulted",
+                                    "  # to the database for the first time (recommended for big servers).",
+                                    "  Create Join: false"
+                            ));
+                            index = lines.indexOf("version: 11");
+                            lines.set(index, "version: 12");
+                            core.log("Configuration file updated to v12");
+                            break;
+                        case 12:
+                            index = lines.indexOf("version: 12");
+                            lines.set(index, "version: 13");
+                            core.log("Configuration file updated to v13");
+                            break;
+                        case 13:
+                            index = lines.indexOf(" Fail:");
+                            if (index != -1) {
+                                String fix = lines.get(index + 1);
+                                if (fix.startsWith(" Sound:")) {
+                                    lines.set(index + 1, "    " + fix);
+                                }
+                                fix = lines.get(index + 2);
+                                if (fix.startsWith("  Pitch:")) {
+                                    lines.set(index + 2, "    " + fix);
+                                }
                             }
-                            fix = lines.get(index + 2);
-                            if (fix.startsWith("  Pitch:")) {
-                                lines.set(index + 2, "    " + fix);
+                            index = lines.indexOf("MySQL:");
+                            lines.addAll(index - 1, Arrays.asList("",
+                                    "# Wich storage method the plugin should use.",
+                                    "#",
+                                    "# Available options:",
+                                    "#  -> sqlite    data is stored locally and can't be shared with other servers.",
+                                    "#  -> mysql     data is stored on a mysql server and can be shared by several servers.",
+                                    "#  -> mariadb   we will use mariadb driver instead of mysql driver.",
+                                    "Storage Type: sqlite",
+                                    "",
+                                    "# Don't touch this setting, this is only for internal usage to auto update the",
+                                    "# database when something changes.",
+                                    "Database Version: 1",
+                                    "",
+                                    "# Settings for messaging service",
+                                    "# If enabled and configured, Coins will use the messaging service to inform other",
+                                    "# connected servers of changes.",
+                                    "#",
+                                    "# Available options:",
+                                    "#  -> bungeecord   uses the plugin messaging channels. You must enable bungeecord",
+                                    "#                  in spigot.yml and install the plugin in BungeeCord to work.",
+                                    "#  -> redis        uses redis pub sub to push changes. You redis server must be",
+                                    "#                  configured below.",
+                                    "#  -> none         nothing.",
+                                    "Messaging Service: none"
+                            ));
+                            index = lines.indexOf("  Use: true");
+                            if (index != -1) {
+                                lines.remove(index);
+                                index = lines.indexOf("Storage Type: sqlite");
+                                lines.set(index, "Storage Type: mysql");
+                            } else {
+                                index = lines.indexOf("  Use: false");
+                                lines.remove(index);
                             }
-                        }
-                        index = lines.indexOf("MySQL:");
-                        lines.addAll(index - 1, Arrays.asList("",
-                                "# Wich storage method the plugin should use.",
-                                "#",
-                                "# Available options:",
-                                "#  -> sqlite    data is stored locally and can't be shared with other servers.",
-                                "#  -> mysql     data is stored on a mysql server and can be shared by several servers.",
-                                "#  -> mariadb   we will use mariadb driver instead of mysql driver.",
-                                "Storage Type: sqlite",
-                                "",
-                                "# Don't touch this setting, this is only for internal usage to auto update the",
-                                "# database when something changes.",
-                                "Database Version: 1",
-                                "",
-                                "# Settings for messaging service",
-                                "# If enabled and configured, Coins will use the messaging service to inform other",
-                                "# connected servers of changes.",
-                                "#",
-                                "# Available options:",
-                                "#  -> bungeecord   uses the plugin messaging channels. You must enable bungeecord",
-                                "#                  in spigot.yml and install the plugin in BungeeCord to work.",
-                                "#  -> redis        uses redis pub sub to push changes. You redis server must be",
-                                "#                  configured below.",
-                                "#  -> none         nothing.",
-                                "Messaging Service: none"
-                        ));
-                        index = lines.indexOf("  Use: true");
-                        if (index != -1) {
+                            if (core.getConfig().useBungee()) {
+                                index = lines.indexOf("Messaging Service: none");
+                                lines.set(index, "Messaging Service: bungeecord");
+                            }
+                            index = lines.indexOf("MySQL:") + 8;
+                            lines.addAll(index, Arrays.asList(
+                                    "  # Don't change this value if you don't know what it does.",
+                                    "  Connection Pool: 8",
+                                    "  # MySQL table names without prefix, you can change this to use same database",
+                                    "  # for all servers and but keep different balances in every server.",
+                                    "  Data Table: 'data'",
+                                    "  Multipliers Table: 'multipliers'",
+                                    "# Here are the Redis server settings.",
+                                    "Redis:",
+                                    "  Host: 'localhost'",
+                                    "  Port: 6379",
+                                    "  Password: 'S3CUR3P4SSW0RD'"
+                            ));
+                            index = lines.indexOf("  Connection Interval: " + core.getConfig().getInt("MySQL.Connection Interval"));
                             lines.remove(index);
-                            index = lines.indexOf("Storage Type: sqlite");
-                            lines.set(index, "Storage Type: mysql");
-                        } else {
-                            index = lines.indexOf("  Use: false");
-                            lines.remove(index);
-                        }
-                        if (core.getConfig().useBungee()) {
-                            index = lines.indexOf("Messaging Service: none");
-                            lines.set(index, "Messaging Service: bungeecord");
-                        }
-                        index = lines.indexOf("MySQL:") + 8;
-                        lines.addAll(index, Arrays.asList(
-                                "  # Don't change this value if you don't know what it does.",
-                                "  Connection Pool: 8",
-                                "  # MySQL table names without prefix, you can change this to use same database",
-                                "  # for all servers and but keep different balances in every server.",
-                                "  Data Table: 'data'",
-                                "  Multipliers Table: 'multipliers'",
-                                "# Here are the Redis server settings.",
-                                "Redis:",
-                                "  Host: 'localhost'",
-                                "  Port: 6379",
-                                "  Password: 'S3CUR3P4SSW0RD'"
-                        ));
-                        index = lines.indexOf("  Connection Interval: " + core.getConfig().getInt("MySQL.Connection Interval"));
-                        lines.remove(index);
-                        index = lines.indexOf("version: 13");
-                        lines.set(index, "version: 14");
-                        core.log("Configuration file updated to v14");
-                        break;
-                    default:
-                        core.log("Seems that you hava a too old version of the config or you canged this to another number >:(");
-                        core.log("We can't update it, if is a old version you should try to update it slow and not jump from a version to another, keep in mind that we keep track of the last 3 versions of the config to update.");
-                        break;
-                }
+                            index = lines.indexOf("version: 13");
+                            lines.set(index, "version: 14");
+                            core.log("Configuration file updated to v14");
+                            break;
+                        default:
+                            core.log("Seems that you hava a too old version of the config or you canged this to another number >:(");
+                            core.log("We can't update it, if is a old version you should try to update it slow and not jump from a version to another, keep in mind that we keep track of the last 3 versions of the config to update.");
+                            break;
+                    }
+                    FileUtils.writeLines(configFile, lines);
+                    core.getConfig().reload();
+                } while (core.getConfig().getInt("version") < configVersion && core.getConfig().getInt("version") >= configVersion - 4);
             }
-            FileUtils.writeLines(configFile, lines);
-            core.getConfig().reload();
         } catch (IOException ex) {
             core.log("An unexpected error occurred while updating the config file.");
             core.debug(ex.getMessage());
