@@ -31,7 +31,6 @@ import io.github.beelzebu.coins.common.executor.Executor;
 import io.github.beelzebu.coins.common.executor.ExecutorManager;
 import io.github.beelzebu.coins.common.importer.ImportManager;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -45,29 +44,20 @@ import org.bukkit.entity.Player;
 public class CoinsCommand extends Command {
 
     private final CoinsCore core = CoinsCore.getInstance();
-    private String lang = "";
-    private final String perm;
 
-    public CoinsCommand(String command, String desc, String usage, String permission, List<String> aliases) {
+    public CoinsCommand(String command) {
         super(command);
-        description = desc;
-        usageMessage = usage;
-        perm = permission;
-        setAliases(aliases);
     }
 
     @Override
     public boolean execute(CommandSender sender, String alias, String[] args) {
-        if (!sender.hasPermission(perm)) {
+        String lang = sender instanceof Player ? ((Player) sender).spigot().getLocale().split("_")[0] : "";
+        if (!sender.hasPermission(getPermission())) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return true;
         }
         core.getBootstrap().runAsync(() -> {
-            if (sender instanceof Player) {
-                lang = ((Player) sender).spigot().getLocale().split("_")[0];
-            } else {
-                lang = "";
-            }
+
             if (args.length == 0) {
                 if (sender instanceof Player) {
                     sender.sendMessage(core.getString("Coins.Own coins", lang).replaceAll("%coins%", CoinsAPI.getCoinsString(sender.getName())));
@@ -75,33 +65,33 @@ public class CoinsCommand extends Command {
                     sender.sendMessage(core.getString("Errors.Console", ""));
                 }
             } else if (args[0].equalsIgnoreCase("execute")) {
-                execute(sender, args);
+                execute(sender, args, lang);
             } else if ((args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("ayuda")) && args.length == 1) {
-                help(sender, args);
+                help(sender, args, lang);
             } else if ((args[0].equalsIgnoreCase("pay") || args[0].equalsIgnoreCase("p") || args[0].equalsIgnoreCase("pagar"))) {
-                pay(sender, args);
+                pay(sender, args, lang);
             } else if ((args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("dar"))) {
-                give(sender, args);
+                give(sender, args, lang);
             } else if ((args[0].equalsIgnoreCase("take") || args[0].equalsIgnoreCase("quitar"))) {
-                take(sender, args);
+                take(sender, args, lang);
             } else if ((args[0].equalsIgnoreCase("reset"))) {
-                reset(sender, args);
+                reset(sender, args, lang);
             } else if ((args[0].equalsIgnoreCase("set"))) {
-                set(sender, args);
+                set(sender, args, lang);
             } else if (args[0].equalsIgnoreCase("multiplier") || args[0].equalsIgnoreCase("multipliers")) {
-                multiplier(sender, args);
+                multiplier(sender, args, lang);
             } else if (args[0].equalsIgnoreCase("top") && args.length == 1) {
-                top(sender, args);
+                top(sender, args, lang);
             } else if (args[0].equalsIgnoreCase("import")) {
-                imporT(sender, args);
+                imporT(sender, args, lang);
             } else if (args[0].equalsIgnoreCase("importdb")) {
-                importDB(sender, args);
+                importDB(sender, args, lang);
             } else if (args[0].equalsIgnoreCase("reload")) {
                 reload(sender);
             } else if (args[0].equalsIgnoreCase("about")) {
                 about(sender);
             } else if (args.length == 1 && CoinsAPI.isindb(args[0])) {
-                target(sender, args);
+                target(sender, args, lang);
             } else {
                 sender.sendMessage(core.getString("Errors.Unknown command", lang));
             }
@@ -109,7 +99,7 @@ public class CoinsCommand extends Command {
         return true;
     }
 
-    public boolean help(CommandSender sender, String[] args) {
+    public boolean help(CommandSender sender, String[] args, String lang) {
         core.getMessages(lang).getStringList("Help.User").forEach((str) -> {
             sender.sendMessage(core.rep(str));
         });
@@ -121,12 +111,12 @@ public class CoinsCommand extends Command {
         return true;
     }
 
-    public boolean target(CommandSender sender, String[] args) {
+    public boolean target(CommandSender sender, String[] args, String lang) {
         sender.sendMessage(core.getString("Coins.Get", lang).replaceAll("%coins%", CoinsAPI.getCoinsString(args[0])).replaceAll("%target%", args[0]));
         return true;
     }
 
-    public boolean pay(CommandSender sender, String[] args) {
+    public boolean pay(CommandSender sender, String[] args, String lang) {
         if (!sender.hasPermission("coins.user.pay")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return true;
@@ -168,7 +158,7 @@ public class CoinsCommand extends Command {
         return true;
     }
 
-    public boolean give(CommandSender sender, String[] args) {
+    public boolean give(CommandSender sender, String[] args, String lang) {
         if (!sender.hasPermission("coins.admin") || !sender.hasPermission("coins.admin.give")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return true;
@@ -209,7 +199,7 @@ public class CoinsCommand extends Command {
         return true;
     }
 
-    public boolean take(CommandSender sender, String[] args) {
+    public boolean take(CommandSender sender, String[] args, String lang) {
         if (!sender.hasPermission("coins.admin") || !sender.hasPermission("coins.admin.take")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return true;
@@ -255,7 +245,7 @@ public class CoinsCommand extends Command {
         return true;
     }
 
-    public boolean reset(CommandSender sender, String[] args) {
+    public boolean reset(CommandSender sender, String[] args, String lang) {
         if (!sender.hasPermission("coins.admin") || !sender.hasPermission("coins.admin.reset")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return true;
@@ -283,7 +273,7 @@ public class CoinsCommand extends Command {
         return true;
     }
 
-    public boolean set(CommandSender sender, String[] args) {
+    public boolean set(CommandSender sender, String[] args, String lang) {
         if (!sender.hasPermission("coins.admin")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return true;
@@ -313,7 +303,7 @@ public class CoinsCommand extends Command {
         return true;
     }
 
-    public boolean top(CommandSender sender, String[] args) {
+    public boolean top(CommandSender sender, String[] args, String lang) {
         sender.sendMessage(core.getString("Coins.Top.Header", lang));
         Map<String, Double> topMap = CoinsAPI.getTopPlayers(10);
         int i = 0;
@@ -324,7 +314,7 @@ public class CoinsCommand extends Command {
         return true;
     }
 
-    private boolean multiplier(CommandSender sender, String[] args) {
+    private boolean multiplier(CommandSender sender, String[] args, String lang) {
         // TODO: add a command to get all multipliers for a player and a command to enable any multiplier by the ID.
         if ((sender.hasPermission("coins.admin") || sender.hasPermission("coins.admin.multiplier")) && args.length >= 2) {
             if (args[1].equalsIgnoreCase("help")) {
@@ -363,7 +353,7 @@ public class CoinsCommand extends Command {
         return true;
     }
 
-    private boolean execute(CommandSender sender, String[] args) {
+    private boolean execute(CommandSender sender, String[] args, String lang) {
         if (sender instanceof Player) {
             Executor ex = ExecutorManager.getExecutor(args[1]);
             if (ex == null) {
@@ -399,7 +389,7 @@ public class CoinsCommand extends Command {
         return true;
     }
 
-    private boolean imporT(CommandSender sender, String[] args) {
+    private boolean imporT(CommandSender sender, String[] args, String lang) {
         if (sender instanceof Player) {
             sender.sendMessage(core.rep("%prefix% &cThis command must be executed from the console."));
             return true;
@@ -426,7 +416,7 @@ public class CoinsCommand extends Command {
         return true;
     }
 
-    private boolean importDB(CommandSender sender, String[] args) {
+    private boolean importDB(CommandSender sender, String[] args, String lang) {
         if (sender instanceof Player) {
             sender.sendMessage(core.rep("%prefix% &cThis command must be executed from the console."));
             return true;
