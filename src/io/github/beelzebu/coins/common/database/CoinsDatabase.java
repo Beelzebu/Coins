@@ -156,8 +156,8 @@ public abstract class CoinsDatabase {
     }
 
     public final void createPlayer(UUID uuid, String name, double balance) {
-        try {
-            createPlayer(getConnection(), uuid, name, balance);
+        try (Connection c = getConnection()) {
+            createPlayer(c, uuid, name, balance);
         } catch (SQLException ex) {
             CORE.log("An internal error has ocurred while creating the player " + name + " in the database, check the logs for more info.");
             CORE.debug(ex);
@@ -172,19 +172,14 @@ public abstract class CoinsDatabase {
             return;
         }
         try {
-            ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SEARCH_USER_ONLINE, uuid).executeQuery();
-            try {
+            try (ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SEARCH_USER_ONLINE, uuid).executeQuery()) {
                 CORE.debug("Creating data for player: " + name + " in the database.");
                 if (!res.next()) {
                     DatabaseUtils.prepareStatement(c, SQLQuery.CREATE_USER, uuid, name, balance, System.currentTimeMillis()).executeUpdate();
                     CORE.debug("An entry in the database was created for: " + name);
                 }
             } finally {
-                if (res != null) {
-                    res.close();
-                }
                 c.close();
-                CORE.debug("The connection was closed.");
             }
         } catch (SQLException ex) {
             CORE.log("An internal error has occurred creating the player: " + name + " in the database.");
@@ -193,8 +188,8 @@ public abstract class CoinsDatabase {
     }
 
     public final void updatePlayer(UUID uuid, String name) {
-        try {
-            updatePlayer(getConnection(), uuid, name);
+        try (Connection c = getConnection()) {
+            updatePlayer(c, uuid, name);
         } catch (SQLException ex) {
             CORE.log("An internal error has ocurred updating the data for player '" + name + "', check the logs for more info.");
             CORE.debug(ex);
@@ -203,19 +198,22 @@ public abstract class CoinsDatabase {
 
     public final void updatePlayer(Connection c, UUID uuid, String name) {
         try {
-            if (CORE.getConfig().isOnline() && CoinsAPI.isindb(uuid)) {
-                DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_USER_ONLINE, name, System.currentTimeMillis(), uuid).executeUpdate();
-                CORE.debug("Updated the name for '" + uuid + "' (" + name + ")");
-            } else if (!CORE.getConfig().isOnline() && CoinsAPI.isindb(name)) {
-                DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_USER_OFFLINE, uuid, System.currentTimeMillis(), name).executeUpdate();
-                CORE.debug("Updated the UUID for '" + name + "' (" + uuid + ")");
-            } else if (CORE.getBootstrap().isOnline(name) && !CoinsAPI.isindb(name)) {
-                CORE.debug(name + " isn't in the database, but is online and a plugin is requesting his balance.");
-                CoinsAPI.createPlayer(name, uuid);
-            } else {
-                CORE.debug("Tried to update a player that isn't in the database and is offline.");
+            try {
+                if (CORE.getConfig().isOnline() && CoinsAPI.isindb(uuid)) {
+                    DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_USER_ONLINE, name, System.currentTimeMillis(), uuid).executeUpdate();
+                    CORE.debug("Updated the name for '" + uuid + "' (" + name + ")");
+                } else if (!CORE.getConfig().isOnline() && CoinsAPI.isindb(name)) {
+                    DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_USER_OFFLINE, uuid, System.currentTimeMillis(), name).executeUpdate();
+                    CORE.debug("Updated the UUID for '" + name + "' (" + uuid + ")");
+                } else if (CORE.getBootstrap().isOnline(name) && !CoinsAPI.isindb(name)) {
+                    CORE.debug(name + " isn't in the database, but is online and a plugin is requesting his balance.");
+                    CoinsAPI.createPlayer(name, uuid);
+                } else {
+                    CORE.debug("Tried to update a player that isn't in the database and is offline.");
+                }
+            } finally {
+                c.close();
             }
-            c.close();
         } catch (SQLException ex) {
             CORE.log("An internal error has ocurred updating the data for player '" + name + "'");
             CORE.debug(ex);
