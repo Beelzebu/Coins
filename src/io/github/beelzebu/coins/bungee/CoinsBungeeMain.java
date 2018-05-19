@@ -18,7 +18,6 @@
  */
 package io.github.beelzebu.coins.bungee;
 
-import com.imaginarycode.minecraft.redisbungee.RedisBungee;
 import io.github.beelzebu.coins.CoinsAPI;
 import io.github.beelzebu.coins.CoinsResponse.CoinsResponseType;
 import io.github.beelzebu.coins.Multiplier;
@@ -26,13 +25,13 @@ import io.github.beelzebu.coins.bungee.config.BungeeConfig;
 import io.github.beelzebu.coins.bungee.config.BungeeMessages;
 import io.github.beelzebu.coins.bungee.events.CoinsChangeEvent;
 import io.github.beelzebu.coins.bungee.events.MultiplierEnableEvent;
-import io.github.beelzebu.coins.bungee.messaging.BungeeBungeeMessaging;
+import io.github.beelzebu.coins.bungee.messaging.BungeeMessaging;
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.config.CoinsConfig;
 import io.github.beelzebu.coins.common.config.MessagesConfig;
 import io.github.beelzebu.coins.common.executor.Executor;
 import io.github.beelzebu.coins.common.executor.ExecutorManager;
-import io.github.beelzebu.coins.common.messaging.BungeeMessaging;
+import io.github.beelzebu.coins.common.messaging.ProxyMessaging;
 import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
 import io.github.beelzebu.coins.common.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.common.utils.dependencies.classloader.PluginClassLoader;
@@ -57,7 +56,7 @@ public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
     protected final CoinsCore core = CoinsCore.getInstance();
     private final CoinsBungeePlugin plugin;
     private BungeeConfig config;
-    private BungeeBungeeMessaging bbmessaging;
+    private BungeeMessaging bmessaging;
 
     public CoinsBungeeMain() {
         plugin = new CoinsBungeePlugin(this);
@@ -148,33 +147,21 @@ public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
 
     @Override
     public boolean isOnline(UUID uuid) {
-        if (useRedisBungee()) {
-            return RedisBungee.getApi().isPlayerOnline(uuid);
-        }
         return ProxyServer.getInstance().getPlayer(uuid) != null;
     }
 
     @Override
     public boolean isOnline(String name) {
-        if (useRedisBungee()) {
-            return RedisBungee.getApi().isPlayerOnline(RedisBungee.getApi().getUuidFromName(name));
-        }
         return ProxyServer.getInstance().getPlayer(name) != null;
     }
 
     @Override
     public UUID getUUID(String name) {
-        if (useRedisBungee()) {
-            return RedisBungee.getApi().getUuidFromName(name);
-        }
         return ProxyServer.getInstance().getPlayer(name) != null ? ProxyServer.getInstance().getPlayer(name).getUniqueId() : null;
     }
 
     @Override
     public String getName(UUID uuid) {
-        if (useRedisBungee()) {
-            return RedisBungee.getApi().getNameFromUuid(uuid);
-        }
         return ProxyServer.getInstance().getPlayer(uuid) != null ? ProxyServer.getInstance().getPlayer(uuid).getName() : null;
     }
 
@@ -198,8 +185,8 @@ public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
     }
 
     @Override
-    public BungeeMessaging getBungeeMessaging() {
-        return bbmessaging == null ? bbmessaging = new BungeeBungeeMessaging() : bbmessaging;
+    public ProxyMessaging getBungeeMessaging() {
+        return bmessaging == null ? bmessaging = new BungeeMessaging() : bmessaging;
     }
 
     @Override
@@ -210,9 +197,5 @@ public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
     @Override
     public InputStream getResource(String filename) {
         return getResourceAsStream(filename);
-    }
-
-    private boolean useRedisBungee() {
-        return ProxyServer.getInstance().getPluginManager().getPlugin("RedisBungee") != null;
     }
 }

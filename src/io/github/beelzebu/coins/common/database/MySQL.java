@@ -44,14 +44,14 @@ public final class MySQL extends CoinsDatabase {
             hc.setDriverClassName("org.mariadb.jdbc.Driver");
         } else {
             hc.setDriverClassName("com.mysql.jdbc.Driver");
-            hc.addDataSourceProperty("cachePrepStmts", "true");
-            hc.addDataSourceProperty("useServerPrepStmts", "true");
-            hc.addDataSourceProperty("prepStmtCacheSize", "250");
-            hc.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-            hc.addDataSourceProperty("encoding", "UTF-8");
-            hc.addDataSourceProperty("characterEncoding", "utf8");
-            hc.addDataSourceProperty("useUnicode", "true");
         }
+        hc.addDataSourceProperty("cachePrepStmts", "true");
+        hc.addDataSourceProperty("useServerPrepStmts", "true");
+        hc.addDataSourceProperty("prepStmtCacheSize", "250");
+        hc.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        hc.addDataSourceProperty("encoding", "UTF-8");
+        hc.addDataSourceProperty("characterEncoding", "utf8");
+        hc.addDataSourceProperty("useUnicode", "true");
         hc.setJdbcUrl(urlprefix + CORE.getConfig().getString("MySQL.Host") + ":" + CORE.getConfig().get("MySQL.Port", "3306") + "/" + CORE.getConfig().getString("MySQL.Database") + "?autoReconnect=true&useSSL=false");
         hc.setUsername(CORE.getConfig().getString("MySQL.User"));
         hc.setPassword(CORE.getConfig().getString("MySQL.Password"));

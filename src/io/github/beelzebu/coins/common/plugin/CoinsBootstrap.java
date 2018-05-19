@@ -21,7 +21,7 @@ package io.github.beelzebu.coins.common.plugin;
 import io.github.beelzebu.coins.Multiplier;
 import io.github.beelzebu.coins.common.config.CoinsConfig;
 import io.github.beelzebu.coins.common.config.MessagesConfig;
-import io.github.beelzebu.coins.common.messaging.BungeeMessaging;
+import io.github.beelzebu.coins.common.messaging.ProxyMessaging;
 import io.github.beelzebu.coins.common.utils.dependencies.classloader.PluginClassLoader;
 import java.io.File;
 import java.io.InputStream;
@@ -93,7 +93,7 @@ public interface CoinsBootstrap {
 
     public Logger getLogger();
 
-    public BungeeMessaging getBungeeMessaging();
+    public ProxyMessaging getBungeeMessaging();
 
     public PluginClassLoader getPluginClassLoader();
 }

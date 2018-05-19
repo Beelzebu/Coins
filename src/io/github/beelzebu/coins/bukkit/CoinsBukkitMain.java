@@ -24,12 +24,12 @@ import io.github.beelzebu.coins.bukkit.config.BukkitConfig;
 import io.github.beelzebu.coins.bukkit.config.BukkitMessages;
 import io.github.beelzebu.coins.bukkit.events.CoinsChangeEvent;
 import io.github.beelzebu.coins.bukkit.events.MultiplierEnableEvent;
-import io.github.beelzebu.coins.bukkit.messaging.BukkitBungeeMessaging;
+import io.github.beelzebu.coins.bukkit.messaging.BukkitMessaging;
 import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.config.CoinsConfig;
 import io.github.beelzebu.coins.common.config.MessagesConfig;
-import io.github.beelzebu.coins.common.messaging.BungeeMessaging;
+import io.github.beelzebu.coins.common.messaging.ProxyMessaging;
 import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
 import io.github.beelzebu.coins.common.utils.dependencies.classloader.PluginClassLoader;
 import io.github.beelzebu.coins.common.utils.dependencies.classloader.ReflectionClassLoader;
@@ -49,7 +49,7 @@ public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
     @Getter
     private final CoinsBukkitPlugin plugin;
     private BukkitConfig config;
-    private BukkitBungeeMessaging bbmessaging;
+    private BukkitMessaging bmessaging;
 
     public CoinsBukkitMain() {
         plugin = new CoinsBukkitPlugin(this);
@@ -177,8 +177,8 @@ public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
     }
 
     @Override
-    public BungeeMessaging getBungeeMessaging() {
-        return bbmessaging == null ? bbmessaging = new BukkitBungeeMessaging() : bbmessaging;
+    public ProxyMessaging getBungeeMessaging() {
+        return bmessaging == null ? bmessaging = new BukkitMessaging() : bmessaging;
     }
 
     @Override

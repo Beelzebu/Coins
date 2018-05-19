@@ -18,10 +18,6 @@
  */
 package io.github.beelzebu.coins.bungee;
 
-import com.imaginarycode.minecraft.redisbungee.RedisBungee;
-import io.github.beelzebu.coins.bungee.listener.PluginMessageListener;
-import io.github.beelzebu.coins.bungee.listener.PubSubMessageListener;
-import io.github.beelzebu.coins.common.messaging.MessagingService;
 import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
 import io.github.beelzebu.coins.common.plugin.CoinsPlugin;
 import net.md_5.bungee.api.ProxyServer;
@@ -41,15 +37,6 @@ public class CoinsBungeePlugin extends CoinsPlugin {
     @Override
     public void enable() {
         super.enable();
-        if (bootstrap.core.getMessagingService().getType().equals(MessagingService.BUNGEECORD)) {
-            if (ProxyServer.getInstance().getPluginManager().getPlugin("RedisBungee") != null) {
-                ProxyServer.getInstance().getPluginManager().registerListener(bootstrap, new PubSubMessageListener());
-                RedisBungee.getApi().registerPubSubChannels("Executors", "Update");
-                bootstrap.log("Using RedisBungee for plugin messaging.");
-            }
-            ProxyServer.getInstance().getPluginManager().registerListener(bootstrap, new PluginMessageListener());
-            ProxyServer.getInstance().registerChannel("Coins");
-        }
     }
 
     @Override

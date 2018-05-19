@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright (C) 2018 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -18,36 +18,28 @@
  */
 package io.github.beelzebu.coins.common.messaging;
 
-import com.google.gson.JsonObject;
-
 /**
  *
  * @author Beelzebu
  */
-public class DummyMessaging extends IMessagingService {
+public abstract class ProxyMessaging extends IMessagingService {
+
+    protected static final String CHANNEL = "Coins";
 
     @Override
-    public void start() {
+    public final MessagingService getType() {
+        return MessagingService.BUNGEECORD;
     }
 
     @Override
-    public MessagingService getType() {
-        return MessagingService.NONE;
+    public final void getMultipliers() {
+        sendMessage("getMultipliers", false);
     }
 
     @Override
-    public void getMultipliers() {
+    public final void getExecutors() {
+        sendMessage("getExecutors", false);
     }
 
-    @Override
-    public void getExecutors() {
-    }
-
-    @Override
-    public void stop() {
-    }
-
-    @Override
-    protected void sendMessage(JsonObject message) {
-    }
+    protected abstract void sendMessage(String message, boolean wait);
 }

@@ -27,12 +27,10 @@ import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
 import io.github.beelzebu.coins.bukkit.utils.leaderheads.LeaderHeadsHook;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.CoinsPlaceholders;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.MultipliersPlaceholders;
-import io.github.beelzebu.coins.common.messaging.MessagingService;
 import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
 import io.github.beelzebu.coins.common.plugin.CoinsPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
@@ -75,11 +73,6 @@ public class CoinsBukkitPlugin extends CoinsPlugin {
                     }
                 }
             }.runTaskTimerAsynchronously(bootstrap, 20, 20);
-        }
-        // Setup bungee plugin messaging
-        if (bootstrap.core.getMessagingService().getType().equals(MessagingService.BUNGEECORD)) {
-            Bukkit.getMessenger().registerOutgoingPluginChannel(bootstrap, "Coins");
-            Bukkit.getMessenger().registerIncomingPluginChannel(bootstrap, "Coins", (PluginMessageListener) bootstrap.getBungeeMessaging());
         }
         // Register listeners
         Bukkit.getPluginManager().registerEvents(new CommandListener(), bootstrap);

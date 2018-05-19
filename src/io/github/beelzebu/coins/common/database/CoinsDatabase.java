@@ -26,7 +26,6 @@ import io.github.beelzebu.coins.Multiplier;
 import io.github.beelzebu.coins.MultiplierBuilder;
 import io.github.beelzebu.coins.MultiplierData;
 import io.github.beelzebu.coins.MultiplierType;
-import io.github.beelzebu.coins.common.CacheManager;
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.utils.database.DatabaseUtils;
 import io.github.beelzebu.coins.common.utils.database.SQLQuery;
@@ -105,7 +104,7 @@ public abstract class CoinsDatabase {
         try (Connection c = getConnection()) {
             if (CoinsAPI.getCoins(uuid) > -1 || isindb(uuid)) {
                 DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_COINS_ONLINE, amount, uuid);
-                CacheManager.publishUserdata(uuid, amount);
+                CORE.getMessagingService().publishUser(uuid, amount);
                 response = new CoinsResponse(CoinsResponse.CoinsResponseType.SUCCESS, "");
             } else {
                 response = new CoinsResponse(CoinsResponse.CoinsResponseType.FAILED, "This user isn't in the database or the cache.");
@@ -113,19 +112,6 @@ public abstract class CoinsDatabase {
         } catch (SQLException ex) {
             response = new CoinsResponse(CoinsResponse.CoinsResponseType.FAILED, "An exception as ocurred with the database.");
             CORE.log("An internal error has occurred setting coins to the player: " + uuid);
-            CORE.debug(ex);
-        }
-        return response;
-    }
-
-    public final CoinsResponse setCoins(String name, double amount) {
-        CoinsResponse response;
-        try (Connection c = getConnection()) {
-            DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_COINS_OFFLINE, amount, name);
-            response = new CoinsResponse(CoinsResponse.CoinsResponseType.SUCCESS, "");
-        } catch (SQLException ex) {
-            response = new CoinsResponse(CoinsResponse.CoinsResponseType.FAILED, "An exception as ocurred with the database.");
-            CORE.log("An internal error has occurred setting coins to the player: " + name);
             CORE.debug(ex);
         }
         return response;

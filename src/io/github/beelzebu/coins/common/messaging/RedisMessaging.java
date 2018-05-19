@@ -19,13 +19,6 @@
 package io.github.beelzebu.coins.common.messaging;
 
 import com.google.gson.JsonObject;
-import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.MultiplierType;
-import io.github.beelzebu.coins.common.CacheManager;
-import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.executor.Executor;
-import io.github.beelzebu.coins.common.executor.ExecutorManager;
-import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import redis.clients.jedis.Jedis;
@@ -37,9 +30,8 @@ import redis.clients.jedis.JedisPubSub;
  *
  * @author Beelzebu
  */
-public class RedisMessaging implements IMessagingService {
+public class RedisMessaging extends IMessagingService {
 
-    private final CoinsCore core = CoinsCore.getInstance();
     private JedisPool pool;
     private PubSubListener psl;
 
@@ -64,27 +56,6 @@ public class RedisMessaging implements IMessagingService {
     }
 
     @Override
-    public void publishUser(UUID uuid, double coins) {
-        try (Jedis jedis = pool.getResource()) {
-            jedis.publish("coins-data-update", "{\"uuid\":" + uuid + ",\"coins\":" + coins + "}");
-        }
-    }
-
-    @Override
-    public void publishMultiplier(Multiplier multiplier) {
-        try (Jedis jedis = pool.getResource()) {
-            jedis.publish("coins-multiplier", multiplier.toJson().toString());
-        }
-    }
-
-    @Override
-    public void enableMultiplier(Multiplier multiplier) {
-        try (Jedis jedis = pool.getResource()) {
-            jedis.publish("coins-event", "{\"event\":\"MultiplierEnableEvent\",\"multiplier\":" + multiplier.toJson() + "}");
-        }
-    }
-
-    @Override
     public void getMultipliers() {
         try (Jedis jedis = pool.getResource()) {
             jedis.publish("coins-multiplier", "get");
@@ -105,15 +76,10 @@ public class RedisMessaging implements IMessagingService {
         pool.destroy();
     }
 
-    private void sendExecutor(Executor ex) {
+    @Override
+    protected void sendMessage(JsonObject message) {
         try (Jedis jedis = pool.getResource()) {
-            jedis.publish("coins-executors", ex.toJson());
-        }
-    }
-
-    private void sendMultiplier(Multiplier multiplier) {
-        try (Jedis jedis = pool.getResource()) {
-            jedis.publish("coins-multiplier", multiplier.toJson().toString());
+            jedis.publish("coins-messaging", message.toString());
         }
     }
 
@@ -128,7 +94,7 @@ public class RedisMessaging implements IMessagingService {
             try (Jedis rsc = pool.getResource()) {
                 try {
                     jpsh = new JedisPubSubHandler();
-                    rsc.subscribe(jpsh, "coins-data-update", "coins-executors", "coins-multiplier", "coins-multiplier-disable", "coins-event");
+                    rsc.subscribe(jpsh, "coins-messaging");
                 } catch (Exception e) {
                     core.log("PubSub error, attempting to recover.");
                     try {
@@ -161,61 +127,7 @@ public class RedisMessaging implements IMessagingService {
 
         @Override
         public void onMessage(String channel, String message) {
-            core.debug("&6Redis Log: &7Recived a message in channel: " + channel);
-            core.debug("&6Redis Log: &7Message is:");
-            core.debug(message);
-            switch (channel) {
-                case "coins-data-update":
-                    JsonObject data = core.getGson().fromJson(message, JsonObject.class);
-                    CacheManager.updateCoins(UUID.fromString(data.get("uuid").getAsString()), data.get("coins").getAsDouble());
-                    break;
-                case "coins-executors":
-                    if (message.equals("get")) {
-                        ExecutorManager.getExecutors().forEach(exec -> sendExecutor(exec));
-                    } else {
-                        Executor ex = Executor.fromJson(message);
-                        if (ExecutorManager.getExecutor(ex.getId()) == null) {
-                            ExecutorManager.addExecutor(ex);
-                            core.log("The executor " + ex.getId() + " was received from Redis PubSub.");
-                            core.debug("ID: " + ex.getId());
-                            core.debug("Displayname: " + ex.getDisplayname());
-                            core.debug("Cost: " + ex.getCost());
-                            core.debug("Commands: ");
-                            ex.getCommands().forEach(command -> core.debug(command));
-                        } else {
-                            core.debug("An executor with the id: " + ex.getId() + " was received from Redis but a local Executor with that id already exists.");
-                        }
-                    }
-                    break;
-                case "coins-multiplier":
-                    if (message.equals("get")) {
-                        CacheManager.getMultipliersData().asMap().values().forEach(multiplier -> sendMultiplier(multiplier));
-                    } else {
-                        Multiplier multiplier = Multiplier.fromJson(message, false);
-                        if (multiplier.getType().equals(MultiplierType.GLOBAL)) {
-                            multiplier.setServer(core.getConfig().getServerName());
-                        }
-                        CacheManager.addMultiplier(multiplier.getServer(), multiplier);
-                    }
-                    break;
-                case "coins-multiplier-disable":
-                    Multiplier.fromJson(message, false).disable();
-                    break;
-                case "coins-event":
-                    JsonObject event = core.getGson().fromJson(message, JsonObject.class);
-                    switch (event.get("event").getAsString()) {
-                        case "MultiplierEnableEvent":
-                            core.getBootstrap().callMultiplierEnableEvent(Multiplier.fromJson(event.getAsJsonObject("multiplier").toString(), false));
-                            break;
-                        default:
-                            core.debug("Invalid redis event");
-                            break;
-                    }
-                    break;
-                default:
-                    core.debug("Invalid redis channel");
-                    break;
-            }
+            handleMessage(core.getGson().fromJson(message, JsonObject.class));
         }
     }
 }

@@ -48,13 +48,6 @@ public enum SQLQuery {
      */
     UPDATE_COINS_ONLINE("UPDATE `" + CoinsDatabase.DATA_TABLE + "` SET balance = ? WHERE uuid = ?;"),
     /**
-     * Update coins for a user by his name:
-     *
-     * @param balance New balance to set.
-     * @param name Username for the query.
-     */
-    UPDATE_COINS_OFFLINE("UPDATE `" + CoinsDatabase.DATA_TABLE + "` SET balance = ? WHERE nick = ?;"),
-    /**
      * Update data for a user when the server is in online mode.
      *
      * @param name Username to update.

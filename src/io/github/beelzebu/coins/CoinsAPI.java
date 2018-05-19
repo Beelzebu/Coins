@@ -101,13 +101,14 @@ public final class CoinsAPI {
         if (!isindb(name)) {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + name + " isn't in the database.");
         }
+        UUID uuid = CORE.getUUID(name, false);
         double finalCoins = coins;
         if (multiply && getMultiplier() != null) {
-            if (getMultiplier().getType().equals(MultiplierType.PERSONAL) && !getMultiplier().getEnablerUUID().equals(CORE.getUUID(name, false))) {
+            if (getMultiplier().getType().equals(MultiplierType.PERSONAL) && !getMultiplier().getEnablerUUID().equals(uuid)) {
             } else {
                 finalCoins *= getMultiplier().getAmount();
             }
-            for (String perm : CORE.getBootstrap().getPermissions(CORE.getUUID(name, false))) {
+            for (String perm : CORE.getBootstrap().getPermissions(uuid)) {
                 if (perm.startsWith("coins.multiplier.x")) {
                     try {
                         int i = Integer.parseInt(perm.split("coins.multiplier.x")[1]);
@@ -119,8 +120,7 @@ public final class CoinsAPI {
             }
         }
         finalCoins += getCoins(name);
-        CORE.getDatabase().setCoins(name.toLowerCase(), finalCoins);
-        return new CoinsResponse(CoinsResponseType.SUCCESS, "");
+        return CORE.getDatabase().setCoins(uuid, finalCoins);
     }
 
     /**
@@ -154,8 +154,7 @@ public final class CoinsAPI {
             }
         }
         finalCoins += getCoins(uuid);
-        CORE.getDatabase().setCoins(uuid, finalCoins);
-        return new CoinsResponse(CoinsResponseType.SUCCESS, "");
+        return CORE.getDatabase().setCoins(uuid, finalCoins);
     }
 
     /**
@@ -167,7 +166,7 @@ public final class CoinsAPI {
      */
     public static CoinsResponse takeCoins(String name, double coins) {
         if (isindb(name)) {
-            return CORE.getDatabase().setCoins(name.toLowerCase(), getCoins(name) - coins);
+            return CORE.getDatabase().setCoins(CORE.getUUID(name, false), getCoins(name) - coins);
         } else {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + name + " isn't in the database.");
         }
@@ -196,7 +195,7 @@ public final class CoinsAPI {
      */
     public static CoinsResponse resetCoins(String name) {
         if (isindb(name)) {
-            return CORE.getDatabase().setCoins(name.toLowerCase(), CORE.getConfig().getDouble("General.Starting Coins", 0));
+            return CORE.getDatabase().setCoins(CORE.getUUID(name, false), CORE.getConfig().getDouble("General.Starting Coins", 0));
         } else {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + name + " isn't in the database.");
         }
@@ -226,7 +225,7 @@ public final class CoinsAPI {
      */
     public static CoinsResponse setCoins(String name, double coins) {
         if (isindb(name)) {
-            return CORE.getDatabase().setCoins(name.toLowerCase(), coins);
+            return CORE.getDatabase().setCoins(CORE.getUUID(name, false), coins);
         } else {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + name + " isn't in the database.");
         }
