@@ -20,7 +20,7 @@ package io.github.beelzebu.coins.bukkit.menus;
 
 import io.github.beelzebu.coins.Multiplier;
 import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.utils.ItemBuilder;
+import io.github.beelzebu.coins.bukkit.utils.ItemBuilder;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

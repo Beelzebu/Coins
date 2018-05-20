@@ -23,7 +23,6 @@ import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.messaging.MessagingService;
 import java.util.Collections;
 import java.util.List;
-import org.bukkit.Bukkit;
 
 /**
  *
@@ -39,16 +38,7 @@ public abstract class CoinsConfig implements IConfiguration {
     }
 
     public boolean useBungee() {
-        try {
-            Class.forName("");
-            return true;
-        } catch (ClassNotFoundException ignore) {
-        }
-        try {
-            return Bukkit.spigot().getConfig().getBoolean("settings.bungeecord");
-        } catch (Exception ex) {
-            return false;
-        }
+        return core.getMessagingService().getType().equals(MessagingService.BUNGEECORD);
     }
 
     public boolean isOnline() {

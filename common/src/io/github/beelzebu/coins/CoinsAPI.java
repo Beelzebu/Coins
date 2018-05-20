@@ -20,6 +20,8 @@ package io.github.beelzebu.coins;
 
 import io.github.beelzebu.coins.CoinsResponse.CoinsResponseType;
 import io.github.beelzebu.coins.common.CacheManager;
+import io.github.beelzebu.coins.common.CacheManager;
+import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.CoinsCore;
 import java.text.DecimalFormat;
 import java.util.Map;

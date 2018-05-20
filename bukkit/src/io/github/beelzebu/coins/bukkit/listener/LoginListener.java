@@ -42,7 +42,7 @@ public class LoginListener implements Listener {
         if (core.getConfig().getBoolean("General.Create Join", false)) {
             CoinsAPI.createPlayer(e.getPlayer().getName(), e.getPlayer().getUniqueId());
         }
-        if (first && core.getMessagingService().getType().equals(MessagingService.BUNGEECORD)) {
+        if (first && core.getConfig().useBungee()) {
             core.getBootstrap().runAsync(() -> {
                 core.getMessagingService().getMultipliers();
                 core.getMessagingService().getExecutors();
@@ -53,11 +53,8 @@ public class LoginListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent e) {
-        // If you aren't using a messaging service is better invalidate the data
-        // to avoid different coins between servers
-        if (!core.getMessagingService().getType().equals(MessagingService.NONE)) {
-            return;
+        if (!core.getMessagingService().getType().equals(MessagingService.REDIS)) {
+            CacheManager.getPlayersData().invalidate(e.getPlayer().getUniqueId());
         }
-        CacheManager.getPlayersData().invalidate(e.getPlayer().getUniqueId());
     }
 }
