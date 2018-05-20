@@ -30,6 +30,7 @@ import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.executor.Executor;
 import io.github.beelzebu.coins.common.executor.ExecutorManager;
 import io.github.beelzebu.coins.common.importer.ImportManager;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Map;
 import org.bukkit.Bukkit;
@@ -44,6 +45,7 @@ import org.bukkit.entity.Player;
 public class CoinsCommand extends Command {
 
     private final CoinsCore core = CoinsCore.getInstance();
+    private final DecimalFormat df = new DecimalFormat("#.#");
 
     public CoinsCommand(String command) {
         super(command);
@@ -134,11 +136,11 @@ public class CoinsCommand extends Command {
                         if (target != null) {
                             CoinsAPI.takeCoins(sender.getName(), coins);
                             if (!core.getString("Coins.Pay", lang).equals("")) {
-                                sender.sendMessage(core.getString("Coins.Pay", lang).replaceAll("%coins%", String.valueOf(coins)).replaceAll("%target%", target.getName()));
+                                sender.sendMessage(core.getString("Coins.Pay", lang).replaceAll("%coins%", new DecimalFormat("#.#").format(coins)).replaceAll("%target%", target.getName()));
                             }
                             CoinsAPI.addCoins(args[1], coins, false);
                             if (!core.getString("Coins.Pay target", target.spigot().getLocale()).equals("")) {
-                                target.sendMessage(core.getString("Coins.Pay target", target.spigot().getLocale()).replaceAll("%coins%", String.valueOf(coins)).replaceAll("%from%", sender.getName()));
+                                target.sendMessage(core.getString("Coins.Pay target", target.spigot().getLocale()).replaceAll("%coins%", df.format(coins)).replaceAll("%from%", sender.getName()));
                             }
                         } else {
                             sender.sendMessage(core.getString("Errors.Unknown player", lang));
@@ -180,18 +182,18 @@ public class CoinsCommand extends Command {
                 Player target = Bukkit.getPlayer(args[1]);
                 int amount = CoinsAPI.getMultiplier() != null ? CoinsAPI.getMultiplier().getBaseData().getAmount() : 1;
                 if (amount > 1) {
-                    multiplier = core.getString("Multipliers.Format", target.spigot().getLocale()).replaceAll("%multiplier%", String.valueOf(amount)).replaceAll("%enabler%", CoinsAPI.getMultiplier().getEnablerName());
+                    multiplier = core.getString("Multipliers.Format", target.spigot().getLocale()).replaceAll("%multiplier%", df.format(amount)).replaceAll("%enabler%", CoinsAPI.getMultiplier().getEnablerName());
                 }
             }
             if (core.getBootstrap().isOnline(core.getUUID(args[1], false))) {
                 Player target = Bukkit.getPlayer(core.getUUID(args[1], false));
                 if (!core.getString("Coins.Give target", target.spigot().getLocale()).equals("")) {
-                    target.sendMessage(core.getString("Coins.Give target", target.spigot().getLocale()).replaceAll("%coins%", String.valueOf(coins)).replaceAll("%multiplier_format%", multiplier));
+                    target.sendMessage(core.getString("Coins.Give target", target.spigot().getLocale()).replaceAll("%coins%", df.format(coins)).replaceAll("%multiplier_format%", multiplier));
                 }
             }
             CoinsAPI.addCoins(args[1], coins, multiply);
             if (!core.getString("Coins.Give", lang).equals("")) {
-                sender.sendMessage(core.getString("Coins.Give", lang).replaceAll("%coins%", String.valueOf(coins)).replaceAll("%target%", args[1]));
+                sender.sendMessage(core.getString("Coins.Give", lang).replaceAll("%coins%", df.format(coins)).replaceAll("%target%", args[1]));
             }
         } else {
             sender.sendMessage(core.getString("Errors.Unknown command", lang));
@@ -220,7 +222,7 @@ public class CoinsCommand extends Command {
                         if (CoinsAPI.isindb(args[1])) {
                             CoinsAPI.takeCoins(args[1], coins);
                             if (!core.getString("Coins.Take", lang).equals("")) {
-                                sender.sendMessage(core.getString("Coins.Take", lang).replaceAll("%coins%", String.valueOf(coins)).replaceAll("%newcoins%", String.valueOf(finalcoins)).replaceAll("%target%", args[1]));
+                                sender.sendMessage(core.getString("Coins.Take", lang).replaceAll("%coins%", df.format(coins)).replaceAll("%newcoins%", df.format(finalcoins)).replaceAll("%target%", args[1]));
                             }
                         } else {
                             sender.sendMessage(core.getString("Errors.Unknown player", lang).replaceAll("%target%", args[1]));
@@ -233,10 +235,10 @@ public class CoinsCommand extends Command {
                     if (CoinsAPI.getCoins(target.getUniqueId()) >= coins) {
                         CoinsAPI.takeCoins(args[1], coins);
                         if (!core.getString("Coins.Take", lang).equals("")) {
-                            sender.sendMessage(core.getString("Coins.Take", lang).replaceAll("%target%", target.getName()).replaceAll("%coins%", String.valueOf(coins)).replaceAll("%newcoins%", String.valueOf(finalcoins)));
+                            sender.sendMessage(core.getString("Coins.Take", lang).replaceAll("%target%", target.getName()).replaceAll("%coins%", df.format(coins)).replaceAll("%newcoins%", df.format(finalcoins)));
                         }
                         if (!core.getString("Coins.Take target", target.spigot().getLocale()).equals("")) {
-                            target.sendMessage(core.getString("Coins.Take target", target.spigot().getLocale()).replaceAll("%coins%", String.valueOf(finalcoins)));
+                            target.sendMessage(core.getString("Coins.Take target", target.spigot().getLocale()).replaceAll("%coins%", df.format(finalcoins)));
                         }
                     }
                 }
@@ -288,7 +290,7 @@ public class CoinsCommand extends Command {
                 if (CoinsAPI.isindb(args[1])) {
                     CoinsAPI.setCoins(args[1], coins);
                     if (!core.getString("Coins.Set", lang).equals("")) {
-                        sender.sendMessage(core.getString("Coins.Set", lang).replaceAll("%target%", args[1]).replaceAll("%coins%", String.valueOf(coins)));
+                        sender.sendMessage(core.getString("Coins.Set", lang).replaceAll("%target%", args[1]).replaceAll("%coins%", df.format(coins)));
                     }
                 } else {
                     sender.sendMessage(core.getString("Errors.Unknown player", lang).replaceAll("%target%", args[1]));
@@ -309,7 +311,7 @@ public class CoinsCommand extends Command {
         int i = 0;
         for (String player : topMap.keySet()) {
             i++;
-            sender.sendMessage(core.getString("Coins.Top.List", lang).replaceAll("%top%", String.valueOf(i)).replaceAll("%player%", player).replaceAll("%coins%", String.valueOf((int) Math.round(topMap.get(player)))));
+            sender.sendMessage(core.getString("Coins.Top.List", lang).replaceAll("%top%", String.valueOf(i)).replaceAll("%player%", player).replaceAll("%coins%", df.format(topMap.get(player))));
         }
         return true;
     }
