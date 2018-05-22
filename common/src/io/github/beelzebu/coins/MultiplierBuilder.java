@@ -24,9 +24,12 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
+ * Class to build multipliers.
  *
  * @author Beelzebu
+ * @deprecated internal use only
  */
+@Deprecated
 public final class MultiplierBuilder {
 
     private final String server;

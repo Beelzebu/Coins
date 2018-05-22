@@ -59,7 +59,6 @@ public class CoinsCommand extends Command {
             return true;
         }
         core.getBootstrap().runAsync(() -> {
-
             if (args.length == 0) {
                 if (sender instanceof Player) {
                     sender.sendMessage(core.getString("Coins.Own coins", lang).replaceAll("%coins%", CoinsAPI.getCoinsString(sender.getName())));
@@ -85,7 +84,7 @@ public class CoinsCommand extends Command {
             } else if (args[0].equalsIgnoreCase("top") && args.length == 1) {
                 top(sender, args, lang);
             } else if (args[0].equalsIgnoreCase("import")) {
-                imporT(sender, args, lang);
+                importer(sender, args, lang);
             } else if (args[0].equalsIgnoreCase("importdb")) {
                 importDB(sender, args, lang);
             } else if (args[0].equalsIgnoreCase("reload")) {
@@ -101,31 +100,25 @@ public class CoinsCommand extends Command {
         return true;
     }
 
-    public boolean help(CommandSender sender, String[] args, String lang) {
-        core.getMessages(lang).getStringList("Help.User").forEach((str) -> {
-            sender.sendMessage(core.rep(str));
-        });
+    private void help(CommandSender sender, String[] args, String lang) {
+        core.getMessages(lang).getStringList("Help.User").forEach(line -> sender.sendMessage(core.rep(line)));
         if (sender.hasPermission("coins.admin")) {
-            core.getMessages(lang).getStringList("Help.Admin").forEach((str) -> {
-                sender.sendMessage(core.rep(str));
-            });
+            core.getMessages(lang).getStringList("Help.Admin").forEach(line -> sender.sendMessage(core.rep(line)));
         }
-        return true;
     }
 
-    public boolean target(CommandSender sender, String[] args, String lang) {
+    private void target(CommandSender sender, String[] args, String lang) {
         sender.sendMessage(core.getString("Coins.Get", lang).replaceAll("%coins%", CoinsAPI.getCoinsString(args[0])).replaceAll("%target%", args[0]));
-        return true;
     }
 
-    public boolean pay(CommandSender sender, String[] args, String lang) {
+    private void pay(CommandSender sender, String[] args, String lang) {
         if (!sender.hasPermission("coins.user.pay")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
-            return true;
+            return;
         }
-        if (args.length < 3 || args[1].equalsIgnoreCase("?")) {
+        if (args.length < 3 || args[1].equalsIgnoreCase("?") || args.length == 3 && !isNumber(args[2])) {
             sender.sendMessage(core.getString("Help.Pay Usage", lang));
-            return true;
+            return;
         }
         if (sender instanceof Player && args.length == 3 && !args[1].equalsIgnoreCase(sender.getName())) {
             Player target = Bukkit.getPlayer(args[1]);
@@ -152,26 +145,25 @@ public class CoinsCommand extends Command {
                     sender.sendMessage(core.getString("Errors.No Zero", lang));
                 }
             }
-            return true;
+            return;
         }
         if (!(sender instanceof Player)) {
             sender.sendMessage(core.getString("Errors.Console", lang));
         }
-        return true;
     }
 
-    public boolean give(CommandSender sender, String[] args, String lang) {
+    private void give(CommandSender sender, String[] args, String lang) {
         if (!sender.hasPermission("coins.admin") || !sender.hasPermission("coins.admin.give")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
-            return true;
+            return;
         }
-        if (args.length < 3 || args.length > 4) {
+        if (args.length < 3 || args.length > 4 || args.length >= 3 && !isNumber(args[2])) {
             sender.sendMessage(core.getString("Help.Give Usage", lang));
-            return true;
+            return;
         }
         if (!CoinsAPI.isindb(args[1])) {
             sender.sendMessage(core.getString("Errors.Unknown player", lang).replaceAll("%target%", args[1]));
-            return true;
+            return;
         }
         String multiplier = "";
         boolean multiply = false;
@@ -198,69 +190,55 @@ public class CoinsCommand extends Command {
         } else {
             sender.sendMessage(core.getString("Errors.Unknown command", lang));
         }
-        return true;
     }
 
-    public boolean take(CommandSender sender, String[] args, String lang) {
+    private void take(CommandSender sender, String[] args, String lang) {
         if (!sender.hasPermission("coins.admin") || !sender.hasPermission("coins.admin.take")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
-            return true;
+            return;
         }
-        if (args.length < 3) {
+        if (args.length < 3 || args.length == 3 && !isNumber(args[2])) {
             sender.sendMessage(core.getString("Help.Take Usage", lang));
-            return true;
+            return;
         }
+        if (!CoinsAPI.isindb(args[1])) {
+            sender.sendMessage(core.getString("Errors.Unknown player", lang).replaceAll("%target%", args[1]));
+            return;
+        }
+        double currentCoins = CoinsAPI.getCoins(args[1]);
+        double coins = Double.parseDouble(args[2]);
+        if (currentCoins < coins) {
+            sender.sendMessage(core.getString("Errors.No Negative", lang));
+            return;
+        }
+        double finalCoins = currentCoins - coins;
         if (args.length == 3) {
             Player target = Bukkit.getPlayer(args[1]);
-            if (args[0].equalsIgnoreCase("take")) {
-                double coins = Double.parseDouble(args[2]);
-                double finalcoins = CoinsAPI.getCoins(args[1]) - coins;
-                if (target == null) {
-                    if (CoinsAPI.getCoins(args[1]) < coins) {
-                        sender.sendMessage(core.getString("Errors.No Negative", lang));
-                    } else if (CoinsAPI.getCoins(args[1]) >= coins) {
-                        if (CoinsAPI.isindb(args[1])) {
-                            CoinsAPI.takeCoins(args[1], coins);
-                            if (!core.getString("Coins.Take", lang).equals("")) {
-                                sender.sendMessage(core.getString("Coins.Take", lang).replaceAll("%coins%", df.format(coins)).replaceAll("%newcoins%", df.format(finalcoins)).replaceAll("%target%", args[1]));
-                            }
-                        } else {
-                            sender.sendMessage(core.getString("Errors.Unknown player", lang).replaceAll("%target%", args[1]));
-                        }
-                    }
-                } else {
-                    if (CoinsAPI.getCoins(target.getUniqueId()) < coins) {
-                        sender.sendMessage(core.getString("Errors.No Negative", lang));
-                    }
-                    if (CoinsAPI.getCoins(target.getUniqueId()) >= coins) {
-                        CoinsAPI.takeCoins(args[1], coins);
-                        if (!core.getString("Coins.Take", lang).equals("")) {
-                            sender.sendMessage(core.getString("Coins.Take", lang).replaceAll("%target%", target.getName()).replaceAll("%coins%", df.format(coins)).replaceAll("%newcoins%", df.format(finalcoins)));
-                        }
-                        if (!core.getString("Coins.Take target", target.spigot().getLocale()).equals("")) {
-                            target.sendMessage(core.getString("Coins.Take target", target.spigot().getLocale()).replaceAll("%coins%", df.format(finalcoins)));
-                        }
-                    }
+            if (!core.getString("Coins.Take", lang).equals("")) {
+                sender.sendMessage(core.getString("Coins.Take", lang).replaceAll("%coins%", df.format(coins)).replaceAll("%newcoins%", df.format(finalCoins)).replaceAll("%target%", args[1]));
+            }
+            if (target != null) {
+                if (!core.getString("Coins.Take target", target.spigot().getLocale()).equals("")) {
+                    target.sendMessage(core.getString("Coins.Take target", target.spigot().getLocale()).replaceAll("%coins%", df.format(finalCoins)));
                 }
             }
         }
-        return true;
     }
 
-    public boolean reset(CommandSender sender, String[] args, String lang) {
+    private void reset(CommandSender sender, String[] args, String lang) {
         if (!sender.hasPermission("coins.admin") || !sender.hasPermission("coins.admin.reset")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
-            return true;
+            return;
         }
         if (args.length < 2) {
             sender.sendMessage(core.getString("Help.Reset Usage", lang));
-            return true;
+            return;
         }
         if (CoinsAPI.isindb(args[1])) {
             CoinsAPI.resetCoins(args[1]);
         } else {
             sender.sendMessage(core.getString("Errors.Unknown player", lang).replaceAll("%target%", args[1]));
-            return true;
+            return;
         }
 
         Player target = Bukkit.getPlayer(args[1]);
@@ -272,17 +250,16 @@ public class CoinsCommand extends Command {
         if (target != null && !core.getString("Coins.Reset target", target.spigot().getLocale()).equals("")) {
             target.sendMessage(core.getString("Coins.Reset target", target.spigot().getLocale()));
         }
-        return true;
     }
 
-    public boolean set(CommandSender sender, String[] args, String lang) {
+    private void set(CommandSender sender, String[] args, String lang) {
         if (!sender.hasPermission("coins.admin")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
-            return true;
+            return;
         }
-        if (args.length < 3) {
+        if (args.length < 3 || args.length == 3 && !isNumber(args[2])) {
             sender.sendMessage(core.getString("Help.Set Usage", lang));
-            return true;
+            return;
         }
         if (args.length == 3) {
             if (args[0].equalsIgnoreCase("set")) {
@@ -294,7 +271,7 @@ public class CoinsCommand extends Command {
                     }
                 } else {
                     sender.sendMessage(core.getString("Errors.Unknown player", lang).replaceAll("%target%", args[1]));
-                    return true;
+                    return;
                 }
                 Player target = Bukkit.getPlayer(args[1]);
                 if (target != null && !core.getString("Coins.Set target", target.spigot().getLocale()).equals("")) {
@@ -302,38 +279,53 @@ public class CoinsCommand extends Command {
                 }
             }
         }
-        return true;
     }
 
-    public boolean top(CommandSender sender, String[] args, String lang) {
-        sender.sendMessage(core.getString("Coins.Top.Header", lang));
-        Map<String, Double> topMap = CoinsAPI.getTopPlayers(10);
+    private void top(CommandSender sender, String[] args, String lang) {
         int i = 0;
-        for (String player : topMap.keySet()) {
+        sender.sendMessage(core.getString("Coins.Top.Header", lang));
+        for (Map.Entry<String, Double> ent : CoinsAPI.getTopPlayers(10).entrySet()) {
             i++;
-            sender.sendMessage(core.getString("Coins.Top.List", lang).replaceAll("%top%", String.valueOf(i)).replaceAll("%player%", player).replaceAll("%coins%", df.format(topMap.get(player))));
+            sender.sendMessage(core.getString("Coins.Top.List", lang).replaceAll("%top%", String.valueOf(i)).replaceAll("%player%", ent.getKey()).replaceAll("%coins%", df.format(ent.getValue())));
         }
-        return true;
     }
 
-    private boolean multiplier(CommandSender sender, String[] args, String lang) {
-        // TODO: add a command to get all multipliers for a player and a command to enable any multiplier by the ID.
+    /**
+     * TODO List:
+     * <ul>
+     * <li>add a command to get all multipliers for a player</li>
+     * <li>add a command to enable any multiplier by the ID</li>
+     * <li>add an argument to change multiplier type</li>
+     * <li>add a command to edit existing multipliers</li>
+     * <li>update messages files to match new command</li>
+     * </ul>
+     */
+    private void multiplier(CommandSender sender, String[] args, String lang) {
         if ((sender.hasPermission("coins.admin") || sender.hasPermission("coins.admin.multiplier")) && args.length >= 2) {
             if (args[1].equalsIgnoreCase("help")) {
+                /**
+                 * TODO List:
+                 * <ul>
+                 * <li>add a command to get all multipliers for a player</li>
+                 * <li>add a command to enable any multiplier by the ID</li>
+                 * <li>add an argument to change multiplier type</li>
+                 * <li>add a command to edit existing multipliers</li>
+                 * <li>update messages files to match new command</li>
+                 * </ul>
+                 */
                 core.getMessages(lang).getStringList("Help.Multiplier").forEach(line -> {
                     sender.sendMessage(core.rep(line));
                 });
             }
             if (args[1].equalsIgnoreCase("create")) {
                 if (args.length >= 5 && CoinsAPI.isindb(args[2])) {
-                    try {
-                        int multiplier = Integer.parseInt(args[3]);
-                        int minutes = Integer.parseInt(args[4]);
-                        core.getDatabase().createMultiplier(core.getUUID(args[2], false), multiplier, minutes, ((args.length == 6 && !args[5].equals("")) ? args[5] : null), MultiplierType.SERVER);
-                        sender.sendMessage(core.getString("Multipliers.Created", lang).replaceAll("%player%", args[2]));
-                    } catch (NumberFormatException e) {
+                    if (!isNumber(args[3]) || !isNumber(args[4])) {
                         sender.sendMessage(core.getString("Help.Multiplier Create", lang));
                     }
+                    int multiplier = Integer.parseInt(args[3]);
+                    int minutes = Integer.parseInt(args[4]);
+                    core.getDatabase().createMultiplier(core.getUUID(args[2], false), multiplier, minutes, ((args.length == 6 && !args[5].equals("")) ? args[5] : null), MultiplierType.SERVER);
+                    sender.sendMessage(core.getString("Multipliers.Created", lang).replaceAll("%player%", args[2]));
                 } else {
                     sender.sendMessage(core.getString("Help.Multiplier Create", lang));
                 }
@@ -341,7 +333,7 @@ public class CoinsCommand extends Command {
             if (args[1].equalsIgnoreCase("get")) {
                 sender.sendMessage(CoinsAPI.getMultiplier().getMultiplierTimeFormated());
             }
-            return true;
+            return;
         }
         if (args.length == 1) {
             if (sender instanceof Player) {
@@ -352,10 +344,9 @@ public class CoinsCommand extends Command {
         } else {
             sender.sendMessage(core.getString("Help.Multiplier Usage", lang));
         }
-        return true;
     }
 
-    private boolean execute(CommandSender sender, String[] args, String lang) {
+    private void execute(CommandSender sender, String[] args, String lang) {
         if (sender instanceof Player) {
             Executor ex = ExecutorManager.getExecutor(args[1]);
             if (ex == null) {
@@ -366,11 +357,11 @@ public class CoinsCommand extends Command {
                         CoinsAPI.takeCoins(((Player) sender).getUniqueId(), ex.getCost());
                     } else {
                         sender.sendMessage(core.getString("Errors.No Coins", lang));
-                        return true;
+                        return;
                     }
                 }
                 if (!ex.getCommands().isEmpty()) {
-                    core.getBootstrap().runSync(() -> {
+                    core.getBootstrap().runSync(() -> { // who knows ¯\_(ツ)_/¯
                         String command;
                         for (String str : ex.getCommands()) {
                             command = core.rep(str).replaceAll("%player%", sender.getName());
@@ -388,13 +379,12 @@ public class CoinsCommand extends Command {
         } else {
             sender.sendMessage(core.getString("Errors.Console", lang));
         }
-        return true;
     }
 
-    private boolean imporT(CommandSender sender, String[] args, String lang) {
+    private void importer(CommandSender sender, String[] args, String lang) {
         if (sender instanceof Player) {
             sender.sendMessage(core.rep("%prefix% &cThis command must be executed from the console."));
-            return true;
+            return;
         }
         if (args.length == 2) {
             boolean worked = false;
@@ -410,18 +400,16 @@ public class CoinsCommand extends Command {
                 sender.sendMessage(core.rep("%prefix% You specified an invalid plugin to import, possible values:"));
                 sender.sendMessage(Arrays.toString(ImportManager.PluginToImport.values()));
             }
-            return true;
         } else {
             sender.sendMessage(core.rep("%prefix% Command usage: /coins import <plugin>"));
             sender.sendMessage(core.rep("&cCurrently supported plugins to import: " + Arrays.toString(ImportManager.PluginToImport.values())));
         }
-        return true;
     }
 
-    private boolean importDB(CommandSender sender, String[] args, String lang) {
+    private void importDB(CommandSender sender, String[] args, String lang) {
         if (sender instanceof Player) {
             sender.sendMessage(core.rep("%prefix% &cThis command must be executed from the console."));
-            return true;
+            return;
         }
         if (args.length == 2) {
             boolean worked = false;
@@ -437,15 +425,13 @@ public class CoinsCommand extends Command {
                 sender.sendMessage(core.rep("%prefix% You specified an invalid storage to import, possible values:"));
                 sender.sendMessage(Arrays.toString(StorageType.values()));
             }
-            return true;
         } else {
             sender.sendMessage(core.rep("%prefix% Command usage: /coins importdb <storage>"));
             sender.sendMessage(core.rep("&cCurrently supported storages to import: " + Arrays.toString(StorageType.values())));
         }
-        return true;
     }
 
-    private boolean reload(CommandSender sender) {
+    private void reload(CommandSender sender) {
         if (sender.hasPermission("coins.admin.reload")) {
             if (core.getConfig().getBoolean("Vault.Use", false)) {
                 new CoinsEconomy((CoinsBukkitMain) core.getBootstrap()).shutdown();
@@ -463,12 +449,11 @@ public class CoinsCommand extends Command {
             }
             sender.sendMessage(core.rep("%prefix% Reloaded config and all loaded messages files. If you want reload the command, you need to restart the server."));
         }
-        return true;
     }
 
-    private boolean about(CommandSender sender) {
+    private void about(CommandSender sender) {
         if (sender.hasPermission("coins.admin") || sender.getName().equals("Beelzebu")) {
-            sender.sendMessage(core.rep("%prefix% Plugin info:"));
+            sender.sendMessage(core.rep("%prefix% Coins plugin by Beelzebu, plugin info:"));
             sender.sendMessage("");
             sender.sendMessage(core.rep(" &cVersion:&7 " + core.getBootstrap().getVersion()));
             sender.sendMessage(core.rep(" &cExecutors:&7 " + ExecutorManager.getExecutors().size()));
@@ -476,7 +461,21 @@ public class CoinsCommand extends Command {
             sender.sendMessage(core.rep(" &cMultipliers in cache:&7 " + CacheManager.getMultipliersData().asMap().keySet()));
             sender.sendMessage(core.rep(" &cPlayers in cache:&7 " + CacheManager.getPlayersData().asMap().size()));
             sender.sendMessage("");
+            sender.sendMessage(core.rep(" &cSource Code:&7 https://github.com/Beelzebu/Coins"));
+            sender.sendMessage(core.rep(" &cLicense:&7 GNU AGPL v3 (&ahttp://www.gnu.org/licenses/#AGPL&7)"));
+            sender.sendMessage("");
         }
-        return true;
+    }
+
+    private boolean isNumber(String number) {
+        if (number == null) {
+            return false;
+        }
+        try {
+            Double.parseDouble(number);
+            return true;
+        } catch (NumberFormatException ex) {
+            return false;
+        }
     }
 }

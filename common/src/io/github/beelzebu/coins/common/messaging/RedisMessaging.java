@@ -56,20 +56,6 @@ public class RedisMessaging extends IMessagingService {
     }
 
     @Override
-    public void getMultipliers() {
-        try (Jedis jedis = pool.getResource()) {
-            jedis.publish("coins-multiplier", "get");
-        }
-    }
-
-    @Override
-    public void getExecutors() {
-        try (Jedis jedis = pool.getResource()) {
-            jedis.publish("coins-executors", "get");
-        }
-    }
-
-    @Override
     public void stop() {
         psl.poison();
         pool.close();

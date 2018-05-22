@@ -54,6 +54,10 @@ public final class BungeeMessaging extends ProxyMessaging implements Listener {
         switch (MessageType.valueOf(message.get("type").getAsString())) {
             case USER_UPDATE:
                 sendMessage(message.toString(), true);
+                break;
+            default:
+                sendMessage(message.toString(), false);
+                break;
         }
     }
 

@@ -50,21 +50,29 @@ public final class Multiplier {
     private int id;
     private String server;
     private MultiplierType type;
-    @Getter(AccessLevel.NONE)
-    private String enablerName = null;
-    @Getter(AccessLevel.NONE)
-    private UUID enablerUUID = null;
+    private String enablerName = "SERVER";
+    private UUID enablerUUID = UUID.randomUUID();
     @Setter(AccessLevel.NONE)
     private boolean enabled = false;
     @Setter(AccessLevel.PACKAGE)
     private boolean queue = false;
-    private Set<MultiplierData> extradata;
     @Setter(AccessLevel.PACKAGE)
     private long endTime = 0;
+    private Set<MultiplierData> extradata;
 
     public Multiplier(String server, MultiplierData baseData) {
         this.baseData = baseData;
         this.server = server;
+    }
+
+    /**
+     * Enable this multiplier with the default uuid and name from
+     * {@link getEnablerUUID()} and {@link getEnablerName()}
+     *
+     * @param queue if the multiplier should be queued or inmediatly enabled.
+     */
+    public void enable(boolean queue) {
+        enable(getEnablerUUID(), getEnablerName(), queue);
     }
 
     /**
@@ -88,10 +96,6 @@ public final class Multiplier {
         }
         this.queue = queue;
         if (!queue) {
-            if (type.equals(MultiplierType.GLOBAL)) {
-                extradata.add(CoinsAPI.getMultiplier().getBaseData());
-                extradata.addAll(CoinsAPI.getMultiplier().getExtradata());
-            }
             if (CacheManager.getMultiplier(server) != null && CacheManager.getMultiplier(server).getId() != id) {
                 switch (CacheManager.getMultiplier(server).getType()) {
                     case GLOBAL:
@@ -105,7 +109,7 @@ public final class Multiplier {
                     case PERSONAL:
                         extradata.add(CacheManager.getMultiplier(server).getBaseData());
                         extradata.addAll(CacheManager.getMultiplier(server).getExtradata());
-                        CacheManager.addMultiplier(server + " " + enablerUUID.toString(), this);
+                        CacheManager.addMultiplier(server + " " + enablerUUID, this);
                         break;
                     default:
                         break;
@@ -122,15 +126,16 @@ public final class Multiplier {
      * Disable and then delete this multiplier from the database.
      */
     public void disable() {
-        enabled = false;
-        queue = false;
-        baseData = null;
-        enablerName = null;
-        enablerUUID = null;
-        server = null;
-        CORE.getDatabase().deleteMultiplier(this);
-        CacheManager.getQueuedMultipliers().remove(this);
-        CacheManager.deleteMultiplier(this);
+        try {
+            CORE.getDatabase().deleteMultiplier(this);
+            CacheManager.getQueuedMultipliers().remove(this);
+            CacheManager.deleteMultiplier(this);
+            CORE.getMessagingService().disableMultiplier(this);
+        } catch (Exception ex) {
+            CORE.log("An unexpected exception has ocurred while disabling a multiplier with the id: " + id);
+            CORE.log("Check plugin log files for more information, please report this bug on https://github.com/Beelzebu/Coins/issues");
+            CORE.debug(ex);
+        }
     }
 
     public long checkMultiplierTime() {
@@ -173,29 +178,31 @@ public final class Multiplier {
         return baseData.getMinutes();
     }
 
-    private String formatTime(final long millis) {
-        long seconds = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
-        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis));
-        long hours = TimeUnit.MILLISECONDS.toHours(millis) - TimeUnit.DAYS.toHours(TimeUnit.MILLISECONDS.toDays(millis));
-        long days = TimeUnit.MILLISECONDS.toDays(millis);
-
-        StringBuilder b = new StringBuilder();
-        if (days > 0) {
-            b.append(days);
-            b.append(", ");
-        }
-        b.append(hours == 0 ? "00" : hours < 10 ? "0" + hours : hours);
-        b.append(":");
-        b.append(minutes == 0 ? "00" : minutes < 10 ? "0" + minutes : minutes);
-        b.append(":");
-        b.append(seconds == 0 ? "00" : seconds < 10 ? "0" + seconds : seconds);
-        return b.toString();
+    /**
+     * Get the multiplier for this server.
+     *
+     * @return server for this multiplier.
+     */
+    public String getServer() {
+        return server.toLowerCase();
     }
 
+    /**
+     * Get the UUID of who enabled this multiplier
+     *
+     * @return UUID of who enabled this multiplier, never should be null unless
+     * specified by other plugin.
+     */
     public UUID getEnablerUUID() {
         return enablerUUID == null ? baseData.getEnablerUUID() : enablerUUID;
     }
 
+    /**
+     * Get the username of who enabled this multiplier
+     *
+     * @return username of who enabled this multiplier, never should be null
+     * unless specified by other plugin.
+     */
     public String getEnablerName() {
         return enablerName == null ? baseData.getEnablerName() : enablerName;
     }
@@ -219,8 +226,9 @@ public final class Multiplier {
         Preconditions.checkNotNull(multiplier, "Tried to load a null Multiplier");
         CORE.debug("Loading multiplier from JSON: " + multiplier);
         try {
-            JsonObject data = CoinsCore.getInstance().getGson().fromJson(multiplier, JsonObject.class);
-            MultiplierBuilder multi = MultiplierBuilder.newBuilder(data.get("server").getAsString(), MultiplierType.valueOf(data.get("type").getAsString()), new MultiplierData(UUID.fromString(data.get("enableruuid").getAsString()), data.get("enabler").getAsString(), data.get("amount").getAsInt(), data.get("minutes").getAsInt()))
+            JsonObject data = CORE.getGson().fromJson(multiplier, JsonObject.class);
+            MultiplierBuilder multi = MultiplierBuilder
+                    .newBuilder(data.get("server").getAsString(), MultiplierType.valueOf(data.get("type").getAsString()), new MultiplierData(UUID.fromString(data.get("enableruuid").getAsString()), data.get("enabler").getAsString(), data.get("amount").getAsInt(), data.get("minutes").getAsInt()))
                     .setID(data.get("id").getAsInt())
                     .setEnablerName(data.get("enabler").getAsString())
                     .setEnablerUUID(UUID.fromString(data.get("enableruuid").getAsString()))
@@ -234,5 +242,24 @@ public final class Multiplier {
             CORE.debug(ex);
         }
         return null;
+    }
+
+    private String formatTime(final long millis) {
+        long seconds = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis));
+        long hours = TimeUnit.MILLISECONDS.toHours(millis) - TimeUnit.DAYS.toHours(TimeUnit.MILLISECONDS.toDays(millis));
+        long days = TimeUnit.MILLISECONDS.toDays(millis);
+
+        StringBuilder b = new StringBuilder();
+        if (days > 0) {
+            b.append(days);
+            b.append(", ");
+        }
+        b.append(hours == 0 ? "00" : hours < 10 ? "0" + hours : hours);
+        b.append(":");
+        b.append(minutes == 0 ? "00" : minutes < 10 ? "0" + minutes : minutes);
+        b.append(":");
+        b.append(seconds == 0 ? "00" : seconds < 10 ? "0" + seconds : seconds);
+        return b.toString();
     }
 }

@@ -32,9 +32,8 @@ import io.github.beelzebu.coins.common.utils.database.SQLQuery;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -206,8 +205,8 @@ public abstract class CoinsDatabase {
         }
     }
 
-    public final Map<String, Double> getTopPlayers(int top) {
-        Map<String, Double> topplayers = new HashMap<>();
+    public final LinkedHashMap<String, Double> getTopPlayers(int top) {
+        LinkedHashMap<String, Double> topplayers = new LinkedHashMap<>();
         try (Connection c = getConnection(); ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SELECT_TOP, top).executeQuery();) {
             while (res.next()) {
                 String playername = res.getString("nick");
@@ -310,8 +309,8 @@ public abstract class CoinsDatabase {
         return null;
     }
 
-    public final Map<String, Double> getAllPlayers() {
-        Map<String, Double> data = new HashMap<>();
+    public final LinkedHashMap<String, Double> getAllPlayers() {
+        LinkedHashMap<String, Double> data = new LinkedHashMap<>();
         try (Connection c = getConnection(); ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SELECT_ALL_PLAYERS).executeQuery()) {
             while (res.next()) {
                 data.put(res.getString("nick") + "," + res.getString("uuid"), res.getDouble("balance"));

@@ -68,7 +68,7 @@ public final class BukkitMessaging extends ProxyMessaging implements PluginMessa
 
     @Override
     protected void sendMessage(JsonObject message) {
-
+        sendMessage(message.toString(), false);
     }
 
     @Override

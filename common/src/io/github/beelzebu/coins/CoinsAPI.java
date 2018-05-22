@@ -20,11 +20,9 @@ package io.github.beelzebu.coins;
 
 import io.github.beelzebu.coins.CoinsResponse.CoinsResponseType;
 import io.github.beelzebu.coins.common.CacheManager;
-import io.github.beelzebu.coins.common.CacheManager;
-import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.CoinsCore;
 import java.text.DecimalFormat;
-import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -317,7 +315,7 @@ public final class CoinsAPI {
      * users for the top.
      * @return The ordered top list of players and his balance.
      */
-    public static Map<String, Double> getTopPlayers(int top) {
+    public static LinkedHashMap<String, Double> getTopPlayers(int top) {
         return CORE.getDatabase().getTopPlayers(top);
     }
 

@@ -31,15 +31,5 @@ public abstract class ProxyMessaging extends IMessagingService {
         return MessagingService.BUNGEECORD;
     }
 
-    @Override
-    public final void getMultipliers() {
-        sendMessage("getMultipliers", false);
-    }
-
-    @Override
-    public final void getExecutors() {
-        sendMessage("getExecutors", false);
-    }
-
     protected abstract void sendMessage(String message, boolean wait);
 }

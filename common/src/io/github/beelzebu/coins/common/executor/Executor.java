@@ -18,6 +18,7 @@
  */
 package io.github.beelzebu.coins.common.executor;
 
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import io.github.beelzebu.coins.common.CoinsCore;
 import java.util.List;
@@ -38,12 +39,12 @@ public class Executor {
     private final double cost;
     private final List<String> commands;
 
-    public String toJson() {
+    public JsonObject toJson() {
         return toJson(this);
     }
 
-    public static String toJson(Executor ex) {
-        return CORE.getGson().toJson(ex);
+    public static JsonObject toJson(Executor ex) {
+        return CORE.getGson().toJsonTree(ex).getAsJsonObject();
     }
 
     public static Executor fromJson(String json) throws JsonParseException {

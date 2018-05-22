@@ -36,14 +36,6 @@ public class DummyMessaging extends IMessagingService {
     }
 
     @Override
-    public void getMultipliers() {
-    }
-
-    @Override
-    public void getExecutors() {
-    }
-
-    @Override
     public void stop() {
     }
 

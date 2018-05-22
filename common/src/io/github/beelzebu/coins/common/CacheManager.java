@@ -18,7 +18,6 @@
  */
 package io.github.beelzebu.coins.common;
 
-import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.base.Charsets;
@@ -50,19 +49,18 @@ public final class CacheManager {
         CORE.getDatabase().updatePlayer(key, CORE.getNick(key, false).toLowerCase());
         return CORE.getDatabase().getCoins(key);
     });
-    private static final LoadingCache<String, Multiplier> MULTIPLIERS_DATA = Caffeine.newBuilder().build(new CacheLoader<String, Multiplier>() {
-        @Override
-        public Multiplier load(String key) {
-            Iterator<Multiplier> mult = QUEUED_MULTIPLIERS.iterator();
-            if (mult.hasNext()) {
-                Multiplier multi = mult.next();
-                CORE.getMessagingService().enableMultiplier(multi);
-                multi.enable(multi.getEnablerUUID(), multi.getEnablerName(), false);
-                mult.remove();
-                return multi;
+    private static final LoadingCache<String, Multiplier> MULTIPLIERS_DATA = Caffeine.newBuilder().build(k -> {
+        Iterator<Multiplier> it = CacheManager.QUEUED_MULTIPLIERS.iterator();
+        if (it.hasNext()) {
+            Multiplier multiplier = it.next();
+            if (multiplier.getServer().equals(k)) {
+                CORE.getMessagingService().enableMultiplier(multiplier);
+                multiplier.enable(false);
+                it.remove();
+                return multiplier;
             }
-            return null;
         }
+        return null;
     });
     private static final List<Multiplier> QUEUED_MULTIPLIERS = new ArrayList<>();
 
@@ -86,14 +84,15 @@ public final class CacheManager {
     }
 
     public static void addMultiplier(String server, Multiplier multiplier) {
-        multiplier.setServer(multiplier.getServer().toLowerCase());
-        MULTIPLIERS_DATA.put(server, multiplier);
+        MULTIPLIERS_DATA.put(server, multiplier); // put the multiplier in the cache
+        // store it in a local storage to load them again without quering database if the server is restarted
         try {
             if (!MULTIPLIERS_FILE.exists()) {
                 MULTIPLIERS_FILE.createNewFile();
             }
             Iterator<String> lines = FileUtils.readLines(MULTIPLIERS_FILE, Charsets.UTF_8).iterator();
             boolean exists = false;
+            // check if the multiplier was already stored in this server
             while (lines.hasNext()) {
                 String line = lines.next();
                 Multiplier mult = Multiplier.fromJson(line, false);
@@ -104,7 +103,6 @@ public final class CacheManager {
                 }
             }
             if (!exists) {
-                CORE.getMessagingService().enableMultiplier(multiplier);
                 try {
                     FileUtils.writeLines(MULTIPLIERS_FILE, Collections.singletonList(multiplier.toJson().toString() + "\n"), true);
                 } catch (IOException ex) {
@@ -134,15 +132,18 @@ public final class CacheManager {
         return multiplier;
     }
 
-    public static void deleteMultiplier(Multiplier multplier) {
-        if (multplier == null) {
-            return;
-        }
-        try {
+    /**
+     * Remove a multiplier from the cache and enabled multipliers storage
+     * (multipliers.json file in plugin's data folder)
+     *
+     * @param multiplier what multiplier we should delete.
+     */
+    public static void deleteMultiplier(Multiplier multiplier) {
+        Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
+        try { // remove it from local multiplier storage
             Iterator<String> lines = FileUtils.readLines(MULTIPLIERS_FILE, Charsets.UTF_8).iterator();
             while (lines.hasNext()) {
-                Multiplier multiplier = Multiplier.fromJson(lines.next(), false);
-                if (multiplier.getId() == multplier.getId()) {
+                if (Multiplier.fromJson(lines.next(), false).getId() == multiplier.getId()) {
                     MULTIPLIERS_DATA.invalidate(multiplier.getServer());
                     lines.remove();
                     break;
@@ -153,13 +154,13 @@ public final class CacheManager {
             CORE.log("An error has ocurred removing a multiplier from local storage.");
             CORE.debug(ex.getMessage());
         }
-        MULTIPLIERS_DATA.invalidate(multplier.getServer());
+        MULTIPLIERS_DATA.invalidate(multiplier.getServer());
     }
 
     public static void updateMultiplier(Multiplier multiplier, boolean callenable) {
         Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
         if (callenable) {
-            multiplier.enable(multiplier.getEnablerUUID(), multiplier.getEnablerName(), true);
+            multiplier.enable(true);
             CORE.getMessagingService().enableMultiplier(multiplier);
         } else {
             CORE.getMessagingService().updateMultiplier(multiplier);
