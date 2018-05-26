@@ -12,7 +12,6 @@
 
     <artifactId>coins-bukkit</artifactId>
     <packaging>jar</packaging>
-    <name>Coins-Bukkit</name>
 
     <properties>
         <libsDir>${basedir}/lib</libsDir>
@@ -41,7 +40,7 @@
     <dependencies>
         <dependency>
             <groupId>io.github.beelzebu</groupId>
-            <artifactId>Coins</artifactId>
+            <artifactId>coins-api</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>

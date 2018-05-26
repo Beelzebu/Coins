@@ -10,9 +10,8 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>Coins</artifactId>
+    <artifactId>coins-api</artifactId>
     <packaging>jar</packaging>
-    <name>Coins-API</name>
 
     <repositories>
         <repository>
