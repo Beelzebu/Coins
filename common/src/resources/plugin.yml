@@ -1,4 +1,4 @@
-name: ${project.artifactId}
+name: Coins
 softdepend: [PlaceholderAPI, Vault, LeaderHeads]
 main: ${project.groupId}.coins.bukkit.CoinsBukkitMain
 version: ${project.version}
