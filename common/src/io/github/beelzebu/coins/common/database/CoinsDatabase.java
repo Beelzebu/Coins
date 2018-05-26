@@ -68,7 +68,7 @@ public abstract class CoinsDatabase {
 
     public final double getCoins(UUID uuid) {
         double coins = -1;
-        try (Connection c = getConnection(); ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SEARCH_USER_ONLINE, uuid).executeQuery();) {
+        try (Connection c = getConnection(); ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SEARCH_USER_ONLINE, uuid).executeQuery()) {
             if (res.next()) {
                 coins = res.getDouble("balance");
             } else if (CORE.getBootstrap().isOnline(uuid)) {
@@ -82,27 +82,11 @@ public abstract class CoinsDatabase {
         return coins;
     }
 
-    public final double getCoins(String name) {
-        double coins = -1;
-        try (Connection c = getConnection(); ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SEARCH_USER_OFFLINE, name).executeQuery();) {
-            if (res.next()) {
-                coins = res.getDouble("balance");
-            } else if (CORE.getBootstrap().isOnline(name)) {
-                coins = CORE.getConfig().getDouble("General.Starting Coins", 0);
-                createPlayer(c, CORE.getUUID(name, false), name, coins);
-            }
-        } catch (SQLException ex) {
-            CORE.log("An internal error has occurred creating the data for player: " + name);
-            CORE.debug(ex);
-        }
-        return coins;
-    }
-
     public final CoinsResponse setCoins(UUID uuid, double amount) {
         CoinsResponse response;
         try (Connection c = getConnection()) {
             if (CoinsAPI.getCoins(uuid) > -1 || isindb(uuid)) {
-                DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_COINS_ONLINE, amount, uuid);
+                DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_COINS_ONLINE, amount, uuid).executeUpdate();
                 CORE.getMessagingService().publishUser(uuid, amount);
                 response = new CoinsResponse(CoinsResponse.CoinsResponseType.SUCCESS, "");
             } else {
