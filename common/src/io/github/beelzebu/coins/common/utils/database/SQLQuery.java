@@ -30,66 +30,90 @@ import lombok.Getter;
 public enum SQLQuery {
     /**
      * Select an user by his uuid.
-     *
-     * @param uuid UUID for the query.
+     * <br></br>
+     * <strong>Params:</strong>
+     * <ul>
+     * <li> UUID for the query. </li>
+     * </ul>
      */
     SEARCH_USER_ONLINE("SELECT * FROM `" + CoinsDatabase.DATA_TABLE + "` WHERE uuid = ?;"),
     /**
      * Select an user by his name.
-     *
-     * @param name Username for the query.
+     * <br></br>
+     * <strong>Params:</strong>
+     * <ul>
+     * <li> Username for the query</li>
+     * </ul>
      */
     SEARCH_USER_OFFLINE("SELECT * FROM `" + CoinsDatabase.DATA_TABLE + "` WHERE nick = ?;"),
     /**
      * Update coins for a user by his uuid:
-     *
-     * @param balance New balance to set.
-     * @param uuid UUID for the query.
+     * <br></br>
+     * <strong>Params:</strong>
+     * <ul>
+     * <li> New balance to set.</li>
+     * <li> UUID for the query</li>
+     * </ul>
      */
     UPDATE_COINS_ONLINE("UPDATE `" + CoinsDatabase.DATA_TABLE + "` SET balance = ? WHERE uuid = ?;"),
     /**
      * Update data for a user when the server is in online mode.
-     *
-     * @param name Username to update.
-     * @param lastlogin Lastlogin in millis.
-     * @param uuid UUID for the query.
+     * <br></br>
+     * <strong>Params:</strong>
+     * <ul>
+     * <li> Username to update.</li>
+     * <li> Lastlogin in millis.</li>
+     * <li> UUID for the query</li>
+     * </ul>
      */
     UPDATE_USER_ONLINE("UPDATE `" + CoinsDatabase.DATA_TABLE + "` SET nick = ?, lastlogin = ? WHERE uuid = ?;"),
     /**
      * Update data for a user when the server is in online mode.
-     *
-     * @param uuid UUID to update.
-     * @param lastlogin Lastlogin in millis.
-     * @param name Username for the query.
+     * <br></br>
+     * <strong>Params:</strong>
+     * <ul>
+     * <li> UUID to update.</li>
+     * <li> Lastlogin in millis.</li>
+     * <li> Username for the query</li>
+     * </ul>
      */
     UPDATE_USER_OFFLINE("UPDATE `" + CoinsDatabase.DATA_TABLE + "` SET uuid = ?, lastlogin = ? WHERE nick = ?;"),
     /**
      * Create a user in the database.
-     *
-     * @param uuid UUID of the user.
-     * @param name Username of the user.
-     * @param balance Starting coins.
-     * @param lastlogin Current time in millis.
+     * <br></br>
+     * <strong>Params:</strong>
+     * <ul>
+     * <li> UUID of the user.</li>
+     * <li> Username of the user.</li>
+     * <li> Starting coins.</li>
+     * <li> Current time in millis</li>
+     * </ul>
      */
     CREATE_USER("INSERT INTO `" + CoinsDatabase.DATA_TABLE + "` (`id`, `uuid`, `nick`, `balance`, `lastlogin`) VALUES (null, ?, ?, ?, ?);"),
     /**
      * Create a multiplier in the database.
-     *
-     * @param server Servername for the multiplier.
-     * @param uuid UUID of the owner of the multiplier.
-     * @param multipliertype Type of this multiplier.
-     * @param amount Amount of this multiplier.
-     * @param minutes Minutes that the multiplier must be enabled.
-     * @param queue If the multiplier must be added to the queue.
-     * @param enabled If the multiplier is enabled.
+     * <br></br>
+     * <strong>Params:</strong>
+     * <ul>
+     * <li> Servername for the multiplier.</li>
+     * <li> UUID of the owner of the multiplier.</li>
+     * <li> Type of this multiplier.</li>
+     * <li> Amount of this multiplier.</li>
+     * <li> Minutes that the multiplier must be enabled.</li>
+     * <li> If the multiplier must be added to the queue.</li>
+     * <li> If the multiplier is enabled</li>
+     * </ul>
      *
      * @see io.github.beelzebu.coins.MultiplierType
      */
-    CREATE_MULTIPLIER("INSERT INTO `" + CoinsDatabase.DATA_TABLE + "multipliers` (`id`, `server`, `uuid`, `type`, `amount`, `minutes`, `endtime`, `queue`, `enabled`) VALUES (null, ?, ?, ?, ?, ?, ?, ?, ?);"),
+    CREATE_MULTIPLIER("INSERT INTO `" + CoinsDatabase.MULTIPLIERS_TABLE + "` (`id`, `server`, `uuid`, `type`, `amount`, `minutes`, `endtime`, `queue`, `enabled`) VALUES (null, ?, ?, ?, ?, ?, ?, ?, ?);"),
     /**
      * Select top users from the database.
-     *
-     * @param limit Limit of users to select.
+     * <br></br>
+     * <strong>Params:</strong>
+     * <ul>
+     * <li> Limit of users to select</li>
+     * </ul>
      */
     SELECT_TOP("SELECT * FROM `" + CoinsDatabase.DATA_TABLE + "` ORDER BY balance DESC LIMIT ?;"),
     DELETE_MULTIPLIER("DELETE FROM " + CoinsDatabase.MULTIPLIERS_TABLE + " WHERE id = ?;"),
