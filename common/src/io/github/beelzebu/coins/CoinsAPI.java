@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 /**
  *
@@ -42,9 +43,9 @@ public final class CoinsAPI {
      * Get the coins of a Player by his name.
      *
      * @param name Player to get the coins.
-     * @return
+     * @return coins of the player
      */
-    public static double getCoins(String name) {
+    public static double getCoins(@NonNull String name) {
         return CacheManager.getCoins(CORE.getUUID(name, false));
     }
 
@@ -52,7 +53,7 @@ public final class CoinsAPI {
      * Get the coins of a Player by his UUID.
      *
      * @param uuid Player to get the coins.
-     * @return
+     * @return coins of the player
      */
     public static double getCoins(UUID uuid) {
         return CacheManager.getCoins(uuid);
@@ -62,12 +63,12 @@ public final class CoinsAPI {
      * Get the coins String of a player by his name.
      *
      * @param name Player to get the coins string.
-     * @return The coins in decimal format "#.#"
+     * @return Coins in decimal format "#.#"
      */
-    public static String getCoinsString(String name) {
+    public static String getCoinsString(@NonNull String name) {
         double coins = getCoins(name.toLowerCase());
         if (coins >= 0) {
-            return (DF.format(coins));
+            return DF.format(coins);
         } else {
             return "This player isn't in the database";
         }
@@ -77,12 +78,12 @@ public final class CoinsAPI {
      * Get the coins String of a player by his name.
      *
      * @param uuid Player to get the coins string.
-     * @return The coins in decimal format "#.#"
+     * @return Coins in decimal format "#.#"
      */
     public static String getCoinsString(UUID uuid) {
         double coins = getCoins(uuid);
         if (coins >= 0) {
-            return (DF.format(coins));
+            return DF.format(coins);
         } else {
             return "This player isn't in the database";
         }
@@ -92,45 +93,23 @@ public final class CoinsAPI {
      * Add coins to a player by his name, selecting if the multipliers should be
      * used to calculate the coins.
      *
-     * @param name The player to add the coins.
-     * @param coins The coins to add.
+     * @param name Player to add the coins.
+     * @param coins Coins to add.
      * @param multiply Multiply coins if there are any active multipliers
-     * @return the response from the database.
+     * @return {@link io.github.beelzebu.coins.CoinsResponse}
      */
-    public static CoinsResponse addCoins(String name, final double coins, boolean multiply) {
-        if (!isindb(name)) {
-            return new CoinsResponse(CoinsResponseType.FAILED, "The player " + name + " isn't in the database.");
-        }
-        UUID uuid = CORE.getUUID(name, false);
-        double finalCoins = coins;
-        if (multiply && getMultiplier() != null) {
-            if (getMultiplier().getType().equals(MultiplierType.PERSONAL) && !getMultiplier().getEnablerUUID().equals(uuid)) {
-            } else {
-                finalCoins *= getMultiplier().getAmount();
-            }
-            for (String perm : CORE.getBootstrap().getPermissions(uuid)) {
-                if (perm.startsWith("coins.multiplier.x")) {
-                    try {
-                        int i = Integer.parseInt(perm.split("coins.multiplier.x")[1]);
-                        finalCoins *= i;
-                        break;
-                    } catch (NumberFormatException ignore) {
-                    }
-                }
-            }
-        }
-        finalCoins += getCoins(name);
-        return CORE.getDatabase().setCoins(uuid, finalCoins);
+    public static CoinsResponse addCoins(@NonNull String name, final double coins, boolean multiply) {
+        return addCoins(CORE.getUUID(name, false), coins, multiply);
     }
 
     /**
      * Add coins to a player by his UUID, selecting if the multipliers should be
      * used to calculate the coins.
      *
-     * @param uuid The player to add the coins.
-     * @param coins The coins to add.
+     * @param uuid Player to add the coins.
+     * @param coins Coins to add.
      * @param multiply Multiply coins if there are any active multipliers
-     * @return the response from the database.
+     * @return {@link io.github.beelzebu.coins.CoinsResponse}
      */
     public static CoinsResponse addCoins(UUID uuid, final double coins, boolean multiply) {
         if (!isindb(uuid)) {
@@ -154,92 +133,72 @@ public final class CoinsAPI {
             }
         }
         finalCoins += getCoins(uuid);
-        return CORE.getDatabase().setCoins(uuid, finalCoins);
+        return setCoins(uuid, finalCoins);
     }
 
     /**
      * Take coins of a player by his name.
      *
      * @param name The name of the player to take the coins.
-     * @param coins the coins to take from the player.
-     * @return The response from the Database.
+     * @param coins Coins to take from the player.
+     * @return {@link io.github.beelzebu.coins.CoinsResponse}
      */
-    public static CoinsResponse takeCoins(String name, double coins) {
-        if (isindb(name)) {
-            return CORE.getDatabase().setCoins(CORE.getUUID(name, false), getCoins(name) - coins);
-        } else {
-            return new CoinsResponse(CoinsResponseType.FAILED, "The player " + name + " isn't in the database.");
-        }
+    public static CoinsResponse takeCoins(@NonNull String name, double coins) {
+        return setCoins(CORE.getUUID(name, false), getCoins(name) - coins);
     }
 
     /**
      * Take coins of a player by his UUID.
      *
      * @param uuid The UUID of the player to take the coins.
-     * @param coins the coins to take from the player.
-     * @return The response from the Database.
+     * @param coins Coins to take from the player.
+     * @return {@link io.github.beelzebu.coins.CoinsResponse}
      */
     public static CoinsResponse takeCoins(UUID uuid, double coins) {
-        if (isindb(uuid)) {
-            return CORE.getDatabase().setCoins(uuid, getCoins(uuid) - coins);
-        } else {
-            return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the database.");
-        }
+        return setCoins(uuid, getCoins(uuid) - coins);
     }
 
     /**
      * Reset the coins of a player by his name.
      *
      * @param name The name of the player to reset the coins.
-     * @return The response from the Database.
+     * @return {@link io.github.beelzebu.coins.CoinsResponse}
      */
-    public static CoinsResponse resetCoins(String name) {
-        if (isindb(name)) {
-            return CORE.getDatabase().setCoins(CORE.getUUID(name, false), CORE.getConfig().getDouble("General.Starting Coins", 0));
-        } else {
-            return new CoinsResponse(CoinsResponseType.FAILED, "The player " + name + " isn't in the database.");
-        }
+    public static CoinsResponse resetCoins(@NonNull String name) {
+        return setCoins(CORE.getUUID(name, false), CORE.getConfig().getDouble("General.Starting Coins", 0));
     }
 
     /**
      * Reset the coins of a player by his UUID.
      *
      * @param uuid The UUID of the player to reset the coins.
-     * @return The response from the Database.
+     * @return {@link io.github.beelzebu.coins.CoinsResponse}
      */
     public static CoinsResponse resetCoins(UUID uuid) {
-        if (isindb(uuid)) {
-            CORE.getDatabase().setCoins(uuid, CORE.getConfig().getDouble("General.Starting Coins", 0));
-            return new CoinsResponse(CoinsResponseType.SUCCESS, "");
-        } else {
-            return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the database.");
-        }
+        return setCoins(uuid, CORE.getConfig().getDouble("General.Starting Coins", 0));
     }
 
     /**
      * Set the coins of a player by his name.
      *
-     * @param name
-     * @param coins
-     * @return The response from the Database.
+     * @param name The name of the player to set the coins.
+     * @param coins Coins to set.
+     * @return {@link io.github.beelzebu.coins.CoinsResponse}
      */
-    public static CoinsResponse setCoins(String name, double coins) {
-        if (isindb(name)) {
-            return CORE.getDatabase().setCoins(CORE.getUUID(name, false), coins);
-        } else {
-            return new CoinsResponse(CoinsResponseType.FAILED, "The player " + name + " isn't in the database.");
-        }
+    public static CoinsResponse setCoins(@NonNull String name, double coins) {
+        return setCoins(CORE.getUUID(name, false), coins);
     }
 
     /**
      * Set the coins of a player by his name.
      *
-     * @param uuid
-     * @param coins
-     * @return The response from the Database.
+     * @param uuid The UUID of the player to set the coins.
+     * @param coins Coins to set.
+     * @return {@link io.github.beelzebu.coins.CoinsResponse}
      */
     public static CoinsResponse setCoins(UUID uuid, double coins) {
         if (isindb(uuid)) {
+            CORE.getMessagingService().publishUser(uuid, coins);
             return CORE.getDatabase().setCoins(uuid, coins);
         } else {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the database.");
@@ -252,7 +211,7 @@ public final class CoinsAPI {
      * @param from The player to get the coins.
      * @param to The player to pay.
      * @param amount The amount of coins to pay.
-     * @return true or false if the transaction is completed.
+     * @return {@link io.github.beelzebu.coins.CoinsResponse}
      */
     public static CoinsResponse payCoins(String from, String to, double amount) {
         if (getCoins(from) >= amount) {
@@ -269,7 +228,7 @@ public final class CoinsAPI {
      * @param from The player to get the coins.
      * @param to The player to pay.
      * @param amount The amount of coins to pay.
-     * @return the response from the database.
+     * @return {@link io.github.beelzebu.coins.CoinsResponse}
      */
     public static CoinsResponse payCoins(UUID from, UUID to, double amount) {
         if (getCoins(from) >= amount) {
@@ -287,7 +246,7 @@ public final class CoinsAPI {
      * @param name The name to look for in the database.
      * @return true if the player exists in the database or false if not.
      */
-    public static boolean isindb(String name) {
+    public static boolean isindb(@NonNull String name) {
         UUID uuid = CORE.getUUID(name, false);
         if (CacheManager.getPlayersData().getIfPresent(uuid != null ? uuid : UUID.randomUUID()) != null && getCoins(name) > -1) { // If the player is in the cache it should be in the database.
             return true;
