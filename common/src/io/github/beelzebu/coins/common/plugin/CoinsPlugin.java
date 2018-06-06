@@ -18,9 +18,9 @@
  */
 package io.github.beelzebu.coins.common.plugin;
 
+import io.github.beelzebu.coins.common.dependency.DependencyManager;
 import io.github.beelzebu.coins.common.executor.Executor;
 import io.github.beelzebu.coins.common.executor.ExecutorManager;
-import io.github.beelzebu.coins.common.utils.dependencies.DependencyManager;
 import lombok.Getter;
 
 /**

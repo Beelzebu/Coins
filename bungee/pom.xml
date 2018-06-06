@@ -11,7 +11,13 @@
     </parent>
 
     <artifactId>coins-bungee</artifactId>
-    <packaging>jar</packaging>
+
+    <repositories>
+        <repository>
+            <id>bungeecord-repo</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -45,7 +51,7 @@
                             <minimizeJar>false</minimizeJar>
                             <artifactSet>
                                 <includes>
-                                    <include>io.github.beelzebu:Coins</include>
+                                    <include>io.github.beelzebu:coins-api</include>
                                 </includes>
                             </artifactSet>
                         </configuration>

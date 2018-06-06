@@ -1,12 +1,12 @@
 # Coins plugin by: Beelzebu
-# If you need support or find a bug open a issuse in
-# the official github repo https://github.com/Beelzebu/Coins/issues/
+# If you need support or find a bug open a issuse in the official github repo
+# https://github.com/Beelzebu/Coins/issues/
 
 # The version of the config, don't touch!
-version: 14
+version: 15
 
 # This is the prefix used in all the messages.
-Prefix: '&c&lCoins &6&l>&7'
+Prefix: '&cCoins &6&l>&7'
 
 # For most servers, leaving this option in true is fine, especially if your server
 # is part of a bungeecord network, only set this to false if:
@@ -87,8 +87,21 @@ General:
   Purge:
     Enabled: true # If this is true the old accouns would be purged at server startup.
     Days: 60 # The time in days before deleting an account.
-    Logs:
+    Log Purge:
+      Enabled: true
       Days: 10 # The days to keep plugin logs.
+  # Options about internal logging, by default the plugin will log all messages,
+  # errors and executed commands related to this plugin in a file called latest.log
+  # that is inside of the plugins/Coins/logs folder.
+  Logging:
+    Debug:
+      # Enable or disable debug mode, all errors and debug messages will be
+      # inmediatly logged to the console.
+      Enabled: false
+      # If debug messages should be written to the file, if this option is disabled
+      # logs folder inside Coins folder won't be generated and will be deleted if
+      # already exists.
+      File: true
   Executor Sign:
     '1': '&c&lCoins'
     '2': '%executor_displayname%'
@@ -152,30 +165,6 @@ Command executor:
     - 'lp user %player% parent add vip4 10d'
     - 'message:Here is your VIP for 10 days, enjoy! :D'
     Cost: 500
-
-Multipliers:
-  # Here you can configure some aspects of the GUI of multipliers
-  GUI:
-    Close:
-      # To see all possible values check https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
-      Material: REDSTONE_BLOCK
-      Name: '&c&lClose'
-      Lore:
-      - ''
-      - '&7Click me to close this gui'
-      # If you're using 1.8 please check http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html
-      # If you're using 1.9+ use https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html
-      Sound: 'UI_BUTTON_CLICK'
-      Pitch: '1'
-    Use:
-      Sound: 'ENTITY_PLAYER_LEVELUP'
-      Pitch: '2'
-      Fail:
-        Sound: 'ENTITY_VILLAGER_NO'
-        Pitch: '1'
-  # This is the server identifier, is used only if you have MySQL enabled, when a player enables a multiplier in
-  # this server, this is also enabled in all the other servers that has this identifier.
-  Server: 'default'
 
 # This is for enable the debug mode, this gonna send more messages to the console to see what
 # is happening with the plugin, please enable this to report bugs.

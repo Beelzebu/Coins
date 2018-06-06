@@ -20,7 +20,6 @@ package io.github.beelzebu.coins.bukkit;
 
 import io.github.beelzebu.coins.bukkit.listener.CommandListener;
 import io.github.beelzebu.coins.bukkit.listener.GUIListener;
-import io.github.beelzebu.coins.bukkit.listener.InternalListener;
 import io.github.beelzebu.coins.bukkit.listener.LoginListener;
 import io.github.beelzebu.coins.bukkit.listener.SignListener;
 import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
@@ -31,7 +30,6 @@ import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
 import io.github.beelzebu.coins.common.plugin.CoinsPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  *
@@ -50,36 +48,12 @@ public class CoinsBukkitPlugin extends CoinsPlugin {
         super.enable();
         // Create the command
         bootstrap.getCommandManager().registerCommand();
-        // Hook placeholders
-        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            bootstrap.log("PlaceholderAPI found, hooking into it.");
-            new CoinsPlaceholders().register();
-            new MultipliersPlaceholders().register();
-        }
-        // Hook with LeaderHeads
-        if (Bukkit.getPluginManager().getPlugin("LeaderHeads") != null) {
-            bootstrap.log("LeaderHeads found, hooking into it.");
-            new BukkitRunnable() {
-                private boolean leaderheads = false;
-
-                @Override
-                public void run() {
-                    if (Bukkit.getPluginManager().getPlugin("LeaderHeads").isEnabled()) {
-                        new LeaderHeadsHook();
-                        leaderheads = true;
-                    }
-                    if (leaderheads) {
-                        cancel();
-                    }
-                }
-            }.runTaskTimerAsynchronously(bootstrap, 20, 20);
-        }
         // Register listeners
         Bukkit.getPluginManager().registerEvents(new CommandListener(), bootstrap);
         Bukkit.getPluginManager().registerEvents(new GUIListener(), bootstrap);
-        Bukkit.getPluginManager().registerEvents(new InternalListener(), bootstrap);
         Bukkit.getPluginManager().registerEvents(new LoginListener(), bootstrap);
         Bukkit.getPluginManager().registerEvents(new SignListener(), bootstrap);
+        Bukkit.getScheduler().runTask(bootstrap, () -> hookOptionalDependencies());
     }
 
     @Override
@@ -99,5 +73,21 @@ public class CoinsBukkitPlugin extends CoinsPlugin {
 
     public FileConfiguration getConfig() {
         return bootstrap.getConfig();
+    }
+
+    private void hookOptionalDependencies() {
+        // Hook placeholders
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            bootstrap.log("PlaceholderAPI found, hooking into it.");
+            new CoinsPlaceholders().register();
+            new MultipliersPlaceholders().register();
+        }
+        // Hook with LeaderHeads
+        if (Bukkit.getPluginManager().getPlugin("LeaderHeads") != null) {
+            bootstrap.log("LeaderHeads found, hooking into it.");
+            if (Bukkit.getPluginManager().getPlugin("LeaderHeads").isEnabled()) {
+                new LeaderHeadsHook();
+            }
+        }
     }
 }

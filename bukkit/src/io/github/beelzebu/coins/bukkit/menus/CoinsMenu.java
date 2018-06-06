@@ -18,8 +18,10 @@
  */
 package io.github.beelzebu.coins.bukkit.menus;
 
+import com.google.common.base.Preconditions;
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.config.IConfiguration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -38,8 +40,8 @@ public abstract class CoinsMenu {
 
     protected final CoinsCore core = CoinsCore.getInstance();
     protected final Inventory inv;
+    protected final UUID uuid;
     private final Map<Integer, GUIAction> actions;
-    private final UUID uuid;
     private static final Map<UUID, CoinsMenu> inventoriesByUUID = new HashMap<>();
     private static final Map<UUID, UUID> openInventories = new HashMap<>();
 
@@ -47,8 +49,7 @@ public abstract class CoinsMenu {
         inv = Bukkit.createInventory(null, size, name);
         actions = new HashMap<>();
         uuid = UUID.randomUUID();
-        inventoriesByUUID.put(getUUID(), this);
-        setItems();
+        inventoriesByUUID.put(uuid, this);
     }
 
     public final Inventory getInv() {
@@ -72,17 +73,15 @@ public abstract class CoinsMenu {
     }
 
     public final void open(Player p) {
-        p.closeInventory();
-        p.openInventory(inv);
-        openInventories.put(p.getUniqueId(), getUUID());
-    }
-
-    private final UUID getUUID() {
-        return uuid;
+        core.getBootstrap().runSync(() -> {
+            p.closeInventory();
+            p.openInventory(inv);
+            openInventories.put(p.getUniqueId(), uuid);
+        });
     }
 
     public static Map<UUID, CoinsMenu> getInventoriesByUUID() {
-        return inventoriesByUUID;
+        return Collections.unmodifiableMap(inventoriesByUUID);
     }
 
     public static Map<UUID, UUID> getOpenInventories() {
@@ -90,20 +89,22 @@ public abstract class CoinsMenu {
     }
 
     public final Map<Integer, GUIAction> getActions() {
-        return actions;
+        return Collections.unmodifiableMap(actions);
     }
 
     public final void delete() {
         Bukkit.getOnlinePlayers().forEach((p) -> {
             UUID u = openInventories.get(p.getUniqueId());
-            if (u.equals(getUUID())) {
+            if (u.equals(uuid)) {
                 p.closeInventory();
             }
         });
-        inventoriesByUUID.remove(getUUID());
+        inventoriesByUUID.remove(uuid);
     }
 
     public ItemStack getItem(IConfiguration config, String path) {
+        Preconditions.checkNotNull(config, "Config can't be null");
+        Preconditions.checkNotNull(path, "Item path can't be null");
         Material mat;
         try {
             mat = Material.valueOf(config.getString(path + ".Material").toUpperCase());

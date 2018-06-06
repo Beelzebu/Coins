@@ -21,7 +21,6 @@ package io.github.beelzebu.coins.bukkit.config;
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.config.MessagesConfig;
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -42,66 +41,6 @@ public class BukkitMessages extends MessagesConfig {
     @Override
     public Object get(String path) {
         return messages.get(path);
-    }
-
-    @Override
-    public String getString(String path) {
-        return messages.getString(path);
-    }
-
-    @Override
-    public List<String> getStringList(String path) {
-        return messages.getStringList(path);
-    }
-
-    @Override
-    public boolean getBoolean(String path) {
-        return messages.getBoolean(path);
-    }
-
-    @Override
-    public int getInt(String path) {
-        return messages.getInt(path);
-    }
-
-    @Override
-    public double getDouble(String path) {
-        return messages.getDouble(path);
-    }
-
-    @Override
-    public Object get(String path, Object def) {
-        return (messages.get(path) == null ? def : messages.get(path));
-    }
-
-    @Override
-    public String getString(String path, String def) {
-        return (messages.get(path) == null ? def : messages.getString(path));
-    }
-
-    @Override
-    public List<String> getStringList(String path, List<String> def) {
-        return (messages.get(path) == null ? def : messages.getStringList(path));
-    }
-
-    @Override
-    public boolean getBoolean(String path, boolean def) {
-        return (messages.get(path) == null ? def : messages.getBoolean(path));
-    }
-
-    @Override
-    public int getInt(String path, int def) {
-        return (messages.get(path) == null ? def : messages.getInt(path));
-    }
-
-    @Override
-    public double getDouble(String path, double def) {
-        return (messages.get(path) == null ? def : messages.getDouble(path));
-    }
-
-    @Override
-    public void set(String path, Object value) {
-        messages.set(path, value);
     }
 
     @Override

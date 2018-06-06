@@ -19,8 +19,8 @@
 package io.github.beelzebu.coins.bukkit.menus;
 
 import io.github.beelzebu.coins.Multiplier;
-import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.bukkit.utils.ItemBuilder;
+import io.github.beelzebu.coins.common.CoinsCore;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -43,27 +43,11 @@ public class PaginatedMenu {
         return nextPage(player, contents, contents.size() > 53, 0);
     }
 
-    private static CoinsMenu nextPage(Player player, List<Multiplier> contents, boolean hasnext, int start) {
-        CoinsMenu menu = new CoinsMenu(54, CORE.getString("Multipliers.Menu.Title", player.spigot().getLocale())) {
-            @Override
-            protected void setItems() {
-                for (int i = 36; i < 45; i++) {
-                    setItem(i, ItemBuilder.newBuilder(Material.STAINED_GLASS_PANE).setData(2).setDisplayName("&f").build());
-                }
-                setItem(49, getItem(core.getConfig(), "Multipliers.GUI.Close"), p -> handleSound(p));
-                if (contents.size() <= 0) {
-                    setItem(22, ItemBuilder.newBuilder(Material.POTION).setDisplayName(core.getString("Multipliers.Menu.No Multipliers.Name", player.spigot().getLocale())).setLore(core.rep(core.getMessages(player.spigot().getLocale()).getStringList("Multipliers.Menu.No Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build());
-                } else {
-                    for (int i = 0; i < 36; i++) {
-                        Multiplier multiplier = contents.get(start + i);
-                        setItem(i, getItemFor(player, multiplier), p -> new ConfirmMenu(p, core.getString("Multipliers.Menu.Confirm.Title", p.spigot().getLocale()), multiplier).open(p));
-                    }
-                }
-            }
-        };
-        if (hasnext) {
+    private static CoinsMenu nextPage(Player player, List<Multiplier> contents, boolean hasNext, int start) {
+        CoinsMenu menu = new MultipliersMenu(player, CORE.getString("Multipliers.Menu.Title", player.spigot().getLocale()), contents, start);
+        if (hasNext) {
             // TODO: add a option to configure this
-            menu.setItem(53, ItemBuilder.newBuilder(Material.ARROW).setDisplayName("next").build(), p -> nextPage(p, contents, hasnext, start + 36).open(p));
+            menu.setItem(53, ItemBuilder.newBuilder(Material.ARROW).setDisplayName("next").build(), p -> nextPage(p, contents, hasNext, start + 36).open(p));
         }
         return menu;
     }
@@ -86,5 +70,36 @@ public class PaginatedMenu {
                     + "If need more help, please open an issue in https://github.com/Beelzebu/Coins/issues");
         }
         p.closeInventory();
+    }
+
+    private static final class MultipliersMenu extends CoinsMenu {
+
+        private final Player player;
+        private final List<Multiplier> contents;
+        private final int start;
+
+        public MultipliersMenu(Player player, String title, List<Multiplier> contents, int start) {
+            super(54, title);
+            this.player = player;
+            this.contents = contents;
+            this.start = start;
+            setItems();
+        }
+
+        @Override
+        protected void setItems() {
+            for (int i = 36; i < 45; i++) {
+                setItem(i, ItemBuilder.newBuilder(Material.STAINED_GLASS_PANE).setData(2).setDisplayName("&f").build());
+            }
+            setItem(49, getItem(core.getConfig(), "Multipliers.GUI.Close"), p -> handleSound(p));
+            if (contents.size() <= 0) {
+                setItem(22, ItemBuilder.newBuilder(Material.POTION).setDisplayName(core.getString("Multipliers.Menu.No Multipliers.Name", player.spigot().getLocale())).setLore(core.rep(core.getMessages(player.spigot().getLocale()).getStringList("Multipliers.Menu.No Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build());
+            } else {
+                for (int i = 0; i <= (contents.size() - 1 < 35 ? contents.size() - 1 : 35); i++) {
+                    Multiplier multiplier = contents.get(start + i);
+                    setItem(i, getItemFor(player, multiplier), p -> new ConfirmMenu(p, core.getString("Multipliers.Menu.Confirm.Title", p.spigot().getLocale()), multiplier).open(p));
+                }
+            }
+        }
     }
 }

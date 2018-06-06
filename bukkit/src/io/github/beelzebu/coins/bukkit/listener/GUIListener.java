@@ -18,8 +18,9 @@
  */
 package io.github.beelzebu.coins.bukkit.listener;
 
-import java.util.UUID;
 import io.github.beelzebu.coins.bukkit.menus.CoinsMenu;
+import io.github.beelzebu.coins.bukkit.menus.CoinsMenu.GUIAction;
+import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -39,12 +40,11 @@ public class GUIListener implements Listener {
             return;
         }
         Player p = (Player) e.getWhoClicked();
-
         UUID inventoryUUID = CoinsMenu.getOpenInventories().get(p.getUniqueId());
         if (inventoryUUID != null) {
             e.setCancelled(true);
             CoinsMenu gui = CoinsMenu.getInventoriesByUUID().get(inventoryUUID);
-            CoinsMenu.GUIAction action = gui.getActions().get(e.getSlot());
+            GUIAction action = gui.getActions().get(e.getSlot());
 
             if (action != null) {
                 action.click(p);
@@ -56,7 +56,6 @@ public class GUIListener implements Listener {
     public void onClose(InventoryCloseEvent e) {
         Player player = (Player) e.getPlayer();
         UUID playerUUID = player.getUniqueId();
-
         CoinsMenu.getOpenInventories().remove(playerUUID);
     }
 

@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandMap;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.plugin.Plugin;
 
@@ -58,9 +57,7 @@ public class CommandManager {
     private static void unregisterCommand(Command cmd) {
         Map<String, Command> knownCommands = getKnownCommandsMap();
         knownCommands.remove(cmd.getName());
-        cmd.getAliases().forEach((alias) -> {
-            knownCommands.remove(alias);
-        });
+        cmd.getAliases().forEach(alias -> knownCommands.remove(alias));
     }
 
     private static Object getPrivateField(Object object, String field) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
@@ -70,9 +67,9 @@ public class CommandManager {
         return objectField.get(object);
     }
 
-    private static CommandMap getCommandMap() {
+    private static SimpleCommandMap getCommandMap() {
         try {
-            return (CommandMap) getPrivateField(Bukkit.getPluginManager(), "commandMap");
+            return (SimpleCommandMap) getPrivateField(Bukkit.getPluginManager(), "commandMap");
         } catch (IllegalAccessException | IllegalArgumentException | NoSuchFieldException | SecurityException ex) {
             return new SimpleCommandMap(Bukkit.getServer());
         }

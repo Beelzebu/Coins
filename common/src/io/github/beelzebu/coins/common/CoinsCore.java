@@ -29,13 +29,13 @@ import io.github.beelzebu.coins.common.database.CoinsDatabase;
 import io.github.beelzebu.coins.common.database.MySQL;
 import io.github.beelzebu.coins.common.database.SQLite;
 import io.github.beelzebu.coins.common.database.StorageType;
+import io.github.beelzebu.coins.common.dependency.Dependency;
 import io.github.beelzebu.coins.common.messaging.DummyMessaging;
 import io.github.beelzebu.coins.common.messaging.IMessagingService;
 import io.github.beelzebu.coins.common.messaging.MessagingService;
 import io.github.beelzebu.coins.common.messaging.RedisMessaging;
 import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
 import io.github.beelzebu.coins.common.utils.FileManager;
-import io.github.beelzebu.coins.common.utils.dependencies.Dependency;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -74,7 +74,7 @@ public final class CoinsCore {
     private CoinsBootstrap bootstrap;
     private StorageType storageType;
     private IMessagingService messagingService;
-    private boolean enabled = false;
+    private boolean logEnabled = false;
     @Getter(AccessLevel.NONE)
     private final HashMap<String, MessagesConfig> messagesMap = new HashMap<>();
     private final Gson gson = new Gson();
@@ -92,7 +92,7 @@ public final class CoinsCore {
     }
 
     public void start() { // now the plugin is enabled and we can read config files
-        enabled = true;
+        logEnabled = true;
         // update config files to avoid outdated config options
         new FileManager().updateFiles();
         // identify storage type and start messaging service before start things
@@ -101,9 +101,6 @@ public final class CoinsCore {
         if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingService.BUNGEECORD.toString())) {
             messagingService = bootstrap.getBungeeMessaging();
         } else if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingService.REDIS.toString())) {
-            EnumSet dependencies = EnumSet.of(Dependency.COMMONS_POOL_2, Dependency.JEDIS);
-            bootstrap.getPlugin().getDependencyManager().loadDependencies(dependencies);
-            log("Loading messaging service dependencies: " + dependencies);
             messagingService = new RedisMessaging();
         } else {
             messagingService = new DummyMessaging();
@@ -173,6 +170,9 @@ public final class CoinsCore {
             if (getConfig().getBoolean("Debug", false)) {
                 log("Debug mode is enabled.");
             }
+            if (!logEnabled) {
+                log("Logging to file is disabled, all debug messages will be sent to the console.");
+            }
             log("Using \"" + storageType.toString().toLowerCase() + "\" for storage.");
             if (!messagingService.getType().equals(MessagingService.NONE)) {
                 log("Using \"" + messagingService.getType().toString().toLowerCase() + "\" as messaging service.");
@@ -191,7 +191,7 @@ public final class CoinsCore {
     }
 
     public void debug(Object msg) {
-        if (!enabled || getConfig().getBoolean("Debug")) {
+        if (!logEnabled || getConfig().getBoolean("Debug")) {
             bootstrap.sendMessage(bootstrap.getConsole(), rep("&8[&cCoins&8] &cDebug: &7" + msg));
         }
         logToFile(msg);
@@ -215,7 +215,7 @@ public final class CoinsCore {
     }
 
     private void logToFile(Object msg) {
-        if (!enabled) {
+        if (!logEnabled) {
             return;
         }
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");

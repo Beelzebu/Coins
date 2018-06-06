@@ -11,7 +11,6 @@
     </parent>
 
     <artifactId>coins-api</artifactId>
-    <packaging>jar</packaging>
 
     <repositories>
         <repository>
@@ -60,6 +59,41 @@
     </dependencies>
 
     <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <relocations>
+                        <relocation>
+                            <pattern>org.mariadb.jdbc</pattern>
+                            <shadedPattern>io.github.beelzebu.lib.mariadb</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.zaxxer.hikari</pattern>
+                            <shadedPattern>io.github.beelzebu.lib.hikari</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>redis.clients.jedis</pattern>
+                            <shadedPattern>io.github.beelzebu.lib.jedis</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.apache.commons.pool2</pattern>
+                            <shadedPattern>io.github.beelzebu.lib.commonspool2</shadedPattern>
+                        </relocation>
+                    </relocations>
+                </configuration>
+            </plugin>
+        </plugins>
         <resources>
             <resource>
                 <targetPath>.</targetPath>

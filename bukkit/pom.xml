@@ -11,7 +11,6 @@
     </parent>
 
     <artifactId>coins-bukkit</artifactId>
-    <packaging>jar</packaging>
 
     <properties>
         <libsDir>${basedir}/lib</libsDir>
@@ -100,9 +99,15 @@
                             <minimizeJar>false</minimizeJar>
                             <artifactSet>
                                 <includes>
-                                    <include>io.github.beelzebu:Coins</include>
+                                    <include>io.github.beelzebu:coins-api</include>
                                 </includes>
                             </artifactSet>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.github.benmanes.caffeine</pattern>
+                                    <shadedPattern>io.github.beelzebu.lib.caffeine</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>

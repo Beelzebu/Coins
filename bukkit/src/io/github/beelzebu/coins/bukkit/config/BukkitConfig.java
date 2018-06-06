@@ -21,7 +21,7 @@ package io.github.beelzebu.coins.bukkit.config;
 import io.github.beelzebu.coins.bukkit.CoinsBukkitMain;
 import io.github.beelzebu.coins.bukkit.CoinsBukkitPlugin;
 import io.github.beelzebu.coins.common.config.CoinsConfig;
-import java.util.List;
+import java.io.File;
 import java.util.Set;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -33,6 +33,7 @@ public class BukkitConfig extends CoinsConfig {
 
     private final CoinsBukkitPlugin plugin;
     private final FileConfiguration config;
+    private final File configFile = new File(core.getBootstrap().getDataFolder(), "config.yml");
 
     public BukkitConfig(CoinsBukkitPlugin plugin) {
         this.plugin = plugin;
@@ -43,66 +44,6 @@ public class BukkitConfig extends CoinsConfig {
     @Override
     public Object get(String path) {
         return config.get(path);
-    }
-
-    @Override
-    public String getString(String path) {
-        return config.getString(path);
-    }
-
-    @Override
-    public List<String> getStringList(String path) {
-        return config.getStringList(path);
-    }
-
-    @Override
-    public boolean getBoolean(String path) {
-        return config.getBoolean(path);
-    }
-
-    @Override
-    public int getInt(String path) {
-        return config.getInt(path);
-    }
-
-    @Override
-    public double getDouble(String path) {
-        return config.getDouble(path);
-    }
-
-    @Override
-    public Object get(String path, Object def) {
-        return (config.get(path) == null ? def : config.get(path));
-    }
-
-    @Override
-    public String getString(String path, String def) {
-        return (config.get(path) == null ? def : config.getString(path));
-    }
-
-    @Override
-    public List<String> getStringList(String path, List<String> def) {
-        return (config.get(path) == null ? def : config.getStringList(path));
-    }
-
-    @Override
-    public boolean getBoolean(String path, boolean def) {
-        return (config.get(path) == null ? def : config.getBoolean(path));
-    }
-
-    @Override
-    public int getInt(String path, int def) {
-        return (config.get(path) == null ? def : config.getInt(path));
-    }
-
-    @Override
-    public double getDouble(String path, double def) {
-        return (config.get(path) == null ? def : config.getDouble(path));
-    }
-
-    @Override
-    public void set(String path, Object value) {
-        config.set(path, value);
     }
 
     @Override

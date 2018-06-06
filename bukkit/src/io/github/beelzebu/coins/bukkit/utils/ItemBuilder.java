@@ -118,6 +118,7 @@ public class ItemBuilder {
         if (flags != null) {
             meta.addItemFlags(flags.toArray(new ItemFlag[]{}));
         }
+        item.setItemMeta(meta);
         return item;
     }
 }

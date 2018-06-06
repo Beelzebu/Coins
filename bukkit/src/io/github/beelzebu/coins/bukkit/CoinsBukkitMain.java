@@ -31,8 +31,6 @@ import io.github.beelzebu.coins.common.config.CoinsConfig;
 import io.github.beelzebu.coins.common.config.MessagesConfig;
 import io.github.beelzebu.coins.common.messaging.ProxyMessaging;
 import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
-import io.github.beelzebu.coins.common.utils.dependencies.classloader.PluginClassLoader;
-import io.github.beelzebu.coins.common.utils.dependencies.classloader.ReflectionClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -179,10 +177,5 @@ public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
     @Override
     public ProxyMessaging getBungeeMessaging() {
         return bmessaging == null ? bmessaging = new BukkitMessaging() : bmessaging;
-    }
-
-    @Override
-    public PluginClassLoader getPluginClassLoader() {
-        return new ReflectionClassLoader(plugin);
     }
 }

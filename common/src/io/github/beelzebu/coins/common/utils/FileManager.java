@@ -49,7 +49,7 @@ public class FileManager {
     private final Map<String, File> messagesFiles = new HashMap<>();
     private final File configFile = new File(core.getBootstrap().getDataFolder(), "config.yml");
     private final File logsFolder = new File(core.getBootstrap().getDataFolder(), "logs");
-    private final int configVersion = 14;
+    private final int configVersion = 15;
 
     public FileManager() {
         messagesFiles.put("default", new File(messagesFolder, "messages.yml"));
@@ -67,8 +67,11 @@ public class FileManager {
             if (core.getConfig().getInt("version") == configVersion) {
                 core.log("The config file is up to date.");
             } else {
+                int version = configVersion;
                 do {
-                    switch (core.getConfig().getInt("version")) {
+                    FileUtils.writeLines(configFile, lines);
+                    core.getConfig().reload();
+                    switch (version) {
                         case 10:
                             index = lines.indexOf("    Close:") + 1;
                             lines.addAll(index, Arrays.asList(
@@ -171,6 +174,8 @@ public class FileManager {
                             lines.set(index, "version: 14");
                             core.log("Configuration file updated to v14");
                             break;
+                        case configVersion:
+                            break;
                         default:
                             core.log("Seems that you hava a too old version of the config or you canged this to another number >:(");
                             core.log("We can't update it, if is a old version you should try to update it slow and not jump from a version to another, keep in mind that we keep track of the last 3 versions of the config to update.");
@@ -178,7 +183,8 @@ public class FileManager {
                     }
                     FileUtils.writeLines(configFile, lines);
                     core.getConfig().reload();
-                } while (core.getConfig().getInt("version") < configVersion && core.getConfig().getInt("version") >= configVersion - 4);
+                    version = core.getConfig().getInt("version");
+                } while (version < configVersion && version > configVersion - 5);
             }
         } catch (IOException ex) {
             core.log("An unexpected error occurred while updating the config file.");

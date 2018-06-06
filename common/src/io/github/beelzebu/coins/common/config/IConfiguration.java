@@ -29,29 +29,49 @@ public interface IConfiguration {
 
     public Object get(String path);
 
-    public String getString(String path);
+    public default String getString(String path) {
+        return (String) get(path);
+    }
 
-    public List<String> getStringList(String path);
+    public default List<String> getStringList(String path) {
+        return (List<String>) get(path);
+    }
 
-    public boolean getBoolean(String path);
+    public default boolean getBoolean(String path) {
+        return (boolean) get(path);
+    }
 
-    public int getInt(String path);
+    public default int getInt(String path) {
+        return (int) get(path);
+    }
 
-    public double getDouble(String path);
+    public default double getDouble(String path) {
+        return (double) get(path);
+    }
 
-    public Object get(String path, Object def);
+    public default Object get(String path, Object def) {
+        return get(path) != null ? get(path) : def;
+    }
 
-    public String getString(String path, String def);
+    public default String getString(String path, String def) {
+        return get(path) != null ? (String) get(path) : def;
+    }
 
-    public List<String> getStringList(String path, List<String> def);
+    public default List<String> getStringList(String path, List<String> def) {
+        return getStringList(path) != null ? getStringList(path) : def;
+    }
 
-    public boolean getBoolean(String path, boolean def);
+    public default boolean getBoolean(String path, boolean def) {
+        return get(path) != null ? (boolean) get(path) : def;
+    }
 
-    public int getInt(String path, int def);
+    public default int getInt(String path, int def) {
+        return get(path) != null ? (int) get(path) : def;
+    }
 
-    public double getDouble(String path, double def);
-
-    public void set(String path, Object value);
+    public default double getDouble(String path, double def) {
+        return get(path) != null ? (double) get(path) : def;
+    }
 
     public Set<String> getConfigurationSection(String path);
 

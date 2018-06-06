@@ -34,8 +34,6 @@ import io.github.beelzebu.coins.common.executor.ExecutorManager;
 import io.github.beelzebu.coins.common.messaging.ProxyMessaging;
 import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
 import io.github.beelzebu.coins.common.plugin.CoinsPlugin;
-import io.github.beelzebu.coins.common.utils.dependencies.classloader.PluginClassLoader;
-import io.github.beelzebu.coins.common.utils.dependencies.classloader.ReflectionClassLoader;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -187,11 +185,6 @@ public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
     @Override
     public ProxyMessaging getBungeeMessaging() {
         return bmessaging == null ? bmessaging = new BungeeMessaging() : bmessaging;
-    }
-
-    @Override
-    public PluginClassLoader getPluginClassLoader() {
-        return new ReflectionClassLoader(this);
     }
 
     @Override

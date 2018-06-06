@@ -303,16 +303,6 @@ public class CoinsCommand extends Command {
     private void multiplier(CommandSender sender, String[] args, String lang) {
         if ((sender.hasPermission("coins.admin") || sender.hasPermission("coins.admin.multiplier")) && args.length >= 2) {
             if (args[1].equalsIgnoreCase("help")) {
-                /**
-                 * TODO List:
-                 * <ul>
-                 * <li>add a command to get all multipliers for a player</li>
-                 * <li>add a command to enable any multiplier by the ID</li>
-                 * <li>add an argument to change multiplier type</li>
-                 * <li>add a command to edit existing multipliers</li>
-                 * <li>update messages files to match new command</li>
-                 * </ul>
-                 */
                 core.getMessages(lang).getStringList("Help.Multiplier").forEach(line -> {
                     sender.sendMessage(core.rep(line));
                 });
@@ -324,7 +314,7 @@ public class CoinsCommand extends Command {
                     }
                     int multiplier = Integer.parseInt(args[3]);
                     int minutes = Integer.parseInt(args[4]);
-                    core.getDatabase().createMultiplier(core.getUUID(args[2], false), multiplier, minutes, ((args.length == 6 && !args[5].equals("")) ? args[5] : null), MultiplierType.SERVER);
+                    core.getDatabase().createMultiplier(core.getUUID(args[2], false), multiplier, minutes, ((args.length == 6 && !args[5].equals("")) ? args[5] : core.getConfig().getServerName()), MultiplierType.SERVER);
                     sender.sendMessage(core.getString("Multipliers.Created", lang).replaceAll("%player%", args[2]));
                 } else {
                     sender.sendMessage(core.getString("Help.Multiplier Create", lang));
@@ -337,7 +327,7 @@ public class CoinsCommand extends Command {
         }
         if (args.length == 1) {
             if (sender instanceof Player) {
-                PaginatedMenu.createPaginatedGUI((Player) sender, Lists.newLinkedList(CoinsAPI.getAllMultipliersFor(((Player) sender).getUniqueId())));
+                PaginatedMenu.createPaginatedGUI((Player) sender, Lists.newLinkedList(CoinsAPI.getAllMultipliersFor(((Player) sender).getUniqueId()))).open((Player) sender);
             } else {
                 sender.sendMessage(core.getString("Errors.Console", lang));
             }
