@@ -102,17 +102,21 @@ public class CoinsCommand extends Command {
 
     private void help(CommandSender sender, String[] args, String lang) {
         core.getMessages(lang).getStringList("Help.User").forEach(line -> sender.sendMessage(core.rep(line)));
-        if (sender.hasPermission("coins.admin")) {
+        if (sender.hasPermission(getPermission() + ".admin.help")) {
             core.getMessages(lang).getStringList("Help.Admin").forEach(line -> sender.sendMessage(core.rep(line)));
         }
     }
 
     private void target(CommandSender sender, String[] args, String lang) {
+        if (!sender.hasPermission(getPermission() + ".target")) {
+            sender.sendMessage(core.getString("Errors.No permissions", lang));
+            return;
+        }
         sender.sendMessage(core.getString("Coins.Get", lang).replaceAll("%coins%", CoinsAPI.getCoinsString(args[0])).replaceAll("%target%", args[0]));
     }
 
     private void pay(CommandSender sender, String[] args, String lang) {
-        if (!sender.hasPermission("coins.user.pay")) {
+        if (!sender.hasPermission(getPermission() + ".pay")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return;
         }
@@ -153,7 +157,7 @@ public class CoinsCommand extends Command {
     }
 
     private void give(CommandSender sender, String[] args, String lang) {
-        if (!sender.hasPermission("coins.admin") || !sender.hasPermission("coins.admin.give")) {
+        if (!sender.hasPermission(getPermission() + ".admin.give")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return;
         }
@@ -193,7 +197,7 @@ public class CoinsCommand extends Command {
     }
 
     private void take(CommandSender sender, String[] args, String lang) {
-        if (!sender.hasPermission("coins.admin") || !sender.hasPermission("coins.admin.take")) {
+        if (!sender.hasPermission(getPermission() + ".admin.take")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return;
         }
@@ -226,7 +230,7 @@ public class CoinsCommand extends Command {
     }
 
     private void reset(CommandSender sender, String[] args, String lang) {
-        if (!sender.hasPermission("coins.admin") || !sender.hasPermission("coins.admin.reset")) {
+        if (!sender.hasPermission(getPermission() + ".admin.reset")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return;
         }
@@ -253,7 +257,7 @@ public class CoinsCommand extends Command {
     }
 
     private void set(CommandSender sender, String[] args, String lang) {
-        if (!sender.hasPermission("coins.admin")) {
+        if (!sender.hasPermission(getPermission() + ".admin.set")) {
             sender.sendMessage(core.getString("Errors.No permissions", lang));
             return;
         }
@@ -282,6 +286,10 @@ public class CoinsCommand extends Command {
     }
 
     private void top(CommandSender sender, String[] args, String lang) {
+        if (sender.hasPermission(getPermission() + ".top")) {
+            sender.sendMessage(core.getString("Errors.No permissions", lang));
+            return;
+        }
         int i = 0;
         sender.sendMessage(core.getString("Coins.Top.Header", lang));
         for (Map.Entry<String, Double> ent : CoinsAPI.getTopPlayers(10).entrySet()) {
@@ -301,7 +309,7 @@ public class CoinsCommand extends Command {
      * </ul>
      */
     private void multiplier(CommandSender sender, String[] args, String lang) {
-        if ((sender.hasPermission("coins.admin") || sender.hasPermission("coins.admin.multiplier")) && args.length >= 2) {
+        if (sender.hasPermission(getPermission() + ".admin.multiplier") && args.length >= 2) {
             if (args[1].equalsIgnoreCase("help")) {
                 core.getMessages(lang).getStringList("Help.Multiplier").forEach(line -> {
                     sender.sendMessage(core.rep(line));
@@ -422,7 +430,7 @@ public class CoinsCommand extends Command {
     }
 
     private void reload(CommandSender sender) {
-        if (sender.hasPermission("coins.admin.reload")) {
+        if (sender.hasPermission(getPermission() + ".admin.reload")) {
             if (core.getConfig().getBoolean("Vault.Use", false)) {
                 new CoinsEconomy((CoinsBukkitMain) core.getBootstrap()).shutdown();
             }
@@ -442,19 +450,17 @@ public class CoinsCommand extends Command {
     }
 
     private void about(CommandSender sender) {
-        if (sender.hasPermission("coins.admin") || sender.getName().equals("Beelzebu")) {
-            sender.sendMessage(core.rep("%prefix% Coins plugin by Beelzebu, plugin info:"));
-            sender.sendMessage("");
-            sender.sendMessage(core.rep(" &cVersion:&7 " + core.getBootstrap().getVersion()));
-            sender.sendMessage(core.rep(" &cExecutors:&7 " + ExecutorManager.getExecutors().size()));
-            sender.sendMessage(core.rep(" &cStorage Type:&7 " + core.getStorageType()));
-            sender.sendMessage(core.rep(" &cMultipliers in cache:&7 " + CacheManager.getMultipliersData().asMap().keySet()));
-            sender.sendMessage(core.rep(" &cPlayers in cache:&7 " + CacheManager.getPlayersData().asMap().size()));
-            sender.sendMessage("");
-            sender.sendMessage(core.rep(" &cSource Code:&7 https://github.com/Beelzebu/Coins"));
-            sender.sendMessage(core.rep(" &cLicense:&7 GNU AGPL v3 (&ahttp://www.gnu.org/licenses/#AGPL&7)"));
-            sender.sendMessage("");
-        }
+        sender.sendMessage(core.rep("%prefix% Coins plugin by Beelzebu, plugin info:"));
+        sender.sendMessage("");
+        sender.sendMessage(core.rep(" &cVersion:&7 " + core.getBootstrap().getVersion()));
+        sender.sendMessage(core.rep(" &cExecutors:&7 " + ExecutorManager.getExecutors().size()));
+        sender.sendMessage(core.rep(" &cStorage Type:&7 " + core.getStorageType()));
+        sender.sendMessage(core.rep(" &cMultipliers in cache:&7 " + CacheManager.getMultipliersData().asMap().keySet()));
+        sender.sendMessage(core.rep(" &cPlayers in cache:&7 " + CacheManager.getPlayersData().asMap().size()));
+        sender.sendMessage("");
+        sender.sendMessage(core.rep(" &cSource Code:&7 https://github.com/Beelzebu/Coins"));
+        sender.sendMessage(core.rep(" &cLicense:&7 GNU AGPL v3 (&ahttp://www.gnu.org/licenses/#AGPL&7)"));
+        sender.sendMessage("");
     }
 
     private boolean isNumber(String number) {
