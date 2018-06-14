@@ -32,10 +32,12 @@ import net.md_5.bungee.config.YamlConfiguration;
  */
 public class BungeeConfig extends CoinsConfig {
 
-    private final File configFile = new File(core.getBootstrap().getDataFolder(), "config.yml");
+    private final File configFile;
     private net.md_5.bungee.config.Configuration config;
 
-    public BungeeConfig() {
+    public BungeeConfig(File file) {
+        super(file);
+        configFile = file;
         reload();
     }
 

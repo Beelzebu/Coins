@@ -28,10 +28,8 @@ import net.md_5.bungee.api.ProxyServer;
  */
 public class CoinsBungeePlugin extends CoinsPlugin {
 
-    private final CoinsBungeeMain bootstrap;
-
     public CoinsBungeePlugin(CoinsBungeeMain bootstrap) {
-        this.bootstrap = bootstrap;
+        super(bootstrap);
     }
 
     @Override
@@ -42,7 +40,7 @@ public class CoinsBungeePlugin extends CoinsPlugin {
     @Override
     public void disable() {
         super.disable();
-        ProxyServer.getInstance().getScheduler().cancel(bootstrap);
+        ProxyServer.getInstance().getScheduler().cancel((CoinsBungeeMain) bootstrap);
     }
 
     @Override

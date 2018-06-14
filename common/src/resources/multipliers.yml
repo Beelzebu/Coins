@@ -1,0 +1,10 @@
+# Multipliers config, in this config you can edit the menus and server name used
+# to store multipliers in the database.
+
+# To change names and lores for items check messages files ;)
+
+# This is the identifier for this server, if is default multipliers created for
+# this server will be global if you don't specify the server.
+Server name: default
+
+Menus:

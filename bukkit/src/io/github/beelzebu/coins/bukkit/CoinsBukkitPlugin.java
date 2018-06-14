@@ -37,33 +37,31 @@ import org.bukkit.configuration.file.FileConfiguration;
  */
 public class CoinsBukkitPlugin extends CoinsPlugin {
 
-    private final CoinsBukkitMain bootstrap;
-
     public CoinsBukkitPlugin(CoinsBukkitMain bootstrap) {
-        this.bootstrap = bootstrap;
+        super(bootstrap);
     }
 
     @Override
     public void enable() {
         super.enable();
         // Create the command
-        bootstrap.getCommandManager().registerCommand();
+        ((CoinsBukkitMain) bootstrap).getCommandManager().registerCommand();
         // Register listeners
-        Bukkit.getPluginManager().registerEvents(new CommandListener(), bootstrap);
-        Bukkit.getPluginManager().registerEvents(new GUIListener(), bootstrap);
-        Bukkit.getPluginManager().registerEvents(new LoginListener(), bootstrap);
-        Bukkit.getPluginManager().registerEvents(new SignListener(), bootstrap);
-        Bukkit.getScheduler().runTask(bootstrap, () -> hookOptionalDependencies());
+        Bukkit.getPluginManager().registerEvents(new CommandListener(), (CoinsBukkitMain) bootstrap);
+        Bukkit.getPluginManager().registerEvents(new GUIListener(), (CoinsBukkitMain) bootstrap);
+        Bukkit.getPluginManager().registerEvents(new LoginListener(), (CoinsBukkitMain) bootstrap);
+        Bukkit.getPluginManager().registerEvents(new SignListener(), (CoinsBukkitMain) bootstrap);
+        Bukkit.getScheduler().runTask((CoinsBukkitMain) bootstrap, () -> hookOptionalDependencies());
     }
 
     @Override
     public void disable() {
         super.disable();
         if (getConfig().getBoolean("Vault.Use", false)) {
-            new CoinsEconomy(bootstrap).shutdown();
+            new CoinsEconomy((CoinsBukkitMain) bootstrap).shutdown();
         }
-        bootstrap.getCommandManager().unregisterCommand();
-        Bukkit.getScheduler().cancelTasks(bootstrap);
+        ((CoinsBukkitMain) bootstrap).getCommandManager().unregisterCommand();
+        Bukkit.getScheduler().cancelTasks((CoinsBukkitMain) bootstrap);
     }
 
     @Override
@@ -72,7 +70,7 @@ public class CoinsBukkitPlugin extends CoinsPlugin {
     }
 
     public FileConfiguration getConfig() {
-        return bootstrap.getConfig();
+        return ((CoinsBukkitMain) bootstrap).getConfig();
     }
 
     private void hookOptionalDependencies() {

@@ -20,12 +20,13 @@ package io.github.beelzebu.coins.common;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import io.github.beelzebu.coins.Multiplier;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -34,7 +35,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.apache.commons.io.FileUtils;
 
 /**
  *
@@ -90,7 +90,7 @@ public final class CacheManager {
             if (!MULTIPLIERS_FILE.exists()) {
                 MULTIPLIERS_FILE.createNewFile();
             }
-            Iterator<String> lines = FileUtils.readLines(MULTIPLIERS_FILE, Charsets.UTF_8).iterator();
+            Iterator<String> lines = Files.readAllLines(MULTIPLIERS_FILE.toPath()).iterator();
             boolean exists = false;
             // check if the multiplier was already stored in this server
             while (lines.hasNext()) {
@@ -104,7 +104,7 @@ public final class CacheManager {
             }
             if (!exists) {
                 try {
-                    FileUtils.writeLines(MULTIPLIERS_FILE, Collections.singletonList(multiplier.toJson().toString() + "\n"), true);
+                    Files.write(MULTIPLIERS_FILE.toPath(), Collections.singletonList(multiplier.toJson().toString() + "\n"), StandardOpenOption.APPEND);
                 } catch (IOException ex) {
                     CORE.log("An error has ocurred saving a multiplier in the local storage.");
                     CORE.debug(ex.getMessage());
@@ -141,7 +141,7 @@ public final class CacheManager {
     public static void deleteMultiplier(Multiplier multiplier) {
         Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
         try { // remove it from local multiplier storage
-            Iterator<String> lines = FileUtils.readLines(MULTIPLIERS_FILE, Charsets.UTF_8).iterator();
+            Iterator<String> lines = Files.readAllLines(MULTIPLIERS_FILE.toPath()).iterator();
             while (lines.hasNext()) {
                 if (Multiplier.fromJson(lines.next(), false).getId() == multiplier.getId()) {
                     MULTIPLIERS_DATA.invalidate(multiplier.getServer());
@@ -149,7 +149,7 @@ public final class CacheManager {
                     break;
                 }
             }
-            FileUtils.writeLines(MULTIPLIERS_FILE, Lists.newArrayList(lines));
+            Files.write(MULTIPLIERS_FILE.toPath(), Lists.newArrayList(lines));
         } catch (IOException ex) {
             CORE.log("An error has ocurred removing a multiplier from local storage.");
             CORE.debug(ex.getMessage());

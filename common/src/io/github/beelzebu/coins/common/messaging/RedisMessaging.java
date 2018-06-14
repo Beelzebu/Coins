@@ -30,7 +30,7 @@ import redis.clients.jedis.JedisPubSub;
  *
  * @author Beelzebu
  */
-public class RedisMessaging extends IMessagingService {
+public class RedisMessaging extends AbstractMessagingService {
 
     private JedisPool pool;
     private PubSubListener psl;

@@ -18,8 +18,7 @@
  */
 package io.github.beelzebu.coins.bungee.config;
 
-import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.config.MessagesConfig;
+import io.github.beelzebu.coins.common.config.AbstractConfigFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
@@ -32,14 +31,14 @@ import net.md_5.bungee.config.YamlConfiguration;
  *
  * @author Beelzebu
  */
-public class BungeeMessages extends MessagesConfig {
+public class BungeeMessages extends AbstractConfigFile {
 
     private File langFile;
     private net.md_5.bungee.config.Configuration messages;
 
-    public BungeeMessages(String lang) {
-        super(lang);
-        load(new File(CoinsCore.getInstance().getBootstrap().getDataFolder() + "/messages", "messages" + lang + ".yml"));
+    public BungeeMessages(File file) {
+        super(file);
+        load(langFile = file);
     }
 
     @Override

@@ -21,6 +21,7 @@ package io.github.beelzebu.coins.common.config;
 import io.github.beelzebu.coins.common.CoinsCore;
 import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.messaging.MessagingService;
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,9 +29,13 @@ import java.util.List;
  *
  * @author Beelzebu
  */
-public abstract class CoinsConfig implements IConfiguration {
+public abstract class CoinsConfig extends AbstractConfigFile {
 
     protected final CoinsCore core = CoinsCore.getInstance();
+
+    public CoinsConfig(File file) {
+        super(file);
+    }
 
     // #EasterEgg
     public boolean vaultMultipliers() {

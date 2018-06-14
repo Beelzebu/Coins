@@ -19,8 +19,8 @@
 package io.github.beelzebu.coins.common.plugin;
 
 import io.github.beelzebu.coins.Multiplier;
+import io.github.beelzebu.coins.common.config.AbstractConfigFile;
 import io.github.beelzebu.coins.common.config.CoinsConfig;
-import io.github.beelzebu.coins.common.config.MessagesConfig;
 import io.github.beelzebu.coins.common.dependency.classloader.ReflectionClassLoader;
 import io.github.beelzebu.coins.common.messaging.ProxyMessaging;
 import java.io.File;
@@ -39,7 +39,7 @@ public interface CoinsBootstrap {
 
     public CoinsConfig getPluginConfig();
 
-    public MessagesConfig getMessages(String lang);
+    public AbstractConfigFile getFileAsConfig(File file);
 
     public void runAsync(Runnable rn);
 

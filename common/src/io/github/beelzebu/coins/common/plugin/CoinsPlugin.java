@@ -22,14 +22,17 @@ import io.github.beelzebu.coins.common.dependency.DependencyManager;
 import io.github.beelzebu.coins.common.executor.Executor;
 import io.github.beelzebu.coins.common.executor.ExecutorManager;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  *
  * @author Beelzebu
  */
+@RequiredArgsConstructor
 public abstract class CoinsPlugin {
 
-    public abstract CoinsBootstrap getBootstrap();
+    @Getter
+    protected final CoinsBootstrap bootstrap;
     @Getter
     private final DependencyManager dependencyManager = new DependencyManager();
 

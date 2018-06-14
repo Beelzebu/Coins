@@ -27,13 +27,15 @@ import io.github.beelzebu.coins.bungee.events.CoinsChangeEvent;
 import io.github.beelzebu.coins.bungee.events.MultiplierEnableEvent;
 import io.github.beelzebu.coins.bungee.messaging.BungeeMessaging;
 import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.common.config.AbstractConfigFile;
 import io.github.beelzebu.coins.common.config.CoinsConfig;
-import io.github.beelzebu.coins.common.config.MessagesConfig;
 import io.github.beelzebu.coins.common.executor.Executor;
 import io.github.beelzebu.coins.common.executor.ExecutorManager;
 import io.github.beelzebu.coins.common.messaging.ProxyMessaging;
 import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
 import io.github.beelzebu.coins.common.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.common.utils.FileManager;
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +53,7 @@ import net.md_5.bungee.api.plugin.Plugin;
  */
 public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
 
-    protected final CoinsCore core = CoinsCore.getInstance();
+    private final CoinsCore core = CoinsCore.getInstance();
     private final CoinsBungeePlugin plugin;
     private BungeeConfig config;
     private BungeeMessaging bmessaging;
@@ -67,7 +69,7 @@ public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
 
     @Override
     public void onEnable() {
-        config = new BungeeConfig();
+        config = new BungeeConfig(FileManager.CONFIG_FILE);
         core.start();
     }
 
@@ -94,8 +96,8 @@ public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
     }
 
     @Override
-    public MessagesConfig getMessages(String lang) {
-        return new BungeeMessages(lang);
+    public AbstractConfigFile getFileAsConfig(File file) {
+        return new BungeeMessages(file);
     }
 
     @Override

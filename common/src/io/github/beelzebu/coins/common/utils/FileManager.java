@@ -18,25 +18,21 @@
  */
 package io.github.beelzebu.coins.common.utils;
 
-import com.google.common.base.Charsets;
 import io.github.beelzebu.coins.common.CoinsCore;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
-import org.apache.commons.io.FileUtils;
 
 /**
  *
@@ -44,65 +40,32 @@ import org.apache.commons.io.FileUtils;
  */
 public class FileManager {
 
+    public static final File MESSAGES_FOLDER = new File(CoinsCore.getInstance().getBootstrap().getDataFolder(), "messages");
+    public static final File LOGS_FOLDER = new File(CoinsCore.getInstance().getBootstrap().getDataFolder(), "logs");
+    public static final File CONFIG_FILE = new File(CoinsCore.getInstance().getBootstrap().getDataFolder(), "config.yml");
     private final CoinsCore core = CoinsCore.getInstance();
-    private final File messagesFolder = new File(core.getBootstrap().getDataFolder(), "messages");
     private final Map<String, File> messagesFiles = new HashMap<>();
-    private final File configFile = new File(core.getBootstrap().getDataFolder(), "config.yml");
-    private final File logsFolder = new File(core.getBootstrap().getDataFolder(), "logs");
     private final int configVersion = 15;
 
     public FileManager() {
-        messagesFiles.put("default", new File(messagesFolder, "messages.yml"));
-        messagesFiles.put("es", new File(messagesFolder, "messages_es.yml"));
-        messagesFiles.put("zh", new File(messagesFolder, "messages_zh.yml"));
-        messagesFiles.put("cz", new File(messagesFolder, "messages_cz.yml"));
-        messagesFiles.put("hu", new File(messagesFolder, "messages_hu.yml"));
-        messagesFiles.put("ru", new File(messagesFolder, "messages_ru.yml"));
+        messagesFiles.put("default", new File(MESSAGES_FOLDER, "messages.yml"));
+        messagesFiles.put("es", new File(MESSAGES_FOLDER, "messages_es.yml"));
+        messagesFiles.put("zh", new File(MESSAGES_FOLDER, "messages_zh.yml"));
+        messagesFiles.put("cz", new File(MESSAGES_FOLDER, "messages_cz.yml"));
+        messagesFiles.put("hu", new File(MESSAGES_FOLDER, "messages_hu.yml"));
+        messagesFiles.put("ru", new File(MESSAGES_FOLDER, "messages_ru.yml"));
     }
 
     private void updateConfig() {
         try {
-            List<String> lines = FileUtils.readLines(configFile, Charsets.UTF_8);
-            int index;
+            List<String> lines = Files.readAllLines(CONFIG_FILE.toPath());
             if (core.getConfig().getInt("version") == configVersion) {
                 core.log("The config file is up to date.");
             } else {
                 int version = configVersion;
                 do {
-                    FileUtils.writeLines(configFile, lines);
-                    core.getConfig().reload();
+                    int index;
                     switch (version) {
-                        case 10:
-                            index = lines.indexOf("    Close:") + 1;
-                            lines.addAll(index, Arrays.asList(
-                                    "      # To see all possible values check https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html",
-                                    "      Material: REDSTONE_BLOCK",
-                                    "      Name: '&c&lClose'",
-                                    "      Lore:",
-                                    "      - ''",
-                                    "      - '&7Click me to close this gui'"
-                            ));
-                            index = lines.indexOf("version: 10");
-                            lines.set(index, "version: 11");
-                            core.log("Configuraton file updated to v11");
-                            break;
-                        case 11:
-                            index = lines.indexOf("  Executor Sign:") + 5;
-                            lines.addAll(index, Arrays.asList(
-                                    "  # If you want the users to be created when they join to the server, enable this,",
-                                    "  # otherwise the players will be created when his coins are modified or consulted",
-                                    "  # to the database for the first time (recommended for big servers).",
-                                    "  Create Join: false"
-                            ));
-                            index = lines.indexOf("version: 11");
-                            lines.set(index, "version: 12");
-                            core.log("Configuration file updated to v12");
-                            break;
-                        case 12:
-                            index = lines.indexOf("version: 12");
-                            lines.set(index, "version: 13");
-                            core.log("Configuration file updated to v13");
-                            break;
                         case 13:
                             index = lines.indexOf(" Fail:");
                             if (index != -1) {
@@ -173,15 +136,29 @@ public class FileManager {
                             index = lines.indexOf("version: 13");
                             lines.set(index, "version: 14");
                             core.log("Configuration file updated to v14");
-                            break;
+                            version++;
+                        case 14:
+                            // move executors to his own file
+                            // move multipliers to his own file
+                            index = lines.indexOf("Command Cost:");
+                            if (index != -1) {
+                                index += core.getConfig().getConfigurationSection("Command Cost").size();
+                            }
+                            for (int i = index; i < lines.size(); i++) {
+                                lines.remove(i);
+                            }
+                            index = lines.indexOf("version: 14");
+                            lines.set(index, "version: 15");
+                            core.log("Configuration file updated to v15");
+                            version++;
                         case configVersion:
                             break;
                         default:
                             core.log("Seems that you hava a too old version of the config or you canged this to another number >:(");
-                            core.log("We can't update it, if is a old version you should try to update it slow and not jump from a version to another, keep in mind that we keep track of the last 3 versions of the config to update.");
+                            core.log("We can't update it, if is a old version you should try to update it slow and not jump from a version to another, keep in mind that we keep only track of the last versions of the config to update.");
                             break;
                     }
-                    FileUtils.writeLines(configFile, lines);
+                    Files.write(CONFIG_FILE.toPath(), lines);
                     core.getConfig().reload();
                     version = core.getConfig().getInt("version");
                 } while (version < configVersion && version > configVersion - 5);
@@ -194,22 +171,7 @@ public class FileManager {
 
     private void updateMessages() {
         try {
-            for (Map.Entry<String, File> ent : messagesFiles.entrySet()) {
-                List<String> liness = FileUtils.readLines(ent.getValue(), Charsets.UTF_8);
-                Iterator<String> it = liness.iterator();
-                while (it.hasNext()) {
-                    String line = it.next();
-                    if (line.contains("Unknow ")) {
-                        liness.set(liness.indexOf(line), line.replaceAll("Unknow ", "Unknown "));
-                    }
-                }
-                FileUtils.writeLines(ent.getValue(), liness);
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        try {
-            List<String> lines = FileUtils.readLines(messagesFiles.get("default"), Charsets.UTF_8);
+            List<String> lines = Files.readAllLines(messagesFiles.get("default").toPath());
             int index;
             if (core.getMessages("").getInt("version") == 6) {
                 index = lines.indexOf("version: 6");
@@ -281,13 +243,13 @@ public class FileManager {
                 ));
                 core.log("Updated messages.yml file to v10");
             }
-            FileUtils.writeLines(messagesFiles.get("default"), lines);
+            Files.write(messagesFiles.get("default").toPath(), lines);
         } catch (IOException ex) {
             core.log("An unexpected error occurred while updating the messages.yml file.");
             core.debug(ex.getMessage());
         }
         try {
-            List<String> lines = FileUtils.readLines(messagesFiles.get("es"), Charsets.UTF_8);
+            List<String> lines = Files.readAllLines(messagesFiles.get("es").toPath());
             int index;
             if (core.getMessages("es").getInt("version") == 6) {
                 index = lines.indexOf("version: 6");
@@ -368,7 +330,7 @@ public class FileManager {
                 index = lines.indexOf("  Multiplier Create: '" + core.getMessages("es").getString("Help.Multiplier Create") + "'") + 1;
                 lines.add(index, "  Multiplier Set: '%prefix% &cPor favor usa &f/coins multiplier set <cantidad> <activador> <minutos> (server)'");
             }
-            FileUtils.writeLines(messagesFiles.get("es"), lines);
+            Files.write(messagesFiles.get("es").toPath(), lines);
         } catch (IOException ex) {
             core.log("An unexpected error occurred while updating the messages_es.yml file.");
             core.debug(ex.getMessage());
@@ -376,17 +338,17 @@ public class FileManager {
     }
 
     public void copyFiles() {
-        if (!logsFolder.exists()) {
-            logsFolder.mkdirs();
+        if (!LOGS_FOLDER.exists()) {
+            LOGS_FOLDER.mkdirs();
         }
-        if (!messagesFolder.exists()) {
-            messagesFolder.mkdirs();
+        if (!MESSAGES_FOLDER.exists()) {
+            MESSAGES_FOLDER.mkdirs();
         }
         File[] files = core.getBootstrap().getDataFolder().listFiles();
         for (File f : files) {
             if (f.isFile() && f.getName().startsWith("messages")) {
                 try {
-                    Files.move(f.toPath(), new File(messagesFolder, f.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    Files.move(f.toPath(), new File(MESSAGES_FOLDER, f.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
                 } catch (IOException ex) {
                     Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while moving messages files to the new messages folder.", ex);
                 }
@@ -394,16 +356,17 @@ public class FileManager {
         }
         messagesFiles.keySet().forEach(filename -> {
             try {
-                Files.copy(core.getBootstrap().getResource(messagesFiles.get(filename).getName()), new File(messagesFolder, messagesFiles.get(filename).getName()).toPath());
-            } catch (FileAlreadyExistsException ignore) {
+                File messageFile = new File(MESSAGES_FOLDER, messagesFiles.get(filename).getName());
+                if (!messageFile.exists()) {
+                    Files.copy(core.getBootstrap().getResource(messagesFiles.get(filename).getName()), messageFile.toPath());
+                }
             } catch (IOException ex) {
                 Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while saving messages files.", ex);
             }
         });
-        if (!configFile.exists()) {
+        if (!CONFIG_FILE.exists()) {
             try {
-                Files.copy(core.getBootstrap().getResource("config.yml"), configFile.toPath());
-            } catch (FileAlreadyExistsException ignore) {
+                Files.copy(core.getBootstrap().getResource(CONFIG_FILE.getName()), CONFIG_FILE.toPath());
             } catch (IOException ex) {
                 Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while saving the default config.", ex);
             }
@@ -417,22 +380,21 @@ public class FileManager {
     }
 
     private void checkLogs() {
-
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        File latestLog = new File(logsFolder, "latest.log");
+        File latestLog = new File(LOGS_FOLDER, "latest.log");
         if (latestLog.exists()) {
             try {
                 int filen = 1;
-                while (new File(logsFolder, sdf.format(latestLog.lastModified()) + "-" + filen + ".log.gz").exists()) {
+                while (new File(LOGS_FOLDER, sdf.format(latestLog.lastModified()) + "-" + filen + ".log.gz").exists()) {
                     filen++;
                 }
-                gzipFile(Files.newInputStream(latestLog.toPath()), logsFolder + "/" + sdf.format(latestLog.lastModified()) + "-" + filen + ".log.gz");
+                gzipFile(Files.newInputStream(latestLog.toPath()), LOGS_FOLDER + File.pathSeparator + sdf.format(latestLog.lastModified()) + "-" + filen + ".log.gz");
                 latestLog.delete();
             } catch (IOException ex) {
                 Logger.getLogger(FileManager.class.getName()).log(Level.WARNING, "An unexpected error has ocurred while trying to compress the latest log file. {0}", ex.getMessage());
             }
         }
-        File[] fList = logsFolder.listFiles();
+        File[] fList = LOGS_FOLDER.listFiles();
         // Auto purge for old logs
         if (fList.length > 0) {
             for (File file : fList) {
@@ -444,23 +406,23 @@ public class FileManager {
     }
 
     private void gzipFile(InputStream in, String to) throws IOException {
-        GZIPOutputStream out = new GZIPOutputStream(new FileOutputStream(to));
-        byte[] buffer = new byte[4096];
-        int bytesRead;
-        while ((bytesRead = in.read(buffer)) != -1) {
-            out.write(buffer, 0, bytesRead);
+        try (GZIPOutputStream out = new GZIPOutputStream(new FileOutputStream(to))) {
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+            in.close();
         }
-        in.close();
-        out.close();
     }
 
     public void updateDatabaseVersion(int version) {
         if (core.getConfig().getInt("Database Version") != version) {
             try {
-                List<String> lines = FileUtils.readLines(configFile, Charsets.UTF_8);
+                List<String> lines = Files.readAllLines(CONFIG_FILE.toPath());
                 int index = lines.indexOf("Database Version: " + core.getConfig().getInt("Database Version"));
                 lines.set(index, "Database Version: " + version);
-                FileUtils.writeLines(configFile, lines);
+                Files.write(CONFIG_FILE.toPath(), lines);
                 core.getConfig().reload();
             } catch (IOException ex) {
                 core.log("An unexpected error occurred while updating the config file.");

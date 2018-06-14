@@ -18,20 +18,19 @@
  */
 package io.github.beelzebu.coins.common;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import io.github.beelzebu.coins.Multiplier;
+import io.github.beelzebu.coins.common.config.AbstractConfigFile;
 import io.github.beelzebu.coins.common.config.CoinsConfig;
-import io.github.beelzebu.coins.common.config.MessagesConfig;
 import io.github.beelzebu.coins.common.database.CoinsDatabase;
 import io.github.beelzebu.coins.common.database.MySQL;
 import io.github.beelzebu.coins.common.database.SQLite;
 import io.github.beelzebu.coins.common.database.StorageType;
 import io.github.beelzebu.coins.common.dependency.Dependency;
+import io.github.beelzebu.coins.common.messaging.AbstractMessagingService;
 import io.github.beelzebu.coins.common.messaging.DummyMessaging;
-import io.github.beelzebu.coins.common.messaging.IMessagingService;
 import io.github.beelzebu.coins.common.messaging.MessagingService;
 import io.github.beelzebu.coins.common.messaging.RedisMessaging;
 import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
@@ -57,7 +56,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import net.md_5.bungee.api.ChatColor;
-import org.apache.commons.io.FileUtils;
 
 /**
  *
@@ -73,10 +71,10 @@ public final class CoinsCore {
     private CoinsDatabase db;
     private CoinsBootstrap bootstrap;
     private StorageType storageType;
-    private IMessagingService messagingService;
+    private AbstractMessagingService messagingService;
     private boolean logEnabled = false;
     @Getter(AccessLevel.NONE)
-    private final HashMap<String, MessagesConfig> messagesMap = new HashMap<>();
+    private final HashMap<String, AbstractConfigFile> messagesMap = new HashMap<>();
     private final Gson gson = new Gson();
 
     public static CoinsCore getInstance() {
@@ -85,7 +83,7 @@ public final class CoinsCore {
 
     public void setup(CoinsBootstrap bootstrap) { // the plugin was loaded, so copy files and download dependencies
         this.bootstrap = bootstrap;
-        EnumSet<Dependency> dependencies = EnumSet.of(Dependency.CAFFEINE, Dependency.COMMONS_IO);
+        EnumSet<Dependency> dependencies = EnumSet.of(Dependency.CAFFEINE);
         log("Loading main dependencies: " + dependencies);
         bootstrap.getPlugin().getDependencyManager().loadDependencies(dependencies);
         new FileManager().copyFiles();
@@ -110,7 +108,7 @@ public final class CoinsCore {
             if (!CacheManager.MULTIPLIERS_FILE.exists()) {
                 CacheManager.MULTIPLIERS_FILE.createNewFile();
             }
-            Iterator<String> lines = FileUtils.readLines(CacheManager.MULTIPLIERS_FILE, Charsets.UTF_8).iterator();
+            Iterator<String> lines = Files.readAllLines(CacheManager.MULTIPLIERS_FILE.toPath()).iterator();
             while (lines.hasNext()) {
                 String line = lines.next();
                 try {
@@ -119,9 +117,9 @@ public final class CoinsCore {
                 } catch (JsonParseException ignore) { // Invalid line
                     debug(line + " isn't a valid multiplier in json format.");
                     lines.remove();
-                    FileUtils.writeLines(CacheManager.MULTIPLIERS_FILE, Lists.newArrayList(lines));
                 }
             }
+            Files.write(CacheManager.MULTIPLIERS_FILE.toPath(), Lists.newArrayList(lines));
         } catch (IOException ex) {
             log("An error has ocurred loading multipliers from local storage.");
             debug(ex.getMessage());
@@ -303,18 +301,15 @@ public final class CoinsCore {
         return bootstrap.getPluginConfig();
     }
 
-    public MessagesConfig getMessages(String locale) {
-        String lang = locale;
-        if (lang == null || lang.equals("")) {
-            lang = "default";
+    public AbstractConfigFile getMessages(String locale) {
+        String lang = "_" + locale.split("_")[0];
+        File file = new File(bootstrap.getDataFolder(), "messages" + lang + ".yml");
+        if (lang == null || lang.equals("default") || !file.exists()) {
+            lang = "";
         }
-        lang = lang.split("_")[0];
+        file = new File(bootstrap.getDataFolder(), "messages" + lang + ".yml");
         if (!messagesMap.containsKey(lang)) {
-            if (new File(bootstrap.getDataFolder() + "/messages", "messages_" + lang + ".yml").exists()) {
-                messagesMap.put(lang, bootstrap.getMessages("_" + lang));
-            } else {
-                messagesMap.put(lang, bootstrap.getMessages(""));
-            }
+            messagesMap.put(lang, bootstrap.getFileAsConfig(file));
         }
         return messagesMap.get(lang);
     }

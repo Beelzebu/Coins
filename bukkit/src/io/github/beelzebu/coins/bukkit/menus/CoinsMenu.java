@@ -20,7 +20,6 @@ package io.github.beelzebu.coins.bukkit.menus;
 
 import com.google.common.base.Preconditions;
 import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.config.IConfiguration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +30,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import io.github.beelzebu.coins.common.config.AbstractConfigFile;
 
 /**
  *
@@ -102,7 +102,7 @@ public abstract class CoinsMenu {
         inventoriesByUUID.remove(uuid);
     }
 
-    public ItemStack getItem(IConfiguration config, String path) {
+    public ItemStack getItem(AbstractConfigFile config, String path) {
         Preconditions.checkNotNull(config, "Config can't be null");
         Preconditions.checkNotNull(path, "Item path can't be null");
         Material mat;

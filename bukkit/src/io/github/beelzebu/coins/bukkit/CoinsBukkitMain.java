@@ -27,10 +27,11 @@ import io.github.beelzebu.coins.bukkit.events.MultiplierEnableEvent;
 import io.github.beelzebu.coins.bukkit.messaging.BukkitMessaging;
 import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
 import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.common.config.AbstractConfigFile;
 import io.github.beelzebu.coins.common.config.CoinsConfig;
-import io.github.beelzebu.coins.common.config.MessagesConfig;
 import io.github.beelzebu.coins.common.messaging.ProxyMessaging;
 import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -69,7 +70,7 @@ public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
 
     @Override
     public void onEnable() {
-        config = new BukkitConfig(plugin);
+        config = new BukkitConfig(null, plugin);
         core.start();
     }
 
@@ -84,8 +85,8 @@ public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
     }
 
     @Override
-    public MessagesConfig getMessages(String lang) {
-        return new BukkitMessages(lang);
+    public AbstractConfigFile getFileAsConfig(File file) {
+        return new BukkitMessages(file);
     }
 
     @Override

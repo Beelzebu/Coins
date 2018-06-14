@@ -34,7 +34,7 @@ import java.util.UUID;
  *
  * @author Beelzebu
  */
-public abstract class IMessagingService {
+public abstract class AbstractMessagingService {
 
     protected final CoinsCore core = CoinsCore.getInstance();
     protected final LinkedHashSet<UUID> messages = new LinkedHashSet<>();

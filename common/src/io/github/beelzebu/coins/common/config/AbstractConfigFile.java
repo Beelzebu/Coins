@@ -18,62 +18,68 @@
  */
 package io.github.beelzebu.coins.common.config;
 
+import java.io.File;
 import java.util.List;
 import java.util.Set;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 
 /**
  *
  * @author Beelzebu
  */
-public interface IConfiguration {
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public abstract class AbstractConfigFile {
 
-    public Object get(String path);
+    protected final File file;
 
-    public default String getString(String path) {
+    public abstract Object get(String path);
+
+    public String getString(String path) {
         return (String) get(path);
     }
 
-    public default List<String> getStringList(String path) {
+    public List<String> getStringList(String path) {
         return (List<String>) get(path);
     }
 
-    public default boolean getBoolean(String path) {
+    public boolean getBoolean(String path) {
         return (boolean) get(path);
     }
 
-    public default int getInt(String path) {
+    public int getInt(String path) {
         return (int) get(path);
     }
 
-    public default double getDouble(String path) {
+    public double getDouble(String path) {
         return (double) get(path);
     }
 
-    public default Object get(String path, Object def) {
+    public Object get(String path, Object def) {
         return get(path) != null ? get(path) : def;
     }
 
-    public default String getString(String path, String def) {
+    public String getString(String path, String def) {
         return get(path) != null ? (String) get(path) : def;
     }
 
-    public default List<String> getStringList(String path, List<String> def) {
+    public List<String> getStringList(String path, List<String> def) {
         return getStringList(path) != null ? getStringList(path) : def;
     }
 
-    public default boolean getBoolean(String path, boolean def) {
+    public boolean getBoolean(String path, boolean def) {
         return get(path) != null ? (boolean) get(path) : def;
     }
 
-    public default int getInt(String path, int def) {
+    public int getInt(String path, int def) {
         return get(path) != null ? (int) get(path) : def;
     }
 
-    public default double getDouble(String path, double def) {
+    public double getDouble(String path, double def) {
         return get(path) != null ? (double) get(path) : def;
     }
 
-    public Set<String> getConfigurationSection(String path);
+    public abstract Set<String> getConfigurationSection(String path);
 
-    public void reload();
+    public abstract void reload();
 }

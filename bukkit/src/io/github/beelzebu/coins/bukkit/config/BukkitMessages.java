@@ -18,8 +18,7 @@
  */
 package io.github.beelzebu.coins.bukkit.config;
 
-import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.config.MessagesConfig;
+import io.github.beelzebu.coins.common.config.AbstractConfigFile;
 import java.io.File;
 import java.util.Set;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -28,14 +27,14 @@ import org.bukkit.configuration.file.YamlConfiguration;
  *
  * @author Beelzebu
  */
-public class BukkitMessages extends MessagesConfig {
+public class BukkitMessages extends AbstractConfigFile {
 
     private final File langFile;
     private YamlConfiguration messages;
 
-    public BukkitMessages(String lang) {
-        super(lang);
-        messages = YamlConfiguration.loadConfiguration(langFile = new File(CoinsCore.getInstance().getBootstrap().getDataFolder() + "/messages", "messages" + lang + ".yml"));
+    public BukkitMessages(File file) {
+        super(file);
+        messages = YamlConfiguration.loadConfiguration(langFile = file);
     }
 
     @Override

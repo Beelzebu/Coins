@@ -22,7 +22,7 @@ package io.github.beelzebu.coins.common.messaging;
  *
  * @author Beelzebu
  */
-public abstract class ProxyMessaging extends IMessagingService {
+public abstract class ProxyMessaging extends AbstractMessagingService {
 
     protected static final String CHANNEL = "Coins";
 

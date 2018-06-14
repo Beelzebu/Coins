@@ -30,7 +30,6 @@ public enum Dependency {
     ASM_COMMONS("org.ow2.asm", "asm-commons", "6.1.1"),
     JAR_RELOCATOR("me.lucko", "jar-relocator", "1.3"),
     CAFFEINE("com{}github{}ben-manes{}caffeine", "caffeine", "2.6.2", Relocation.of("caffeine", "com{}github{}benmanes{}caffeine")),
-    COMMONS_IO("commons-io", "commons-io", "2.6"),
     MARIADB_DRIVER("org{}mariadb{}jdbc", "mariadb-java-client", "2.2.3", Relocation.of("mariadb", "org{}mariadb{}jdbc")),
     MYSQL_DRIVER("mysql", "mysql-connector-java", "5.1.46", Relocation.of("mysql", "com{}mysql")),
     SQLITE_DRIVER("org.xerial", "sqlite-jdbc", "3.21.0"),

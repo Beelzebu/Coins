@@ -24,7 +24,7 @@ import com.google.gson.JsonObject;
  *
  * @author Beelzebu
  */
-public class DummyMessaging extends IMessagingService {
+public class DummyMessaging extends AbstractMessagingService {
 
     @Override
     public void start() {
