@@ -18,7 +18,7 @@
  */
 package io.github.beelzebu.coins.bukkit.importer;
 
-import io.github.beelzebu.coins.CoinsAPI;
+import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.common.importer.ImportManager;
 import io.github.beelzebu.coins.common.importer.Importer;
 import java.io.File;
@@ -43,10 +43,10 @@ public class BukkitImporter implements Importer {
     @Override
     public void importFromPlayerPoints() {
         if (Bukkit.getPluginManager().getPlugin("PlayerPoints") == null) {
-            core.log("Seems that PlayerPoints is not installed in this server, you need to have this plugin installed to start the migration, you can remove it when it is finished.");
+            plugin.log("Seems that PlayerPoints is not installed in this server, you need to have this plugin installed to start the migration, you can remove it when it is finished.");
             return;
         }
-        core.log("Starting the migration of playerpoints data to coins, this may take a moment.");
+        plugin.log("Starting the migration of playerpoints data to coins, this may take a moment.");
         FileConfiguration ppConfig = Bukkit.getPluginManager().getPlugin("PlayerPoints").getConfig();
         String storageType = ppConfig.getString("storage");
         if (storageType.equalsIgnoreCase("YAML")) {
@@ -60,10 +60,10 @@ public class BukkitImporter implements Importer {
                     } else {
                         CoinsAPI.createPlayer("unknow_player_from_pp", uuid2, balance);
                     }
-                    core.debug("Migrated the data for: " + uuid);
+                    plugin.debug("Migrated the data for: " + uuid);
                 } catch (Exception ex) {
-                    core.log("An error has ocurred while migrating the data for: " + uuid);
-                    core.debug(ex);
+                    plugin.log("An error has ocurred while migrating the data for: " + uuid);
+                    plugin.debug(ex);
                 }
             });
         } else if (storageType.equalsIgnoreCase("SQLITE")) {
@@ -82,15 +82,15 @@ public class BukkitImporter implements Importer {
                             } else {
                                 CoinsAPI.createPlayer("unknow_player_from_pp", uuid, balance);
                             }
-                            core.debug("Migrated the data for: " + uuid);
+                            plugin.debug("Migrated the data for: " + uuid);
                         } catch (SQLException ex) {
-                            core.log("An error has ocurred while migrating the data for: " + res.getString("playername"));
-                            core.debug(ex);
+                            plugin.log("An error has ocurred while migrating the data for: " + res.getString("playername"));
+                            plugin.debug(ex);
                         }
                     }
                 } catch (SQLException ex) {
-                    core.log("An error has ocurred while migrating the data from PlayerPoints");
-                    core.debug(ex);
+                    plugin.log("An error has ocurred while migrating the data from PlayerPoints");
+                    plugin.debug(ex);
                 }
             } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
                 Logger.getLogger(ImportManager.class.getName()).log(Level.SEVERE, null, ex);
@@ -111,21 +111,21 @@ public class BukkitImporter implements Importer {
                             } else {
                                 CoinsAPI.createPlayer("unknow_player_from_pp", uuid, balance);
                             }
-                            core.debug("Migrated the data for: " + uuid);
+                            plugin.debug("Migrated the data for: " + uuid);
                         } catch (SQLException ex) {
-                            core.log("An error has ocurred while migrating the data for: " + res.getString("playername"));
-                            core.debug(ex);
+                            plugin.log("An error has ocurred while migrating the data for: " + res.getString("playername"));
+                            plugin.debug(ex);
                         }
                     }
                 } catch (SQLException ex) {
-                    core.log("An error has ocurred while migrating the data from PlayerPoints");
-                    core.debug(ex);
+                    plugin.log("An error has ocurred while migrating the data from PlayerPoints");
+                    plugin.debug(ex);
                 }
             } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
                 Logger.getLogger(ImportManager.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        core.log("The migration was completed, check the plugin logs for more information.");
+        plugin.log("The migration was completed, check the plugin logs for more information.");
     }
 
 }

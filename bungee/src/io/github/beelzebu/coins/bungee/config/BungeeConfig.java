@@ -18,7 +18,7 @@
  */
 package io.github.beelzebu.coins.bungee.config;
 
-import io.github.beelzebu.coins.common.config.CoinsConfig;
+import io.github.beelzebu.coins.api.config.CoinsConfig;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
@@ -56,7 +56,7 @@ public class BungeeConfig extends CoinsConfig {
         try {
             config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
         } catch (IOException ex) {
-            core.getBootstrap().getLogger().log(Level.SEVERE, "An unexpected error has ocurred reloading the config. {0}", ex.getMessage());
+            plugin.getBootstrap().getLogger().log(Level.SEVERE, "An unexpected error has ocurred reloading the config. {0}", ex.getMessage());
         }
     }
 }

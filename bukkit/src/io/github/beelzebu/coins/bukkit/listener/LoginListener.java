@@ -18,10 +18,9 @@
  */
 package io.github.beelzebu.coins.bukkit.listener;
 
-import io.github.beelzebu.coins.CoinsAPI;
-import io.github.beelzebu.coins.common.CacheManager;
-import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.messaging.MessagingService;
+import io.github.beelzebu.coins.api.CoinsAPI;
+import io.github.beelzebu.coins.api.messaging.MessagingService;
+import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -34,18 +33,18 @@ import org.bukkit.event.player.PlayerQuitEvent;
  */
 public class LoginListener implements Listener {
 
-    private final CoinsCore core = CoinsCore.getInstance();
+    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
     private static boolean first = true;
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent e) {
-        if (core.getConfig().getBoolean("General.Create Join", false)) {
+        if (plugin.getConfig().getBoolean("General.Create Join", false)) {
             CoinsAPI.createPlayer(e.getPlayer().getName(), e.getPlayer().getUniqueId());
         }
-        if (first && core.getConfig().useBungee()) {
-            core.getBootstrap().runAsync(() -> {
-                core.getMessagingService().getMultipliers();
-                core.getMessagingService().getExecutors();
+        if (first && plugin.getConfig().useBungee()) {
+            plugin.getBootstrap().runAsync(() -> {
+                plugin.getMessagingService().getMultipliers();
+                plugin.getMessagingService().getExecutors();
             });
             first = false;
         }
@@ -53,8 +52,8 @@ public class LoginListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent e) {
-        if (!core.getMessagingService().getType().equals(MessagingService.REDIS)) {
-            CacheManager.getPlayersData().invalidate(e.getPlayer().getUniqueId());
+        if (!plugin.getMessagingService().getType().equals(MessagingService.REDIS)) {
+            plugin.getCache().removePlayer(e.getPlayer().getUniqueId());
         }
     }
 }

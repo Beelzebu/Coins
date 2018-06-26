@@ -18,7 +18,7 @@
  */
 package io.github.beelzebu.coins.bukkit.utils.placeholders;
 
-import io.github.beelzebu.coins.CoinsAPI;
+import io.github.beelzebu.coins.api.CoinsAPI;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Map;

@@ -19,6 +19,8 @@
 package io.github.beelzebu.coins.common.messaging;
 
 import com.google.gson.JsonObject;
+import io.github.beelzebu.coins.api.messaging.AbstractMessagingService;
+import io.github.beelzebu.coins.api.messaging.MessagingService;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import redis.clients.jedis.Jedis;
@@ -39,15 +41,15 @@ public class RedisMessaging extends AbstractMessagingService {
     public void start() {
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMinIdle(1);
-        String host = core.getConfig().getString("Redis.Host", "localhost");
-        int port = core.getConfig().getInt("Redis.Port", 6379);
-        String password = core.getConfig().getString("Redis.Password");
+        String host = plugin.getConfig().getString("Redis.Host", "localhost");
+        int port = plugin.getConfig().getInt("Redis.Port", 6379);
+        String password = plugin.getConfig().getString("Redis.Password");
         if (password != null && !"".equals(password)) {
             pool = new JedisPool(config, host, port, 0, password);
         } else {
             pool = new JedisPool(config, host, port);
         }
-        core.getBootstrap().runAsync(psl = new PubSubListener());
+        plugin.getBootstrap().runAsync(psl = new PubSubListener());
     }
 
     @Override
@@ -82,7 +84,7 @@ public class RedisMessaging extends AbstractMessagingService {
                     jpsh = new JedisPubSubHandler();
                     rsc.subscribe(jpsh, "coins-messaging");
                 } catch (Exception e) {
-                    core.log("PubSub error, attempting to recover.");
+                    plugin.log("PubSub error, attempting to recover.");
                     try {
                         jpsh.unsubscribe();
                     } catch (Exception ignore) {
@@ -113,7 +115,7 @@ public class RedisMessaging extends AbstractMessagingService {
 
         @Override
         public void onMessage(String channel, String message) {
-            handleMessage(core.getGson().fromJson(message, JsonObject.class));
+            handleMessage(plugin.getGson().fromJson(message, JsonObject.class));
         }
     }
 }

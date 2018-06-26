@@ -18,7 +18,7 @@
  */
 package io.github.beelzebu.coins.bukkit.config;
 
-import io.github.beelzebu.coins.common.config.AbstractConfigFile;
+import io.github.beelzebu.coins.api.config.AbstractConfigFile;
 import java.io.File;
 import java.util.Set;
 import org.bukkit.configuration.file.YamlConfiguration;

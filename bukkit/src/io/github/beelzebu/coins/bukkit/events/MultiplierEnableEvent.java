@@ -18,8 +18,8 @@
  */
 package io.github.beelzebu.coins.bukkit.events;
 
+import io.github.beelzebu.coins.api.Multiplier;
 import java.util.UUID;
-import io.github.beelzebu.coins.Multiplier;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 

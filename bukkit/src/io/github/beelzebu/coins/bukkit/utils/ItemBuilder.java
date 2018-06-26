@@ -18,7 +18,7 @@
  */
 package io.github.beelzebu.coins.bukkit.utils;
 
-import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,7 +41,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class ItemBuilder {
 
-    private final CoinsCore core = CoinsCore.getInstance();
+    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
     private final Material material;
     private short data = 0;
     private String displayName;
@@ -107,10 +107,10 @@ public class ItemBuilder {
         ItemStack item = new ItemStack(material, 1, data);
         meta = item.getItemMeta();
         if (displayName != null) {
-            meta.setDisplayName(core.rep(displayName));
+            meta.setDisplayName(plugin.rep(displayName));
         }
         if (lore != null) {
-            meta.setLore(core.rep(lore));
+            meta.setLore(plugin.rep(lore));
         }
         if (enchants != null) {
             enchants.forEach((enchant, level) -> meta.addEnchant(enchant, level, true));

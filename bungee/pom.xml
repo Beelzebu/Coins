@@ -24,6 +24,12 @@
             <groupId>io.github.beelzebu</groupId>
             <artifactId>coins-api</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.beelzebu</groupId>
+            <artifactId>coins-common</artifactId>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -35,6 +41,7 @@
     </dependencies>
 
     <build>
+        <finalName>Coins-Bungee</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -51,7 +58,7 @@
                             <minimizeJar>false</minimizeJar>
                             <artifactSet>
                                 <includes>
-                                    <include>io.github.beelzebu:coins-api</include>
+                                    <include>io.github.beelzebu:coins-common</include>
                                 </includes>
                             </artifactSet>
                         </configuration>

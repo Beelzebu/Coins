@@ -18,6 +18,7 @@
  */
 package io.github.beelzebu.coins.bukkit;
 
+import io.github.beelzebu.coins.api.cache.CacheProvider;
 import io.github.beelzebu.coins.bukkit.listener.CommandListener;
 import io.github.beelzebu.coins.bukkit.listener.GUIListener;
 import io.github.beelzebu.coins.bukkit.listener.LoginListener;
@@ -26,16 +27,15 @@ import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
 import io.github.beelzebu.coins.bukkit.utils.leaderheads.LeaderHeadsHook;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.CoinsPlaceholders;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.MultipliersPlaceholders;
-import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
-import io.github.beelzebu.coins.common.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.common.cache.CacheManager;
+import io.github.beelzebu.coins.common.plugin.CommonCoinsPlugin;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
 
 /**
  *
  * @author Beelzebu
  */
-public class CoinsBukkitPlugin extends CoinsPlugin {
+public class CoinsBukkitPlugin extends CommonCoinsPlugin {
 
     public CoinsBukkitPlugin(CoinsBukkitMain bootstrap) {
         super(bootstrap);
@@ -45,47 +45,43 @@ public class CoinsBukkitPlugin extends CoinsPlugin {
     public void enable() {
         super.enable();
         // Create the command
-        ((CoinsBukkitMain) bootstrap).getCommandManager().registerCommand();
+        ((CoinsBukkitMain) getBootstrap()).getCommandManager().registerCommand();
         // Register listeners
-        Bukkit.getPluginManager().registerEvents(new CommandListener(), (CoinsBukkitMain) bootstrap);
-        Bukkit.getPluginManager().registerEvents(new GUIListener(), (CoinsBukkitMain) bootstrap);
-        Bukkit.getPluginManager().registerEvents(new LoginListener(), (CoinsBukkitMain) bootstrap);
-        Bukkit.getPluginManager().registerEvents(new SignListener(), (CoinsBukkitMain) bootstrap);
-        Bukkit.getScheduler().runTask((CoinsBukkitMain) bootstrap, () -> hookOptionalDependencies());
+        Bukkit.getPluginManager().registerEvents(new CommandListener(), (CoinsBukkitMain) getBootstrap());
+        Bukkit.getPluginManager().registerEvents(new GUIListener(), (CoinsBukkitMain) getBootstrap());
+        Bukkit.getPluginManager().registerEvents(new LoginListener(), (CoinsBukkitMain) getBootstrap());
+        Bukkit.getPluginManager().registerEvents(new SignListener(), (CoinsBukkitMain) getBootstrap());
+        Bukkit.getScheduler().runTask((CoinsBukkitMain) getBootstrap(), () -> hookOptionalDependencies());
     }
 
     @Override
     public void disable() {
         super.disable();
         if (getConfig().getBoolean("Vault.Use", false)) {
-            new CoinsEconomy((CoinsBukkitMain) bootstrap).shutdown();
+            new CoinsEconomy((CoinsBukkitMain) getBootstrap()).shutdown();
         }
-        ((CoinsBukkitMain) bootstrap).getCommandManager().unregisterCommand();
-        Bukkit.getScheduler().cancelTasks((CoinsBukkitMain) bootstrap);
-    }
-
-    @Override
-    public CoinsBootstrap getBootstrap() {
-        return bootstrap;
-    }
-
-    public FileConfiguration getConfig() {
-        return ((CoinsBukkitMain) bootstrap).getConfig();
+        ((CoinsBukkitMain) getBootstrap()).getCommandManager().unregisterCommand();
+        Bukkit.getScheduler().cancelTasks((CoinsBukkitMain) getBootstrap());
     }
 
     private void hookOptionalDependencies() {
         // Hook placeholders
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            bootstrap.log("PlaceholderAPI found, hooking into it.");
+            getBootstrap().log("PlaceholderAPI found, hooking into it.");
             new CoinsPlaceholders().register();
             new MultipliersPlaceholders().register();
         }
         // Hook with LeaderHeads
         if (Bukkit.getPluginManager().getPlugin("LeaderHeads") != null) {
-            bootstrap.log("LeaderHeads found, hooking into it.");
+            getBootstrap().log("LeaderHeads found, hooking into it.");
             if (Bukkit.getPluginManager().getPlugin("LeaderHeads").isEnabled()) {
                 new LeaderHeadsHook();
             }
         }
+    }
+
+    @Override
+    public CacheProvider getCache() {
+        return new CacheManager();
     }
 }

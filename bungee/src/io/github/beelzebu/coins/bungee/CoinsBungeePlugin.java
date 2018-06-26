@@ -18,33 +18,29 @@
  */
 package io.github.beelzebu.coins.bungee;
 
-import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
-import io.github.beelzebu.coins.common.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.api.cache.CacheProvider;
+import io.github.beelzebu.coins.common.cache.CacheManager;
+import io.github.beelzebu.coins.common.plugin.CommonCoinsPlugin;
 import net.md_5.bungee.api.ProxyServer;
 
 /**
  *
  * @author Beelzebu
  */
-public class CoinsBungeePlugin extends CoinsPlugin {
+public class CoinsBungeePlugin extends CommonCoinsPlugin {
 
     public CoinsBungeePlugin(CoinsBungeeMain bootstrap) {
         super(bootstrap);
     }
 
     @Override
-    public void enable() {
-        super.enable();
-    }
-
-    @Override
     public void disable() {
         super.disable();
-        ProxyServer.getInstance().getScheduler().cancel((CoinsBungeeMain) bootstrap);
+        ProxyServer.getInstance().getScheduler().cancel((CoinsBungeeMain) getBootstrap());
     }
 
     @Override
-    public CoinsBootstrap getBootstrap() {
-        return bootstrap;
+    public CacheProvider getCache() {
+        return new CacheManager();
     }
 }

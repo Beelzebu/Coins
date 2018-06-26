@@ -20,9 +20,10 @@ package io.github.beelzebu.coins.common.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.github.beelzebu.coins.api.storage.sql.DatabaseUtils;
+import io.github.beelzebu.coins.api.storage.sql.SQLDatabase;
+import io.github.beelzebu.coins.api.storage.sql.SQLQuery;
 import io.github.beelzebu.coins.common.utils.FileManager;
-import io.github.beelzebu.coins.common.utils.database.DatabaseUtils;
-import io.github.beelzebu.coins.common.utils.database.SQLQuery;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -33,7 +34,7 @@ import java.sql.Statement;
  *
  * @author Beelzebu
  */
-public final class SQLite extends CoinsDatabase {
+public final class SQLite extends SQLDatabase {
 
     @Override
     public void setup() {
@@ -73,33 +74,33 @@ public final class SQLite extends CoinsDatabase {
                     + "`enabled` BOOLEAN);";
             st.executeUpdate(data);
             st.executeUpdate(multiplier);
-            if (CORE.getConfig().getInt("Database Version", 1) < 2) {
+            if (PLUGIN.getConfig().getInt("Database Version", 1) < 2) {
                 try {
                     if (DriverManager.getConnection("jdbc:sqlite:plugins/Coins/database.old.db").prepareStatement("SELECT * FROM Data;").executeQuery().next() && !c.prepareStatement("SELECT * FROM " + DATA_TABLE + ";").executeQuery().next()) {
-                        CORE.log("Seems that your database is outdated, we'll try to update it...");
+                        PLUGIN.log("Seems that your database is outdated, we'll try to update it...");
                         ResultSet res = DriverManager.getConnection("jdbc:sqlite:plugins/Coins/database.old.db").prepareStatement("SELECT * FROM Data;").executeQuery();
                         while (res.next()) {
                             DatabaseUtils.prepareStatement(c, SQLQuery.CREATE_USER, res.getString("uuid"), res.getString("nick"), res.getDouble("balance"), res.getLong("lastlogin")).executeUpdate();
-                            CORE.debug("Migrated the data for " + res.getString("nick") + " (" + res.getString("uuid") + ")");
+                            PLUGIN.debug("Migrated the data for " + res.getString("nick") + " (" + res.getString("uuid") + ")");
                         }
-                        CORE.log("Successfully upadated database to version 2");
+                        PLUGIN.log("Successfully upadated database to version 2");
                     }
                     new FileManager().updateDatabaseVersion(2);
                 } catch (SQLException ex) {
                     for (int i = 0; i < 5; i++) {
-                        CORE.log("An error has ocurred migrating the data from the old database, check the logs ASAP!");
+                        PLUGIN.log("An error has ocurred migrating the data from the old database, check the logs ASAP!");
                     }
-                    CORE.debug(ex);
+                    PLUGIN.debug(ex);
                     return;
                 }
             }
-            if (CORE.getConfig().getBoolean("General.Purge.Enabled", true) && CORE.getConfig().getInt("General.Purge.Days") > 0) {
-                st.executeUpdate("DELETE FROM " + DATA_TABLE + " WHERE lastlogin < " + (System.currentTimeMillis() - (CORE.getConfig().getInt("General.Purge.Days", 60) * 86400000L)) + ";");
-                CORE.debug("Inactive users were removed from the database.");
+            if (PLUGIN.getConfig().getBoolean("General.Purge.Enabled", true) && PLUGIN.getConfig().getInt("General.Purge.Days") > 0) {
+                st.executeUpdate("DELETE FROM " + DATA_TABLE + " WHERE lastlogin < " + (System.currentTimeMillis() - (PLUGIN.getConfig().getInt("General.Purge.Days", 60) * 86400000L)) + ";");
+                PLUGIN.debug("Inactive users were removed from the database.");
             }
         } catch (SQLException ex) {
-            CORE.log("Something was wrong creating the default databases. Please check the debug log.");
-            CORE.debug(ex);
+            PLUGIN.log("Something was wrong creating the default databases. Please check the debug log.");
+            PLUGIN.debug(ex);
         }
     }
 }

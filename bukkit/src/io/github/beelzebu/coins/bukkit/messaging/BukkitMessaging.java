@@ -23,7 +23,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.gson.JsonObject;
-import io.github.beelzebu.coins.common.messaging.ProxyMessaging;
+import io.github.beelzebu.coins.api.messaging.ProxyMessaging;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -37,14 +37,14 @@ public final class BukkitMessaging extends ProxyMessaging implements PluginMessa
 
     @Override
     public void start() {
-        Bukkit.getMessenger().registerOutgoingPluginChannel((Plugin) core.getBootstrap(), CHANNEL);
-        Bukkit.getMessenger().registerIncomingPluginChannel((Plugin) core.getBootstrap(), CHANNEL, this);
+        Bukkit.getMessenger().registerOutgoingPluginChannel((Plugin) plugin.getBootstrap(), CHANNEL);
+        Bukkit.getMessenger().registerIncomingPluginChannel((Plugin) plugin.getBootstrap(), CHANNEL, this);
     }
 
     @Override
     public void stop() {
-        Bukkit.getMessenger().unregisterIncomingPluginChannel((Plugin) core.getBootstrap(), CHANNEL, this);
-        Bukkit.getMessenger().unregisterOutgoingPluginChannel((Plugin) core.getBootstrap(), CHANNEL);
+        Bukkit.getMessenger().unregisterIncomingPluginChannel((Plugin) plugin.getBootstrap(), CHANNEL, this);
+        Bukkit.getMessenger().unregisterOutgoingPluginChannel((Plugin) plugin.getBootstrap(), CHANNEL);
     }
 
     @Override
@@ -54,15 +54,15 @@ public final class BukkitMessaging extends ProxyMessaging implements PluginMessa
         Player p = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
         if (p != null) {
             try {
-                p.sendPluginMessage((Plugin) core.getBootstrap(), CHANNEL, out.toByteArray());
+                p.sendPluginMessage((Plugin) plugin.getBootstrap(), CHANNEL, out.toByteArray());
             } catch (Exception ex) {
-                core.log("Hey, you need to install the plugin in BungeeCord if you have bungeecord enabled in spigot.yml!");
+                plugin.log("Hey, you need to install the plugin in BungeeCord if you have bungeecord enabled in spigot.yml!");
             }
         } else {
-            core.log("Trying to send a message without players, bungee messaging needs at least one player to send messages "
+            plugin.log("Trying to send a message without players, bungee messaging needs at least one player to send messages "
                     + "the data of this message may be lost or can cause concurrency problems, is recommended to use Redis as "
                     + "messaging service due it doesn't have this limitation and avoid this kind of problems.");
-            core.log("Message: " + message);
+            plugin.log("Message: " + message);
         }
     }
 
@@ -77,7 +77,7 @@ public final class BukkitMessaging extends ProxyMessaging implements PluginMessa
             return;
         }
         ByteArrayDataInput in = ByteStreams.newDataInput(message);
-        JsonObject data = core.getGson().fromJson(in.readUTF(), JsonObject.class);
+        JsonObject data = plugin.getGson().fromJson(in.readUTF(), JsonObject.class);
         handleMessage(data);
     }
 }

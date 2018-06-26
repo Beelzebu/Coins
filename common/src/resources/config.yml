@@ -80,9 +80,7 @@ General:
     Description: 'Base command of the Coins plugin'
     Usage: '/coins'
     Permission: 'coins.use'
-    Aliases:
-    - 'mycoins'
-    - 'coinsalias'
+    Aliases: [mycoins, coinsalias]
   # Here you can configure the autopurge of inactive accounts.
   Purge:
     Enabled: true # If this is true the old accouns would be purged at server startup.

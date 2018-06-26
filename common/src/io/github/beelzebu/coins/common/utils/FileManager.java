@@ -18,7 +18,7 @@
  */
 package io.github.beelzebu.coins.common.utils;
 
-import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -40,10 +40,10 @@ import java.util.zip.GZIPOutputStream;
  */
 public class FileManager {
 
-    public static final File MESSAGES_FOLDER = new File(CoinsCore.getInstance().getBootstrap().getDataFolder(), "messages");
-    public static final File LOGS_FOLDER = new File(CoinsCore.getInstance().getBootstrap().getDataFolder(), "logs");
-    public static final File CONFIG_FILE = new File(CoinsCore.getInstance().getBootstrap().getDataFolder(), "config.yml");
-    private final CoinsCore core = CoinsCore.getInstance();
+    public static final File MESSAGES_FOLDER = new File(CoinsPlugin.getInstance().getBootstrap().getDataFolder(), "messages");
+    public static final File LOGS_FOLDER = new File(CoinsPlugin.getInstance().getBootstrap().getDataFolder(), "logs");
+    public static final File CONFIG_FILE = new File(CoinsPlugin.getInstance().getBootstrap().getDataFolder(), "config.yml");
+    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
     private final Map<String, File> messagesFiles = new HashMap<>();
     private final int configVersion = 15;
 
@@ -59,8 +59,8 @@ public class FileManager {
     private void updateConfig() {
         try {
             List<String> lines = Files.readAllLines(CONFIG_FILE.toPath());
-            if (core.getConfig().getInt("version") == configVersion) {
-                core.log("The config file is up to date.");
+            if (plugin.getConfig().getInt("version") == configVersion) {
+                plugin.log("The config file is up to date.");
             } else {
                 int version = configVersion;
                 do {
@@ -113,7 +113,7 @@ public class FileManager {
                                 index = lines.indexOf("  Use: false");
                                 lines.remove(index);
                             }
-                            if (core.getConfig().useBungee()) {
+                            if (plugin.getConfig().useBungee()) {
                                 index = lines.indexOf("Messaging Service: none");
                                 lines.set(index, "Messaging Service: bungeecord");
                             }
@@ -131,41 +131,41 @@ public class FileManager {
                                     "  Port: 6379",
                                     "  Password: 'S3CUR3P4SSW0RD'"
                             ));
-                            index = lines.indexOf("  Connection Interval: " + core.getConfig().getInt("MySQL.Connection Interval"));
+                            index = lines.indexOf("  Connection Interval: " + plugin.getConfig().getInt("MySQL.Connection Interval"));
                             lines.remove(index);
                             index = lines.indexOf("version: 13");
                             lines.set(index, "version: 14");
-                            core.log("Configuration file updated to v14");
+                            plugin.log("Configuration file updated to v14");
                             version++;
                         case 14:
                             // move executors to his own file
                             // move multipliers to his own file
                             index = lines.indexOf("Command Cost:");
                             if (index != -1) {
-                                index += core.getConfig().getConfigurationSection("Command Cost").size();
+                                index += plugin.getConfig().getConfigurationSection("Command Cost").size();
                             }
                             for (int i = index; i < lines.size(); i++) {
                                 lines.remove(i);
                             }
                             index = lines.indexOf("version: 14");
                             lines.set(index, "version: 15");
-                            core.log("Configuration file updated to v15");
+                            plugin.log("Configuration file updated to v15");
                             version++;
                         case configVersion:
                             break;
                         default:
-                            core.log("Seems that you hava a too old version of the config or you canged this to another number >:(");
-                            core.log("We can't update it, if is a old version you should try to update it slow and not jump from a version to another, keep in mind that we keep only track of the last versions of the config to update.");
+                            plugin.log("Seems that you hava a too old version of the config or you canged this to another number >:(");
+                            plugin.log("We can't update it, if is a old version you should try to update it slow and not jump from a version to another, keep in mind that we keep only track of the last versions of the config to update.");
                             break;
                     }
                     Files.write(CONFIG_FILE.toPath(), lines);
-                    core.getConfig().reload();
-                    version = core.getConfig().getInt("version");
+                    plugin.getConfig().reload();
+                    version = plugin.getConfig().getInt("version");
                 } while (version < configVersion && version > configVersion - 5);
             }
         } catch (IOException ex) {
-            core.log("An unexpected error occurred while updating the config file.");
-            core.debug(ex.getMessage());
+            plugin.log("An unexpected error occurred while updating the config file.");
+            plugin.debug(ex.getMessage());
         }
     }
 
@@ -173,16 +173,16 @@ public class FileManager {
         try {
             List<String> lines = Files.readAllLines(messagesFiles.get("default").toPath());
             int index;
-            if (core.getMessages("").getInt("version") == 6) {
+            if (plugin.getMessages("").getInt("version") == 6) {
                 index = lines.indexOf("version: 6");
                 lines.set(index, "version: 7");
                 index = lines.indexOf("Multipliers:");
                 lines.remove(index);
                 index = lines.indexOf("  Menu:");
                 lines.add(index, "Multipliers:");
-                core.log("Updated messages.yml file to v7");
+                plugin.log("Updated messages.yml file to v7");
             }
-            if (core.getMessages("").getInt("version") == 7) {
+            if (plugin.getMessages("").getInt("version") == 7) {
                 index = lines.indexOf("version: 7");
                 lines.set(index, "version: 8");
                 index = lines.indexOf("  Menu:") + 2;
@@ -207,9 +207,9 @@ public class FileManager {
                         "      - '&7You can buy multipliers in our store'",
                         "      - '&6&nstore.servername.net'"
                 ));
-                core.log("Updated messages.yml file to v8");
+                plugin.log("Updated messages.yml file to v8");
             }
-            if (core.getMessages("").getInt("version") == 8) {
+            if (plugin.getMessages("").getInt("version") == 8) {
                 index = lines.indexOf("version: 8");
                 lines.set(index, "version: 9");
                 lines.removeAll(Arrays.asList(
@@ -227,12 +227,12 @@ public class FileManager {
                         "# The version of this file, is used to auto update this file, don't change it",
                         "# unless you know what you do."
                 ));
-                core.log("Updated messages.yml file to v9");
+                plugin.log("Updated messages.yml file to v9");
             }
-            if (core.getMessages("").getInt("version") == 9) {
+            if (plugin.getMessages("").getInt("version") == 9) {
                 index = lines.indexOf("version: 9");
                 lines.set(index, "version: 10");
-                index = lines.indexOf("  Multiplier Create: '" + core.getMessages("").getString("Help.Multiplier Create") + "'") + 1;
+                index = lines.indexOf("  Multiplier Create: '" + plugin.getMessages("").getString("Help.Multiplier Create") + "'") + 1;
                 lines.add(index, "  Multiplier Set: '%prefix% &cPlease use &f/coins multiplier set <amount> <enabler> <minutes> (server)'");
                 lines.addAll(Arrays.asList(
                         "  Set:",
@@ -241,26 +241,26 @@ public class FileManager {
                         "  - '  &7Amount: &c%amount%'",
                         "  - '  &7Minutes: &c%minutes%'"
                 ));
-                core.log("Updated messages.yml file to v10");
+                plugin.log("Updated messages.yml file to v10");
             }
             Files.write(messagesFiles.get("default").toPath(), lines);
         } catch (IOException ex) {
-            core.log("An unexpected error occurred while updating the messages.yml file.");
-            core.debug(ex.getMessage());
+            plugin.log("An unexpected error occurred while updating the messages.yml file.");
+            plugin.debug(ex.getMessage());
         }
         try {
             List<String> lines = Files.readAllLines(messagesFiles.get("es").toPath());
             int index;
-            if (core.getMessages("es").getInt("version") == 6) {
+            if (plugin.getMessages("es").getInt("version") == 6) {
                 index = lines.indexOf("version: 6");
                 lines.set(index, "version: 7");
                 index = lines.indexOf("Multipliers:");
                 lines.remove(index);
                 index = lines.indexOf("  Menu:");
                 lines.add(index, "Multipliers:");
-                core.log("Updated messages_es.yml file to v7");
+                plugin.log("Updated messages_es.yml file to v7");
             }
-            if (core.getMessages("es").getInt("version") == 7) {
+            if (plugin.getMessages("es").getInt("version") == 7) {
                 index = lines.indexOf("version: 7");
                 lines.set(index, "version: 8");
                 index = lines.indexOf("  Menu:") + 2;
@@ -285,13 +285,13 @@ public class FileManager {
                         "      - '&7Puedes comprar multiplicadores en nuestra tienda'",
                         "      - '&6&nstore.servername.net'"
                 ));
-                core.log("Updated messages_es.yml file to v8");
+                plugin.log("Updated messages_es.yml file to v8");
             }
             index = lines.indexOf("      - '&6&nstore.servername.net'\"");
             if (index != -1) {
                 lines.set(index, "      - '&6&nstore.servername.net'");
             }
-            if (core.getMessages("es").getInt("version") == 8) {
+            if (plugin.getMessages("es").getInt("version") == 8) {
                 index = lines.indexOf("version: 8");
                 lines.set(index, "version: 9");
                 lines.removeAll(Arrays.asList(
@@ -309,12 +309,12 @@ public class FileManager {
                         "# La versión de este archivo, es usado para actualizarlo automáticamente, no lo cambies",
                         "# a menos que sepas lo que haces."
                 ));
-                core.log("Updated messages_es.yml file to v9");
+                plugin.log("Updated messages_es.yml file to v9");
             }
-            if (core.getMessages("es").getInt("version") == 9) {
+            if (plugin.getMessages("es").getInt("version") == 9) {
                 index = lines.indexOf("version: 9");
                 lines.set(index, "version: 10");
-                index = lines.indexOf("  Multiplier Create: '" + core.getMessages("es").getString("Help.Multiplier Create") + "'") + 1;
+                index = lines.indexOf("  Multiplier Create: '" + plugin.getMessages("es").getString("Help.Multiplier Create") + "'") + 1;
                 lines.add(index, "  Multiplier Set: '%prefix% &cPor favor usa &f/coins multiplier set <cantidad> <activador> <minutos> (server)'");
                 lines.addAll(Arrays.asList(
                         "  Set:",
@@ -323,28 +323,32 @@ public class FileManager {
                         "  - '  &7Cantidad: &c%amount%'",
                         "  - '  &7Minutos: &c%minutes%'"
                 ));
-                core.log("Updated messages_es.yml file to v10");
+                plugin.log("Updated messages_es.yml file to v10");
             }
             if (lines.get(0).startsWith("  Multiplier Set:")) {
                 lines.remove(0);
-                index = lines.indexOf("  Multiplier Create: '" + core.getMessages("es").getString("Help.Multiplier Create") + "'") + 1;
+                index = lines.indexOf("  Multiplier Create: '" + plugin.getMessages("es").getString("Help.Multiplier Create") + "'") + 1;
                 lines.add(index, "  Multiplier Set: '%prefix% &cPor favor usa &f/coins multiplier set <cantidad> <activador> <minutos> (server)'");
             }
             Files.write(messagesFiles.get("es").toPath(), lines);
         } catch (IOException ex) {
-            core.log("An unexpected error occurred while updating the messages_es.yml file.");
-            core.debug(ex.getMessage());
+            plugin.log("An unexpected error occurred while updating the messages_es.yml file.");
+            plugin.debug(ex.getMessage());
         }
     }
 
     public void copyFiles() {
         if (!LOGS_FOLDER.exists()) {
-            LOGS_FOLDER.mkdirs();
+            if (plugin.getConfig().isDebugFile()) {
+                LOGS_FOLDER.mkdirs();
+            } else {
+                LOGS_FOLDER.delete();
+            }
         }
         if (!MESSAGES_FOLDER.exists()) {
             MESSAGES_FOLDER.mkdirs();
         }
-        File[] files = core.getBootstrap().getDataFolder().listFiles();
+        File[] files = plugin.getBootstrap().getDataFolder().listFiles();
         for (File f : files) {
             if (f.isFile() && f.getName().startsWith("messages")) {
                 try {
@@ -358,7 +362,7 @@ public class FileManager {
             try {
                 File messageFile = new File(MESSAGES_FOLDER, messagesFiles.get(filename).getName());
                 if (!messageFile.exists()) {
-                    Files.copy(core.getBootstrap().getResource(messagesFiles.get(filename).getName()), messageFile.toPath());
+                    Files.copy(plugin.getBootstrap().getResource(messagesFiles.get(filename).getName()), messageFile.toPath());
                 }
             } catch (IOException ex) {
                 Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while saving messages files.", ex);
@@ -366,7 +370,7 @@ public class FileManager {
         });
         if (!CONFIG_FILE.exists()) {
             try {
-                Files.copy(core.getBootstrap().getResource(CONFIG_FILE.getName()), CONFIG_FILE.toPath());
+                Files.copy(plugin.getBootstrap().getResource(CONFIG_FILE.getName()), CONFIG_FILE.toPath());
             } catch (IOException ex) {
                 Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while saving the default config.", ex);
             }
@@ -398,7 +402,7 @@ public class FileManager {
         // Auto purge for old logs
         if (fList.length > 0) {
             for (File file : fList) {
-                if (file.isFile() && file.getName().contains(".gz") && (System.currentTimeMillis() - file.lastModified()) >= core.getConfig().getInt("General.Purge.Logs.Days") * 86400000L) {
+                if (file.isFile() && file.getName().contains(".gz") && (System.currentTimeMillis() - file.lastModified()) >= plugin.getConfig().getInt("General.Purge.Logs.Days") * 86400000L) {
                     file.delete();
                 }
             }
@@ -417,16 +421,16 @@ public class FileManager {
     }
 
     public void updateDatabaseVersion(int version) {
-        if (core.getConfig().getInt("Database Version") != version) {
+        if (plugin.getConfig().getInt("Database Version") != version) {
             try {
                 List<String> lines = Files.readAllLines(CONFIG_FILE.toPath());
-                int index = lines.indexOf("Database Version: " + core.getConfig().getInt("Database Version"));
+                int index = lines.indexOf("Database Version: " + plugin.getConfig().getInt("Database Version"));
                 lines.set(index, "Database Version: " + version);
                 Files.write(CONFIG_FILE.toPath(), lines);
-                core.getConfig().reload();
+                plugin.getConfig().reload();
             } catch (IOException ex) {
-                core.log("An unexpected error occurred while updating the config file.");
-                core.debug(ex.getMessage());
+                plugin.log("An unexpected error occurred while updating the config file.");
+                plugin.debug(ex.getMessage());
             }
         }
     }

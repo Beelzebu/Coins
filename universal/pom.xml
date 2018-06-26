@@ -35,7 +35,7 @@
     </dependencies>
 
     <build>
-        <finalName>Coins</finalName>
+        <finalName>Coins-Universal</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

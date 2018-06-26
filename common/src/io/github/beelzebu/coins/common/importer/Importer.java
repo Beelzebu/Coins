@@ -18,7 +18,7 @@
  */
 package io.github.beelzebu.coins.common.importer;
 
-import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 
 /**
  *
@@ -26,7 +26,7 @@ import io.github.beelzebu.coins.common.CoinsCore;
  */
 public interface Importer {
 
-    final CoinsCore core = CoinsCore.getInstance();
+    final CoinsPlugin plugin = CoinsPlugin.getInstance();
 
     void importFromPlayerPoints();
 

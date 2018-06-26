@@ -18,7 +18,7 @@
  */
 package io.github.beelzebu.coins.bungee.config;
 
-import io.github.beelzebu.coins.common.config.AbstractConfigFile;
+import io.github.beelzebu.coins.api.config.AbstractConfigFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;

@@ -18,9 +18,9 @@
  */
 package io.github.beelzebu.coins.bukkit.menus;
 
-import io.github.beelzebu.coins.Multiplier;
+import io.github.beelzebu.coins.api.Multiplier;
+import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.bukkit.utils.ItemBuilder;
-import io.github.beelzebu.coins.common.CoinsCore;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -37,14 +37,14 @@ import org.bukkit.inventory.ItemStack;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PaginatedMenu {
 
-    private static final CoinsCore CORE = CoinsCore.getInstance();
+    private static final CoinsPlugin PLUGIN = CoinsPlugin.getInstance();
 
     public static CoinsMenu createPaginatedGUI(Player player, List<Multiplier> contents) {
         return nextPage(player, contents, contents.size() > 53, 0);
     }
 
     private static CoinsMenu nextPage(Player player, List<Multiplier> contents, boolean hasNext, int start) {
-        CoinsMenu menu = new MultipliersMenu(player, CORE.getString("Multipliers.Menu.Title", player.spigot().getLocale()), contents, start);
+        CoinsMenu menu = new MultipliersMenu(player, PLUGIN.getString("Multipliers.Menu.Title", player.spigot().getLocale()), contents, start);
         if (hasNext) {
             // TODO: add a option to configure this
             menu.setItem(53, ItemBuilder.newBuilder(Material.ARROW).setDisplayName("next").build(), p -> nextPage(p, contents, hasNext, start + 36).open(p));
@@ -53,19 +53,19 @@ public class PaginatedMenu {
     }
 
     private static ItemStack getItemFor(Player player, Multiplier multiplier) {
-        return ItemBuilder.newBuilder(Material.POTION).setDisplayName(CORE.rep(CORE.getString("Multipliers.Menu.Multipliers.Name", player.spigot().getLocale()), multiplier)).setLore(CORE.rep(CORE.getMessages(player.spigot().getLocale()).getStringList("Multipliers.Menu.Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build();
+        return ItemBuilder.newBuilder(Material.POTION).setDisplayName(PLUGIN.rep(PLUGIN.getString("Multipliers.Menu.Multipliers.Name", player.spigot().getLocale()), multiplier)).setLore(PLUGIN.rep(PLUGIN.getMessages(player.spigot().getLocale()).getStringList("Multipliers.Menu.Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build();
     }
 
     private static void handleSound(Player p) {
         try { // try to play the sound for 1.9
-            p.playSound(p.getLocation(), Sound.valueOf(CORE.getConfig().getString("Multipliers.GUI.Close.Sound")), 10, CORE.getConfig().getInt("Multipliers.GUI.Close.Pitch", 1));
+            p.playSound(p.getLocation(), Sound.valueOf(PLUGIN.getConfig().getString("Multipliers.GUI.Close.Sound")), 10, PLUGIN.getConfig().getInt("Multipliers.GUI.Close.Pitch", 1));
         } catch (IllegalArgumentException ex) { // may be is 1.8
             try {
-                p.playSound(p.getLocation(), Sound.valueOf("CLICK"), 10, CORE.getConfig().getInt("Multipliers.GUI.Close.Pitch", 1));
+                p.playSound(p.getLocation(), Sound.valueOf("CLICK"), 10, PLUGIN.getConfig().getInt("Multipliers.GUI.Close.Pitch", 1));
             } catch (IllegalArgumentException ignore) { // the sound just doesn't exists.
             }
-            CORE.log("Seems that you're using an invalind sound, please edit the config and set the sound that corresponds for the version of your server.");
-            CORE.log("If you're using 1.8 please check http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html\n"
+            PLUGIN.log("Seems that you're using an invalind sound, please edit the config and set the sound that corresponds for the version of your server.");
+            PLUGIN.log("If you're using 1.8 please check http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html\n"
                     + "If you're using 1.9+ use https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html\n"
                     + "If need more help, please open an issue in https://github.com/Beelzebu/Coins/issues");
         }
@@ -91,13 +91,13 @@ public class PaginatedMenu {
             for (int i = 36; i < 45; i++) {
                 setItem(i, ItemBuilder.newBuilder(Material.STAINED_GLASS_PANE).setData(2).setDisplayName("&f").build());
             }
-            setItem(49, getItem(core.getConfig(), "Multipliers.GUI.Close"), p -> handleSound(p));
+            setItem(49, getItem(plugin.getConfig(), "Multipliers.GUI.Close"), p -> handleSound(p));
             if (contents.size() <= 0) {
-                setItem(22, ItemBuilder.newBuilder(Material.POTION).setDisplayName(core.getString("Multipliers.Menu.No Multipliers.Name", player.spigot().getLocale())).setLore(core.rep(core.getMessages(player.spigot().getLocale()).getStringList("Multipliers.Menu.No Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build());
+                setItem(22, ItemBuilder.newBuilder(Material.POTION).setDisplayName(plugin.getString("Multipliers.Menu.No Multipliers.Name", player.spigot().getLocale())).setLore(plugin.rep(plugin.getMessages(player.spigot().getLocale()).getStringList("Multipliers.Menu.No Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build());
             } else {
                 for (int i = 0; i <= (contents.size() - 1 < 35 ? contents.size() - 1 : 35); i++) {
                     Multiplier multiplier = contents.get(start + i);
-                    setItem(i, getItemFor(player, multiplier), p -> new ConfirmMenu(p, core.getString("Multipliers.Menu.Confirm.Title", p.spigot().getLocale()), multiplier).open(p));
+                    setItem(i, getItemFor(player, multiplier), p -> new ConfirmMenu(p, plugin.getString("Multipliers.Menu.Confirm.Title", p.spigot().getLocale()), multiplier).open(p));
                 }
             }
         }

@@ -18,8 +18,8 @@
  */
 package io.github.beelzebu.coins.bukkit.utils.placeholders;
 
-import io.github.beelzebu.coins.CoinsAPI;
-import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.api.CoinsAPI;
+import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
@@ -29,7 +29,7 @@ import org.bukkit.entity.Player;
  */
 public class MultipliersPlaceholders extends PlaceholderExpansion {
 
-    private final CoinsCore core = CoinsCore.getInstance();
+    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
 
     @Override
     public String getIdentifier() {
@@ -66,9 +66,9 @@ public class MultipliersPlaceholders extends PlaceholderExpansion {
             if (placeholder.startsWith("enabler_")) {
                 String enabler = CoinsAPI.getMultiplier(server) != null ? CoinsAPI.getMultiplier(server).getEnablerName() : "";
                 if (enabler.equals("")) {
-                    return core.getString("Multipliers.Placeholders.Enabler.Anyone", p.spigot().getLocale());
+                    return plugin.getString("Multipliers.Placeholders.Enabler.Anyone", p.spigot().getLocale());
                 } else {
-                    return core.getString("Multipliers.Placeholders.Enabler.Message", p.spigot().getLocale()).replaceAll("%enabler%", enabler);
+                    return plugin.getString("Multipliers.Placeholders.Enabler.Message", p.spigot().getLocale()).replaceAll("%enabler%", enabler);
                 }
             }
             if (placeholder.startsWith("amount_")) {

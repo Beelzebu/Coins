@@ -18,9 +18,8 @@
  */
 package io.github.beelzebu.coins.bukkit.utils;
 
-import io.github.beelzebu.coins.CoinsAPI;
+import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.bukkit.CoinsBukkitMain;
-import io.github.beelzebu.coins.common.CoinsCore;
 import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.List;
@@ -270,7 +269,7 @@ public class CoinsEconomy implements Economy {
 
     @Override
     public boolean createPlayerAccount(String string) {
-        UUID uuid = CoinsCore.getInstance().getUUID(string, false);
+        UUID uuid = plugin.getPlugin().getUUID(string, false);
         CoinsAPI.createPlayer(string, uuid != null ? uuid : UUID.randomUUID());
         return !CoinsAPI.getCoinsString(string).equals("This player isn't in the database");
     }
@@ -283,7 +282,7 @@ public class CoinsEconomy implements Economy {
 
     @Override
     public boolean createPlayerAccount(String string, String string1) {
-        UUID uuid = CoinsCore.getInstance().getUUID(string, false);
+        UUID uuid = plugin.getPlugin().getUUID(string, false);
         CoinsAPI.createPlayer(string, uuid != null ? uuid : UUID.randomUUID());
         return !CoinsAPI.getCoinsString(string).equals("This player isn't in the database");
     }

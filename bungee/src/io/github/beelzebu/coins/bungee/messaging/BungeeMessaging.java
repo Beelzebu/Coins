@@ -22,7 +22,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.gson.JsonObject;
-import io.github.beelzebu.coins.common.messaging.ProxyMessaging;
+import io.github.beelzebu.coins.api.messaging.ProxyMessaging;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -40,7 +40,7 @@ public final class BungeeMessaging extends ProxyMessaging implements Listener {
     @Override
     public void start() {
         ProxyServer.getInstance().registerChannel(CHANNEL);
-        ProxyServer.getInstance().getPluginManager().registerListener((Plugin) core.getBootstrap(), this);
+        ProxyServer.getInstance().getPluginManager().registerListener((Plugin) plugin.getBootstrap(), this);
     }
 
     @Override
@@ -51,14 +51,7 @@ public final class BungeeMessaging extends ProxyMessaging implements Listener {
 
     @Override
     protected void sendMessage(JsonObject message) {
-        switch (MessageType.valueOf(message.get("type").getAsString())) {
-            case USER_UPDATE:
-                sendMessage(message.toString(), true);
-                break;
-            default:
-                sendMessage(message.toString(), false);
-                break;
-        }
+        sendMessage(message.toString(), message.get("type").getAsString().equalsIgnoreCase("USER_UPDATE"));
     }
 
     @Override
@@ -81,7 +74,7 @@ public final class BungeeMessaging extends ProxyMessaging implements Listener {
             return;
         }
         ByteArrayDataInput in = ByteStreams.newDataInput(e.getData());
-        JsonObject data = core.getGson().fromJson(in.readUTF(), JsonObject.class);
+        JsonObject data = plugin.getGson().fromJson(in.readUTF(), JsonObject.class);
         handleMessage(data);
     }
 }

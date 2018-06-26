@@ -18,7 +18,12 @@
  */
 package io.github.beelzebu.coins.bukkit;
 
-import io.github.beelzebu.coins.Multiplier;
+import io.github.beelzebu.coins.api.Multiplier;
+import io.github.beelzebu.coins.api.config.AbstractConfigFile;
+import io.github.beelzebu.coins.api.config.CoinsConfig;
+import io.github.beelzebu.coins.api.messaging.ProxyMessaging;
+import io.github.beelzebu.coins.api.plugin.CoinsBootstrap;
+import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.bukkit.command.CommandManager;
 import io.github.beelzebu.coins.bukkit.config.BukkitConfig;
 import io.github.beelzebu.coins.bukkit.config.BukkitMessages;
@@ -26,11 +31,6 @@ import io.github.beelzebu.coins.bukkit.events.CoinsChangeEvent;
 import io.github.beelzebu.coins.bukkit.events.MultiplierEnableEvent;
 import io.github.beelzebu.coins.bukkit.messaging.BukkitMessaging;
 import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
-import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.config.AbstractConfigFile;
-import io.github.beelzebu.coins.common.config.CoinsConfig;
-import io.github.beelzebu.coins.common.messaging.ProxyMessaging;
-import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
 
-    protected final CoinsCore core = CoinsCore.getInstance();
     @Getter
     private final CommandManager commandManager;
     @Getter
@@ -57,13 +56,14 @@ public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
 
     @Override
     public void onLoad() {
-        core.setup(this);
+        CoinsPlugin.setInstance(plugin);
+        plugin.load();
         if (getConfig().getBoolean("Vault.Use", false)) {
             if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
                 log("Vault found, hooking into it.");
                 new CoinsEconomy(this).setup();
             } else {
-                core.log("You enabled Vault in the config, but the plugin Vault can't be found.");
+                plugin.log("You enabled Vault in the config, but the plugin Vault can't be found.");
             }
         }
     }
@@ -71,12 +71,12 @@ public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
     @Override
     public void onEnable() {
         config = new BukkitConfig(null, plugin);
-        core.start();
+        plugin.enable();
     }
 
     @Override
     public void onDisable() {
-        core.shutdown();
+        plugin.disable();
     }
 
     @Override
@@ -115,8 +115,8 @@ public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
     }
 
     @Override
-    public void log(Object log) {
-        Bukkit.getConsoleSender().sendMessage(CoinsCore.getInstance().rep("&8[&cCoins&8] &7" + log));
+    public void log(String msg) {
+        Bukkit.getConsoleSender().sendMessage(plugin.rep("&8[&cCoins&8] &7" + msg));
     }
 
     @Override

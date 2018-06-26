@@ -18,7 +18,7 @@
  */
 package io.github.beelzebu.coins.bukkit.command;
 
-import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,13 +33,13 @@ import org.bukkit.plugin.Plugin;
  */
 public class CommandManager {
 
-    private static final CoinsCore CORE = CoinsCore.getInstance();
+    private static final CoinsPlugin plugin = CoinsPlugin.getInstance();
     private Command cmd;
 
     public void registerCommand() {
-        cmd = new CoinsCommand(CORE.getConfig().getString("General.Command.Name", "coins")).setDescription(CORE.getConfig().getString("General.Command.Description", "Base command of the Coins plugin")).setAliases(CORE.getConfig().getStringList("General.Command.Aliases")).setUsage(CORE.getConfig().getString("General.Command.Usage", "/coins"));
-        cmd.setPermission(CORE.getConfig().getString("General.Command.Permission", "coins.use"));
-        registerCommand((Plugin) CORE.getBootstrap(), cmd);
+        cmd = new CoinsCommand(plugin.getConfig().getString("General.Command.Name", "coins")).setDescription(plugin.getConfig().getString("General.Command.Description", "Base command of the Coins plugin")).setAliases(plugin.getConfig().getStringList("General.Command.Aliases")).setUsage(plugin.getConfig().getString("General.Command.Usage", "/coins"));
+        cmd.setPermission(plugin.getConfig().getString("General.Command.Permission", "coins.use"));
+        registerCommand((Plugin) plugin.getBootstrap(), cmd);
     }
 
     @SuppressWarnings("unchecked")

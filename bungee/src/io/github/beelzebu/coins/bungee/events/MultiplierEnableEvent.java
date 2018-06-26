@@ -18,9 +18,9 @@
  */
 package io.github.beelzebu.coins.bungee.events;
 
+import io.github.beelzebu.coins.api.Multiplier;
 import java.util.UUID;
 import net.md_5.bungee.api.plugin.Event;
-import io.github.beelzebu.coins.Multiplier;
 
 /**
  *

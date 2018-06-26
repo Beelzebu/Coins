@@ -18,12 +18,12 @@
  */
 package io.github.beelzebu.coins.common.importer;
 
-import io.github.beelzebu.coins.CoinsAPI;
-import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.database.CoinsDatabase;
+import io.github.beelzebu.coins.api.CoinsAPI;
+import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.api.storage.StorageType;
+import io.github.beelzebu.coins.api.storage.sql.SQLDatabase;
 import io.github.beelzebu.coins.common.database.MySQL;
 import io.github.beelzebu.coins.common.database.SQLite;
-import io.github.beelzebu.coins.common.database.StorageType;
 import java.util.Map;
 import java.util.UUID;
 import lombok.Setter;
@@ -34,7 +34,7 @@ import lombok.Setter;
  */
 public class ImportManager {
 
-    private final CoinsCore core = CoinsCore.getInstance();
+    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
     @Setter
     private Importer importer = null;
 
@@ -44,7 +44,7 @@ public class ImportManager {
                 if (importer != null) {
                     importer.importFromPlayerPoints();
                 } else {
-                    core.log("Seems that the importer is not deffined yet.");
+                    this.plugin.log("Seems that the importer is not deffined yet.");
                 }
                 break;
             default:
@@ -55,15 +55,15 @@ public class ImportManager {
     public void importFromStorage(StorageType storage) {
         switch (storage) {
             case MYSQL:
-                if (core.getStorageType().equals(StorageType.MYSQL)) {
-                    core.log("You can't migrate information from the same database that you are using.");
+                if (plugin.getStorageType().equals(StorageType.MYSQL)) {
+                    plugin.log("You can't migrate information from the same database that you are using.");
                     return;
                 }
-                CoinsDatabase mysql = new MySQL();
+                SQLDatabase mysql = new MySQL();
                 mysql.setup();
                 Map<String, Double> mysqlData = mysql.getAllPlayers();
                 if (!mysqlData.isEmpty()) {
-                    core.log("Starting the migration from MySQL, this may take a moment.");
+                    plugin.log("Starting the migration from MySQL, this may take a moment.");
                     mysqlData.entrySet().forEach(entry -> {
                         String nick = null;
                         UUID uuid = null;
@@ -72,28 +72,28 @@ public class ImportManager {
                             uuid = UUID.fromString(entry.getKey().split(",")[1]);
                             double balance = entry.getValue();
                             CoinsAPI.createPlayer(nick, uuid, balance);
-                            core.debug("Migrated the data for: " + uuid);
+                            plugin.debug("Migrated the data for: " + uuid);
                         } catch (Exception ex) {
-                            core.log("An error has ocurred while migrating the data for: " + nick + " (" + uuid + ")");
-                            core.debug(ex);
+                            plugin.log("An error has ocurred while migrating the data for: " + nick + " (" + uuid + ")");
+                            plugin.debug(ex);
                         }
                     });
-                    core.log("The migration was completed, check the plugin logs for more information.");
+                    plugin.log("The migration was completed, check the plugin logs for more information.");
                 } else {
-                    core.log("There are no users to migrate in the database.");
+                    plugin.log("There are no users to migrate in the database.");
                 }
                 mysql.shutdown();
                 break;
             case SQLITE:
-                if (core.getStorageType().equals(StorageType.SQLITE)) {
-                    core.log("You can't migrate information from the same database that you are using.");
+                if (plugin.getStorageType().equals(StorageType.SQLITE)) {
+                    plugin.log("You can't migrate information from the same database that you are using.");
                     return;
                 }
-                CoinsDatabase sqlite = new SQLite();
+                SQLDatabase sqlite = new SQLite();
                 sqlite.setup();
                 Map<String, Double> sqliteData = sqlite.getAllPlayers();
                 if (!sqliteData.isEmpty()) {
-                    core.log("Starting the migration from SQLite, this may take a moment.");
+                    plugin.log("Starting the migration from SQLite, this may take a moment.");
                     sqliteData.entrySet().forEach(entry -> {
                         String nick = null;
                         UUID uuid = null;
@@ -102,15 +102,15 @@ public class ImportManager {
                             uuid = UUID.fromString(entry.getKey().split(",")[1]);
                             double balance = entry.getValue();
                             CoinsAPI.createPlayer(nick, uuid, balance);
-                            core.debug("Migrated the data for: " + uuid);
+                            plugin.debug("Migrated the data for: " + uuid);
                         } catch (Exception ex) {
-                            core.log("An error has ocurred while migrating the data for: " + nick + " (" + uuid + ")");
-                            core.debug(ex);
+                            plugin.log("An error has ocurred while migrating the data for: " + nick + " (" + uuid + ")");
+                            plugin.debug(ex);
                         }
                     });
-                    core.log("The migration was completed, check the plugin logs for more information.");
+                    plugin.log("The migration was completed, check the plugin logs for more information.");
                 } else {
-                    core.log("There are no users to migrate in the database.");
+                    plugin.log("There are no users to migrate in the database.");
                 }
                 sqlite.shutdown();
                 break;

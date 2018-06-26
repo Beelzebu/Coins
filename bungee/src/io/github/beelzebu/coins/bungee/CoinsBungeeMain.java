@@ -18,22 +18,21 @@
  */
 package io.github.beelzebu.coins.bungee;
 
-import io.github.beelzebu.coins.CoinsAPI;
-import io.github.beelzebu.coins.CoinsResponse.CoinsResponseType;
-import io.github.beelzebu.coins.Multiplier;
+import io.github.beelzebu.coins.api.CoinsAPI;
+import io.github.beelzebu.coins.api.CoinsResponse.CoinsResponseType;
+import io.github.beelzebu.coins.api.Multiplier;
+import io.github.beelzebu.coins.api.config.AbstractConfigFile;
+import io.github.beelzebu.coins.api.config.CoinsConfig;
+import io.github.beelzebu.coins.api.executor.Executor;
+import io.github.beelzebu.coins.api.executor.ExecutorManager;
+import io.github.beelzebu.coins.api.messaging.ProxyMessaging;
+import io.github.beelzebu.coins.api.plugin.CoinsBootstrap;
+import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.bungee.config.BungeeConfig;
 import io.github.beelzebu.coins.bungee.config.BungeeMessages;
 import io.github.beelzebu.coins.bungee.events.CoinsChangeEvent;
 import io.github.beelzebu.coins.bungee.events.MultiplierEnableEvent;
 import io.github.beelzebu.coins.bungee.messaging.BungeeMessaging;
-import io.github.beelzebu.coins.common.CoinsCore;
-import io.github.beelzebu.coins.common.config.AbstractConfigFile;
-import io.github.beelzebu.coins.common.config.CoinsConfig;
-import io.github.beelzebu.coins.common.executor.Executor;
-import io.github.beelzebu.coins.common.executor.ExecutorManager;
-import io.github.beelzebu.coins.common.messaging.ProxyMessaging;
-import io.github.beelzebu.coins.common.plugin.CoinsBootstrap;
-import io.github.beelzebu.coins.common.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.common.utils.FileManager;
 import java.io.File;
 import java.io.InputStream;
@@ -53,29 +52,29 @@ import net.md_5.bungee.api.plugin.Plugin;
  */
 public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
 
-    private final CoinsCore core = CoinsCore.getInstance();
     private final CoinsBungeePlugin plugin;
     private BungeeConfig config;
     private BungeeMessaging bmessaging;
 
     public CoinsBungeeMain() {
         plugin = new CoinsBungeePlugin(this);
+        CoinsPlugin.setInstance(plugin);
     }
 
     @Override
     public void onLoad() {
-        core.setup(this);
+        plugin.load();
     }
 
     @Override
     public void onEnable() {
         config = new BungeeConfig(FileManager.CONFIG_FILE);
-        core.start();
+        plugin.enable();
     }
 
     @Override
     public void onDisable() {
-        core.shutdown();
+        plugin.disable();
     }
 
     public void execute(String executorid, ProxiedPlayer p) {
@@ -126,8 +125,8 @@ public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
     }
 
     @Override
-    public void log(Object log) {
-        ((CommandSender) getConsole()).sendMessage(CoinsCore.getInstance().rep("&8[&cCoins&8] &7" + log));
+    public void log(String msg) {
+        ((CommandSender) getConsole()).sendMessage(TextComponent.fromLegacyText(plugin.rep("&8[&cCoins&8] &7" + msg)));
     }
 
     @Override

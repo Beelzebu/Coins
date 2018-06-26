@@ -19,7 +19,8 @@
 package io.github.beelzebu.coins.bukkit.menus;
 
 import com.google.common.base.Preconditions;
-import io.github.beelzebu.coins.common.CoinsCore;
+import io.github.beelzebu.coins.api.config.AbstractConfigFile;
+import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +31,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import io.github.beelzebu.coins.common.config.AbstractConfigFile;
 
 /**
  *
@@ -38,7 +38,7 @@ import io.github.beelzebu.coins.common.config.AbstractConfigFile;
  */
 public abstract class CoinsMenu {
 
-    protected final CoinsCore core = CoinsCore.getInstance();
+    protected final CoinsPlugin plugin = CoinsPlugin.getInstance();
     protected final Inventory inv;
     protected final UUID uuid;
     private final Map<Integer, GUIAction> actions;
@@ -73,7 +73,7 @@ public abstract class CoinsMenu {
     }
 
     public final void open(Player p) {
-        core.getBootstrap().runSync(() -> {
+        plugin.getBootstrap().runSync(() -> {
             p.closeInventory();
             p.openInventory(inv);
             openInventories.put(p.getUniqueId(), uuid);
@@ -109,17 +109,17 @@ public abstract class CoinsMenu {
         try {
             mat = Material.valueOf(config.getString(path + ".Material").toUpperCase());
         } catch (Exception ex) {
-            core.log("The material '" + config.getString(path + ".Material").toUpperCase() + "' is invalid, it will be set as STONE.");
+            plugin.log("The material '" + config.getString(path + ".Material").toUpperCase() + "' is invalid, it will be set as STONE.");
             mat = Material.STONE;
         }
         ItemStack is = new ItemStack(mat);
         ItemMeta meta = is.getItemMeta();
         config.getConfigurationSection(path).forEach(data -> {
             if (data.equals("Name")) {
-                meta.setDisplayName(core.rep(config.getString(path + ".Name")));
+                meta.setDisplayName(plugin.rep(config.getString(path + ".Name")));
             }
             if (data.equals("Lore")) {
-                meta.setLore(core.rep(config.getStringList(path + ".Lore")));
+                meta.setLore(plugin.rep(config.getStringList(path + ".Lore")));
             }
             if (data.equals("Amount")) {
                 is.setAmount(config.getInt(path + ".Amount"));

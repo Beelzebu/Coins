@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>api</module>
         <module>common</module>
         <module>bukkit</module>
         <module>bungee</module>
@@ -49,12 +50,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.16.18</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.ben-manes.caffeine</groupId>
-            <artifactId>caffeine</artifactId>
-            <version>2.6.2</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
