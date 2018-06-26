@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Beelzebu
  */
-public final class CacheManager implements CacheProvider {
+public final class LocalCache implements CacheProvider {
 
     private final CoinsPlugin plugin = CoinsPlugin.getInstance();
 
@@ -51,7 +51,7 @@ public final class CacheManager implements CacheProvider {
         return plugin.getDatabase().getCoins(key);
     });
     private final LoadingCache<String, Multiplier> multipliers = Caffeine.newBuilder().build(k -> {
-        Iterator<Multiplier> it = CacheManager.this.queuedMultipliers.iterator();
+        Iterator<Multiplier> it = LocalCache.this.queuedMultipliers.iterator();
         if (it.hasNext()) {
             Multiplier multiplier = it.next();
             if (multiplier.getServer().equals(k)) {

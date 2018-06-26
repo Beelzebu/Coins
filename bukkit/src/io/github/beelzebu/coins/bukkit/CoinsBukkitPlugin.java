@@ -27,7 +27,7 @@ import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
 import io.github.beelzebu.coins.bukkit.utils.leaderheads.LeaderHeadsHook;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.CoinsPlaceholders;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.MultipliersPlaceholders;
-import io.github.beelzebu.coins.common.cache.CacheManager;
+import io.github.beelzebu.coins.common.cache.LocalCache;
 import io.github.beelzebu.coins.common.plugin.CommonCoinsPlugin;
 import org.bukkit.Bukkit;
 
@@ -82,6 +82,6 @@ public class CoinsBukkitPlugin extends CommonCoinsPlugin {
 
     @Override
     public CacheProvider getCache() {
-        return new CacheManager();
+        return new LocalCache();
     }
 }
