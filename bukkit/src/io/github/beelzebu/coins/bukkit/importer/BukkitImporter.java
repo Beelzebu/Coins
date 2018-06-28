@@ -35,7 +35,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 /**
- *
  * @author Beelzebu
  */
 public class BukkitImporter implements Importer {

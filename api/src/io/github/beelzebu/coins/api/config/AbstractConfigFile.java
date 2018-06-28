@@ -25,7 +25,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
 /**
- *
  * @author Beelzebu
  */
 @AllArgsConstructor(access = AccessLevel.PROTECTED)

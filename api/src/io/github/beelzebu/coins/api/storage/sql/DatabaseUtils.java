@@ -18,7 +18,7 @@
  */
 package io.github.beelzebu.coins.api.storage.sql;
 
-import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.api.CoinsAPI;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -29,7 +29,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- *
  * @author Beelzebu
  */
 public class DatabaseUtils {
@@ -64,10 +63,10 @@ public class DatabaseUtils {
                 }
             }
         } catch (SQLException ex) {
-            CoinsPlugin.getInstance().log("An internal error has ocurred while trying to execute a query in the database, check the logs to get more information.");
-            CoinsPlugin.getInstance().debug("The error code is: '" + ex.getErrorCode() + "'");
-            CoinsPlugin.getInstance().debug("The error message is: '" + ex.getMessage() + "'");
-            CoinsPlugin.getInstance().debug("Query: " + query.getQuery());
+            CoinsAPI.getPlugin().log("An internal error has ocurred while trying to execute a query in the database, check the logs to get more information.");
+            CoinsAPI.getPlugin().debug("The error code is: '" + ex.getErrorCode() + "'");
+            CoinsAPI.getPlugin().debug("The error message is: '" + ex.getMessage() + "'");
+            CoinsAPI.getPlugin().debug("Query: " + query.getQuery());
         }
         return ps;
     }

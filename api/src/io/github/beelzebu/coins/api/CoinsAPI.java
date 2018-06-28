@@ -24,19 +24,18 @@ import java.text.DecimalFormat;
 import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.UUID;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 /**
- *
  * @author Beelzebu
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CoinsAPI {
 
-    private static final CoinsPlugin PLUGIN = CoinsPlugin.getInstance();
     private static final DecimalFormat DF = new DecimalFormat("#.#");
+    private static CoinsPlugin PLUGIN;
 
     /**
      * Get the coins of a Player by his name.
@@ -44,8 +43,8 @@ public final class CoinsAPI {
      * @param name Player to get the coins.
      * @return coins of the player
      */
-    public static double getCoins(@NonNull String name) {
-        return PLUGIN.getCache().getCoins(PLUGIN.getUUID(name, false));
+    public static double getCoins(@Nonnull String name) {
+        return PLUGIN.getCache().getCoins(PLUGIN.getUniqueId(name, false));
     }
 
     /**
@@ -64,7 +63,7 @@ public final class CoinsAPI {
      * @param name Player to get the coins string.
      * @return Coins in decimal format "#.#"
      */
-    public static String getCoinsString(@NonNull String name) {
+    public static String getCoinsString(@Nonnull String name) {
         double coins = getCoins(name.toLowerCase());
         if (coins >= 0) {
             return DF.format(coins);
@@ -92,25 +91,25 @@ public final class CoinsAPI {
      * Add coins to a player by his name, selecting if the multipliers should be
      * used to calculate the coins.
      *
-     * @param name Player to add the coins.
-     * @param coins Coins to add.
+     * @param name     Player to add the coins.
+     * @param coins    Coins to add.
      * @param multiply Multiply coins if there are any active multipliers
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
-    public static CoinsResponse addCoins(@NonNull String name, final double coins, boolean multiply) {
-        return addCoins(PLUGIN.getUUID(name, false), coins, multiply);
+    public static CoinsResponse addCoins(@Nonnull String name, double coins, boolean multiply) {
+        return addCoins(PLUGIN.getUniqueId(name, false), coins, multiply);
     }
 
     /**
      * Add coins to a player by his UUID, selecting if the multipliers should be
      * used to calculate the coins.
      *
-     * @param uuid Player to add the coins.
-     * @param coins Coins to add.
+     * @param uuid     Player to add the coins.
+     * @param coins    Coins to add.
      * @param multiply Multiply coins if there are any active multipliers
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
-    public static CoinsResponse addCoins(UUID uuid, final double coins, boolean multiply) {
+    public static CoinsResponse addCoins(UUID uuid, double coins, boolean multiply) {
         if (!isindb(uuid)) {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the database.");
         }
@@ -138,18 +137,18 @@ public final class CoinsAPI {
     /**
      * Take coins of a player by his name.
      *
-     * @param name The name of the player to take the coins.
+     * @param name  The name of the player to take the coins.
      * @param coins Coins to take from the player.
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
-    public static CoinsResponse takeCoins(@NonNull String name, double coins) {
-        return setCoins(PLUGIN.getUUID(name, false), getCoins(name) - coins);
+    public static CoinsResponse takeCoins(@Nonnull String name, double coins) {
+        return setCoins(PLUGIN.getUniqueId(name, false), getCoins(name) - coins);
     }
 
     /**
      * Take coins of a player by his UUID.
      *
-     * @param uuid The UUID of the player to take the coins.
+     * @param uuid  The UUID of the player to take the coins.
      * @param coins Coins to take from the player.
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
@@ -163,8 +162,8 @@ public final class CoinsAPI {
      * @param name The name of the player to reset the coins.
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
-    public static CoinsResponse resetCoins(@NonNull String name) {
-        return setCoins(PLUGIN.getUUID(name, false), PLUGIN.getConfig().getDouble("General.Starting Coins", 0));
+    public static CoinsResponse resetCoins(@Nonnull String name) {
+        return setCoins(PLUGIN.getUniqueId(name, false), PLUGIN.getConfig().getDouble("General.Starting Coins", 0));
     }
 
     /**
@@ -180,18 +179,18 @@ public final class CoinsAPI {
     /**
      * Set the coins of a player by his name.
      *
-     * @param name The name of the player to set the coins.
+     * @param name  The name of the player to set the coins.
      * @param coins Coins to set.
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
-    public static CoinsResponse setCoins(@NonNull String name, double coins) {
-        return setCoins(PLUGIN.getUUID(name, false), coins);
+    public static CoinsResponse setCoins(@Nonnull String name, double coins) {
+        return setCoins(PLUGIN.getUniqueId(name, false), coins);
     }
 
     /**
      * Set the coins of a player by his name.
      *
-     * @param uuid The UUID of the player to set the coins.
+     * @param uuid  The UUID of the player to set the coins.
      * @param coins Coins to set.
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
@@ -207,8 +206,8 @@ public final class CoinsAPI {
     /**
      * Pay coins to another player.
      *
-     * @param from The player to get the coins.
-     * @param to The player to pay.
+     * @param from   The player to get the coins.
+     * @param to     The player to pay.
      * @param amount The amount of coins to pay.
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
@@ -224,8 +223,8 @@ public final class CoinsAPI {
     /**
      * Pay coins to another player.
      *
-     * @param from The player to get the coins.
-     * @param to The player to pay.
+     * @param from   The player to get the coins.
+     * @param to     The player to pay.
      * @param amount The amount of coins to pay.
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
@@ -245,8 +244,8 @@ public final class CoinsAPI {
      * @param name The name to look for in the database.
      * @return true if the player exists in the database or false if not.
      */
-    public static boolean isindb(@NonNull String name) {
-        UUID uuid = PLUGIN.getUUID(name, false);
+    public static boolean isindb(@Nonnull String name) {
+        UUID uuid = PLUGIN.getUniqueId(name, false);
         if (getCoins(uuid != null ? uuid : UUID.randomUUID()) > -1) { // If the player is in the cache it should be in the database.
             return true;
         }
@@ -270,7 +269,7 @@ public final class CoinsAPI {
      * Get the top players in coins data.
      *
      * @param top The lenght of the top list, for example 5 will get a max of 5
-     * users for the top.
+     *            users for the top.
      * @return The ordered top list of players and his balance.
      */
     public static LinkedHashMap<String, Double> getTopPlayers(int top) {
@@ -290,8 +289,8 @@ public final class CoinsAPI {
     /**
      * Register a user in the database with the specified balance.
      *
-     * @param nick The name of the user that will be registered.
-     * @param uuid The uuid of the user.
+     * @param nick    The name of the user that will be registered.
+     * @param uuid    The uuid of the user.
      * @param balance The balance of the user.
      */
     public static void createPlayer(String nick, UUID uuid, double balance) {
@@ -356,11 +355,21 @@ public final class CoinsAPI {
     /**
      * Get all multipliers for a player in the specified server.
      *
-     * @param uuid player to get multipliers from the database.
+     * @param uuid   player to get multipliers from the database.
      * @param server where we should get the multipliers.
      * @return multipliers of the player in that server.
      */
     public static Set<Multiplier> getMultipliersFor(UUID uuid, String server) {
         return PLUGIN.getDatabase().getMultipliers(uuid, server);
+    }
+
+    public static CoinsPlugin getPlugin() {
+        return PLUGIN;
+    }
+
+    public static void setPlugin(@Nonnull CoinsPlugin plugin) {
+        if (PLUGIN != null) {
+            PLUGIN = plugin;
+        }
     }
 }

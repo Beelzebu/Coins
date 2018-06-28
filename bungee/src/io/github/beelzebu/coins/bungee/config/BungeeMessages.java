@@ -28,7 +28,6 @@ import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
 
 /**
- *
  * @author Beelzebu
  */
 public class BungeeMessages extends AbstractConfigFile {

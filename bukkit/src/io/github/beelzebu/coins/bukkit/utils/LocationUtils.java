@@ -22,7 +22,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 /**
- *
  * @author Beelzebu
  */
 public class LocationUtils {

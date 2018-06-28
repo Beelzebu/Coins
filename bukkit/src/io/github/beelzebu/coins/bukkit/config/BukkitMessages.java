@@ -24,7 +24,6 @@ import java.util.Set;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 /**
- *
  * @author Beelzebu
  */
 public class BukkitMessages extends AbstractConfigFile {

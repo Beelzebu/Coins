@@ -32,7 +32,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.ServicePriority;
 
 /**
- *
  * @author Beelzebu
  */
 public class CoinsEconomy implements Economy {
@@ -269,7 +268,7 @@ public class CoinsEconomy implements Economy {
 
     @Override
     public boolean createPlayerAccount(String string) {
-        UUID uuid = plugin.getPlugin().getUUID(string, false);
+        UUID uuid = plugin.getPlugin().getUniqueId(string, false);
         CoinsAPI.createPlayer(string, uuid != null ? uuid : UUID.randomUUID());
         return !CoinsAPI.getCoinsString(string).equals("This player isn't in the database");
     }
@@ -282,7 +281,7 @@ public class CoinsEconomy implements Economy {
 
     @Override
     public boolean createPlayerAccount(String string, String string1) {
-        UUID uuid = plugin.getPlugin().getUUID(string, false);
+        UUID uuid = plugin.getPlugin().getUniqueId(string, false);
         CoinsAPI.createPlayer(string, uuid != null ? uuid : UUID.randomUUID());
         return !CoinsAPI.getCoinsString(string).equals("This player isn't in the database");
     }

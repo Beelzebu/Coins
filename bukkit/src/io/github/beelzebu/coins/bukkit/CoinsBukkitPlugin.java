@@ -32,7 +32,6 @@ import io.github.beelzebu.coins.common.plugin.CommonCoinsPlugin;
 import org.bukkit.Bukkit;
 
 /**
- *
  * @author Beelzebu
  */
 public class CoinsBukkitPlugin extends CommonCoinsPlugin {
@@ -51,7 +50,7 @@ public class CoinsBukkitPlugin extends CommonCoinsPlugin {
         Bukkit.getPluginManager().registerEvents(new GUIListener(), (CoinsBukkitMain) getBootstrap());
         Bukkit.getPluginManager().registerEvents(new LoginListener(), (CoinsBukkitMain) getBootstrap());
         Bukkit.getPluginManager().registerEvents(new SignListener(), (CoinsBukkitMain) getBootstrap());
-        Bukkit.getScheduler().runTask((CoinsBukkitMain) getBootstrap(), () -> hookOptionalDependencies());
+        Bukkit.getScheduler().runTask((CoinsBukkitMain) getBootstrap(), this::hookOptionalDependencies);
     }
 
     @Override

@@ -18,15 +18,15 @@
  */
 package io.github.beelzebu.coins.common.importer;
 
+import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 
 /**
- *
  * @author Beelzebu
  */
 public interface Importer {
 
-    final CoinsPlugin plugin = CoinsPlugin.getInstance();
+    CoinsPlugin plugin = CoinsAPI.getPlugin();
 
     void importFromPlayerPoints();
 

@@ -39,11 +39,10 @@ public enum Dependency {
     JEDIS("redis.clients", "jedis", "2.9.0", Relocation.allOf(Relocation.of("jedis", "redis{}clients{}jedis"), Relocation.of("jedisutil", "redis{}clients{}util"), Relocation.of("commonspool2", "org{}apache{}commons{}pool2"))),
     COMMONS_POOL_2("org.apache.commons", "commons-pool2", "2.5.0", Relocation.of("commonspool2", "org{}apache{}commons{}pool2"));
 
+    private static final String MAVEN_CENTRAL_FORMAT = "https://repo1.maven.org/maven2/%s/%s/%s/%s-%s.jar";
     private final String url;
     private final String version;
     private final List<Relocation> relocations;
-
-    private static final String MAVEN_CENTRAL_FORMAT = "https://repo1.maven.org/maven2/%s/%s/%s/%s-%s.jar";
 
     Dependency(String groupId, String artifactId, String version) {
         this(String.format(MAVEN_CENTRAL_FORMAT, groupId.replace("{}", ".").replace(".", "/"), artifactId.replace("{}", "."), version, artifactId.replace("{}", "."), version), version, Collections.emptyList());

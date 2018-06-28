@@ -30,7 +30,6 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
- *
  * @author Beelzebu
  */
 public interface CoinsBootstrap {

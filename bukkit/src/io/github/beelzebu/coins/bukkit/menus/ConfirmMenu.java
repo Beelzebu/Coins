@@ -20,6 +20,7 @@ package io.github.beelzebu.coins.bukkit.menus;
 
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.Multiplier;
+import io.github.beelzebu.coins.api.utils.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Material;
@@ -32,7 +33,6 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffectType;
 
 /**
- *
  * @author Beelzebu
  */
 public class ConfirmMenu extends CoinsMenu {
@@ -95,10 +95,10 @@ public class ConfirmMenu extends CoinsMenu {
             PotionMeta meta = (PotionMeta) is.getItemMeta();
             meta.setMainEffect(PotionEffectType.FIRE_RESISTANCE);
             meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
-            meta.setDisplayName(plugin.rep(plugin.getString("Multipliers.Menu.Multipliers.Name", p.spigot().getLocale()), multiplier));
+            meta.setDisplayName(StringUtils.rep(plugin.getString("Multipliers.Menu.Multipliers.Name", p.spigot().getLocale()), multiplier));
             List<String> lore = new ArrayList<>();
             plugin.getMessages(p.spigot().getLocale()).getStringList("Multipliers.Menu.Multipliers.Lore").forEach(line -> {
-                lore.add(plugin.rep(line, multiplier));
+                lore.add(StringUtils.rep(line, multiplier));
             });
             meta.setLore(lore);
             is.setItemMeta(meta);

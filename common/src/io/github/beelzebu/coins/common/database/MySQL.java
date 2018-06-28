@@ -20,28 +20,33 @@ package io.github.beelzebu.coins.common.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.github.beelzebu.coins.api.CoinsAPI;
+import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.storage.StorageType;
 import io.github.beelzebu.coins.api.storage.sql.DatabaseUtils;
 import io.github.beelzebu.coins.api.storage.sql.SQLDatabase;
 import io.github.beelzebu.coins.api.storage.sql.SQLQuery;
-import io.github.beelzebu.coins.common.utils.FileManager;
+import io.github.beelzebu.coins.common.plugin.CommonCoinsPlugin;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- *
  * @author Beelzebu
  */
 public final class MySQL extends SQLDatabase {
+
+    public MySQL(CoinsPlugin plugin) {
+        super(plugin);
+    }
 
     @Override
     public void setup() {
         HikariConfig hc = new HikariConfig();
         hc.setPoolName("Coins MySQL Connection Pool");
         String urlprefix = "jdbc:mysql://";
-        if (PLUGIN.getStorageType().equals(StorageType.MARIADB)) {
+        if (plugin.getStorageType().equals(StorageType.MARIADB)) {
             urlprefix = "jdbc:mariadb://";
             hc.setDriverClassName("org.mariadb.jdbc.Driver");
         } else {
@@ -54,14 +59,14 @@ public final class MySQL extends SQLDatabase {
         hc.addDataSourceProperty("encoding", "UTF-8");
         hc.addDataSourceProperty("characterEncoding", "utf8");
         hc.addDataSourceProperty("useUnicode", "true");
-        hc.setJdbcUrl(urlprefix + PLUGIN.getConfig().getString("MySQL.Host") + ":" + PLUGIN.getConfig().get("MySQL.Port", "3306") + "/" + PLUGIN.getConfig().getString("MySQL.Database") + "?autoReconnect=true&useSSL=false");
-        hc.setUsername(PLUGIN.getConfig().getString("MySQL.User"));
-        hc.setPassword(PLUGIN.getConfig().getString("MySQL.Password"));
+        hc.setJdbcUrl(urlprefix + plugin.getConfig().getString("MySQL.Host") + ":" + plugin.getConfig().get("MySQL.Port", "3306") + "/" + plugin.getConfig().getString("MySQL.Database") + "?autoReconnect=true&useSSL=false");
+        hc.setUsername(plugin.getConfig().getString("MySQL.User"));
+        hc.setPassword(plugin.getConfig().getString("MySQL.Password"));
         hc.setMaxLifetime(60000);
         hc.setMinimumIdle(4);
         hc.setIdleTimeout(30000);
         hc.setConnectionTimeout(10000);
-        hc.setMaximumPoolSize(PLUGIN.getConfig().getInt("MySQL.Connection Pool", 8));
+        hc.setMaximumPoolSize(plugin.getConfig().getInt("MySQL.Connection Pool", 8));
         hc.setLeakDetectionThreshold(30000);
         hc.validate();
         ds = new HikariDataSource(hc);
@@ -72,14 +77,14 @@ public final class MySQL extends SQLDatabase {
     protected void updateDatabase() {
         try (Connection c = ds.getConnection(); Statement st = c.createStatement()) {
             String data
-                    = "CREATE TABLE IF NOT EXISTS `" + DATA_TABLE + "`"
+                    = "CREATE TABLE IF NOT EXISTS `" + dataTable + "`"
                     + "(`id` INT NOT NULL AUTO_INCREMENT,"
                     + "`uuid` VARCHAR(50) NOT NULL,"
                     + "`nick` VARCHAR(50) NOT NULL,"
                     + "`balance` DOUBLE NOT NULL,"
                     + "`lastlogin` LONG NOT NULL,"
                     + "PRIMARY KEY (`id`));";
-            String multiplier = "CREATE TABLE IF NOT EXISTS `" + MULTIPLIERS_TABLE + "`"
+            String multiplier = "CREATE TABLE IF NOT EXISTS `" + multipliersTable + "`"
                     + "(`id` INT NOT NULL AUTO_INCREMENT,"
                     + "`server` VARCHAR(50),"
                     + "`uuid` VARCHAR(50) NOT NULL,"
@@ -92,33 +97,33 @@ public final class MySQL extends SQLDatabase {
                     + "PRIMARY KEY (`id`));";
             st.executeUpdate(data);
             st.executeUpdate(multiplier);
-            if (PLUGIN.getConfig().getInt("Database Version", 1) < 2) {
+            if (plugin.getConfig().getInt("Database Version", 1) < 2) {
                 try {
-                    if (c.prepareStatement("SELECT * FROM " + PREFIX + "Data;").executeQuery().next() && !c.prepareStatement("SELECT * FROM " + DATA_TABLE + ";").executeQuery().next()) {
-                        PLUGIN.log("Seems that your database is outdated, we'll try to update it...");
-                        ResultSet res = c.prepareStatement("SELECT * FROM " + PREFIX + "Data;").executeQuery();
+                    if (c.prepareStatement("SELECT * FROM " + prefix + "Data;").executeQuery().next() && !c.prepareStatement("SELECT * FROM " + dataTable + ";").executeQuery().next()) {
+                        plugin.log("Seems that your database is outdated, we'll try to update it...");
+                        ResultSet res = c.prepareStatement("SELECT * FROM " + prefix + "Data;").executeQuery();
                         while (res.next()) {
                             DatabaseUtils.prepareStatement(c, SQLQuery.CREATE_USER, res.getString("uuid"), res.getString("nick"), res.getDouble("balance"), res.getLong("lastlogin")).executeUpdate();
-                            PLUGIN.debug("Migrated the data for " + res.getString("nick") + " (" + res.getString("uuid") + ")");
+                            plugin.debug("Migrated the data for " + res.getString("nick") + " (" + res.getString("uuid") + ")");
                         }
-                        PLUGIN.log("Successfully upadated database to version 2");
+                        plugin.log("Successfully upadated database to version 2");
                     }
-                    new FileManager().updateDatabaseVersion(2);
+                    ((CommonCoinsPlugin) CoinsAPI.getPlugin()).getFileManager().updateDatabaseVersion(2);
                 } catch (SQLException ex) {
                     for (int i = 0; i < 5; i++) {
-                        PLUGIN.log("An error has ocurred migrating the data from the old database, check the logs ASAP!");
+                        plugin.log("An error has ocurred migrating the data from the old database, check the logs ASAP!");
                     }
-                    PLUGIN.debug(ex);
+                    plugin.debug(ex);
                     return;
                 }
             }
-            if (PLUGIN.getConfig().getBoolean("General.Purge.Enabled", true) && PLUGIN.getConfig().getInt("General.Purge.Days") > 0) {
-                st.executeUpdate("DELETE FROM " + DATA_TABLE + " WHERE lastlogin < " + (System.currentTimeMillis() - (PLUGIN.getConfig().getInt("General.Purge.Days", 60) * 86400000L)) + ";");
-                PLUGIN.debug("Inactive users were removed from the database.");
+            if (plugin.getConfig().getBoolean("General.Purge.Enabled", true) && plugin.getConfig().getInt("General.Purge.Days") > 0) {
+                st.executeUpdate("DELETE FROM " + dataTable + " WHERE lastlogin < " + (System.currentTimeMillis() - (plugin.getConfig().getInt("General.Purge.Days", 60) * 86400000L)) + ";");
+                plugin.debug("Inactive users were removed from the database.");
             }
         } catch (SQLException ex) {
-            PLUGIN.log("Something was wrong creating the default databases. Please check the debug log.");
-            PLUGIN.debug(ex);
+            plugin.log("Something was wrong creating the default databases. Please check the debug log.");
+            plugin.debug(ex);
         }
     }
 }

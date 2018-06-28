@@ -26,7 +26,6 @@ import java.util.Set;
 import org.bukkit.configuration.file.FileConfiguration;
 
 /**
- *
  * @author Beelzebu
  */
 public class BukkitConfig extends CoinsConfig {

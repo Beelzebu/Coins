@@ -24,14 +24,13 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
 /**
- *
  * @author Beelzebu
  */
 public class CoinsChangeEvent extends PlayerEvent {
 
+    private final static HandlerList handlers = new HandlerList();
     private final double oldCoins;
     private final double newCoins;
-    private final static HandlerList handlers = new HandlerList();
 
     public CoinsChangeEvent(UUID uuid, double oc, double nc) {
         super(Bukkit.getPlayer(uuid));
@@ -39,12 +38,12 @@ public class CoinsChangeEvent extends PlayerEvent {
         newCoins = nc;
     }
 
-    @Override
-    public HandlerList getHandlers() {
+    public static HandlerList getHandlerList() {
         return handlers;
     }
 
-    public static HandlerList getHandlerList() {
+    @Override
+    public HandlerList getHandlers() {
         return handlers;
     }
 

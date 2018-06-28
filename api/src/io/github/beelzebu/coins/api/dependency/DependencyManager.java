@@ -39,11 +39,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public final class DependencyManager {
 
-    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
-    private final DependencyRegistry registry = new DependencyRegistry();
+    private final CoinsPlugin plugin;
+    private final DependencyRegistry registry;
     private final Map<Dependency, Path> loaded = new EnumMap<>(Dependency.class);
     private final Map<ImmutableSet<Dependency>, IsolatedClassLoader> loaders = new HashMap<>();
     private RelocationHandler relocationHandler;

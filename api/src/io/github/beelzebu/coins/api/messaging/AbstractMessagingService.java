@@ -20,6 +20,7 @@ package io.github.beelzebu.coins.api.messaging;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
+import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.Multiplier;
 import io.github.beelzebu.coins.api.MultiplierType;
 import io.github.beelzebu.coins.api.cache.CacheProvider;
@@ -31,14 +32,13 @@ import java.util.LinkedHashSet;
 import java.util.UUID;
 
 /**
- *
  * @author Beelzebu
  */
 public abstract class AbstractMessagingService {
 
-    protected final CoinsPlugin plugin = CoinsPlugin.getInstance();
+    protected final CoinsPlugin plugin = CoinsAPI.getPlugin();
     protected final LinkedHashSet<UUID> messages = new LinkedHashSet<>();
-    protected final CacheProvider cache = CoinsPlugin.getInstance().getCache();
+    protected final CacheProvider cache = plugin.getCache();
 
     /**
      * Start this messaging service.
@@ -60,7 +60,7 @@ public abstract class AbstractMessagingService {
     /**
      * Publish user coins over all servers using this messaging service.
      *
-     * @param uuid user to publish.
+     * @param uuid  user to publish.
      * @param coins coins to publish.
      */
     public final void publishUser(UUID uuid, double coins) {
@@ -163,7 +163,7 @@ public abstract class AbstractMessagingService {
      * Send a message in JSON format using this messaging service
      *
      * @param message what we should send
-     * @param type message type
+     * @param type    message type
      */
     protected final void sendMessage(JsonObject message, MessageType type) {
         if (getType().equals(MessagingService.NONE)) {

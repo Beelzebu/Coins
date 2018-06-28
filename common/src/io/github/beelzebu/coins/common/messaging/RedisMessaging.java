@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import io.github.beelzebu.coins.api.messaging.AbstractMessagingService;
 import io.github.beelzebu.coins.api.messaging.MessagingService;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -29,11 +30,11 @@ import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisPubSub;
 
 /**
- *
  * @author Beelzebu
  */
 public class RedisMessaging extends AbstractMessagingService {
 
+    @Getter
     private JedisPool pool;
     private PubSubListener psl;
 

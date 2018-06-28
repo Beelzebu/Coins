@@ -35,30 +35,34 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
 
 /**
- *
  * @author Beelzebu
  */
 public class FileManager {
 
-    public static final File MESSAGES_FOLDER = new File(CoinsPlugin.getInstance().getBootstrap().getDataFolder(), "messages");
-    public static final File LOGS_FOLDER = new File(CoinsPlugin.getInstance().getBootstrap().getDataFolder(), "logs");
-    public static final File CONFIG_FILE = new File(CoinsPlugin.getInstance().getBootstrap().getDataFolder(), "config.yml");
-    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
+    private final CoinsPlugin plugin;
+    private final File messagesFolder;
+    private final File logsFolder;
+    private final File configFile;
     private final Map<String, File> messagesFiles = new HashMap<>();
     private final int configVersion = 15;
 
-    public FileManager() {
-        messagesFiles.put("default", new File(MESSAGES_FOLDER, "messages.yml"));
-        messagesFiles.put("es", new File(MESSAGES_FOLDER, "messages_es.yml"));
-        messagesFiles.put("zh", new File(MESSAGES_FOLDER, "messages_zh.yml"));
-        messagesFiles.put("cz", new File(MESSAGES_FOLDER, "messages_cz.yml"));
-        messagesFiles.put("hu", new File(MESSAGES_FOLDER, "messages_hu.yml"));
-        messagesFiles.put("ru", new File(MESSAGES_FOLDER, "messages_ru.yml"));
+    public FileManager(CoinsPlugin plugin) {
+        this.plugin = plugin;
+        messagesFolder = new File(plugin.getBootstrap().getDataFolder(), "messages");
+        logsFolder = new File(plugin.getBootstrap().getDataFolder(), "logs");
+        configFile = new File(plugin.getBootstrap().getDataFolder(), "config.yml");
+        messagesFiles.put("default", new File(messagesFolder, "messages.yml"));
+        messagesFiles.put("es", new File(messagesFolder, "messages_es.yml"));
+        messagesFiles.put("zh", new File(messagesFolder, "messages_zh.yml"));
+        messagesFiles.put("cz", new File(messagesFolder, "messages_cz.yml"));
+        messagesFiles.put("hu", new File(messagesFolder, "messages_hu.yml"));
+        messagesFiles.put("ru", new File(messagesFolder, "messages_ru.yml"));
+        //updateFiles();
     }
 
     private void updateConfig() {
         try {
-            List<String> lines = Files.readAllLines(CONFIG_FILE.toPath());
+            List<String> lines = Files.readAllLines(configFile.toPath());
             if (plugin.getConfig().getInt("version") == configVersion) {
                 plugin.log("The config file is up to date.");
             } else {
@@ -158,7 +162,7 @@ public class FileManager {
                             plugin.log("We can't update it, if is a old version you should try to update it slow and not jump from a version to another, keep in mind that we keep only track of the last versions of the config to update.");
                             break;
                     }
-                    Files.write(CONFIG_FILE.toPath(), lines);
+                    Files.write(configFile.toPath(), lines);
                     plugin.getConfig().reload();
                     version = plugin.getConfig().getInt("version");
                 } while (version < configVersion && version > configVersion - 5);
@@ -338,21 +342,21 @@ public class FileManager {
     }
 
     public void copyFiles() {
-        if (!LOGS_FOLDER.exists()) {
+        if (!logsFolder.exists()) {
             if (plugin.getConfig().isDebugFile()) {
-                LOGS_FOLDER.mkdirs();
+                logsFolder.mkdirs();
             } else {
-                LOGS_FOLDER.delete();
+                logsFolder.delete();
             }
         }
-        if (!MESSAGES_FOLDER.exists()) {
-            MESSAGES_FOLDER.mkdirs();
+        if (!messagesFolder.exists()) {
+            messagesFolder.mkdirs();
         }
         File[] files = plugin.getBootstrap().getDataFolder().listFiles();
         for (File f : files) {
             if (f.isFile() && f.getName().startsWith("messages")) {
                 try {
-                    Files.move(f.toPath(), new File(MESSAGES_FOLDER, f.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    Files.move(f.toPath(), new File(messagesFolder, f.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
                 } catch (IOException ex) {
                     Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while moving messages files to the new messages folder.", ex);
                 }
@@ -360,7 +364,7 @@ public class FileManager {
         }
         messagesFiles.keySet().forEach(filename -> {
             try {
-                File messageFile = new File(MESSAGES_FOLDER, messagesFiles.get(filename).getName());
+                File messageFile = new File(messagesFolder, messagesFiles.get(filename).getName());
                 if (!messageFile.exists()) {
                     Files.copy(plugin.getBootstrap().getResource(messagesFiles.get(filename).getName()), messageFile.toPath());
                 }
@@ -368,9 +372,9 @@ public class FileManager {
                 Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while saving messages files.", ex);
             }
         });
-        if (!CONFIG_FILE.exists()) {
+        if (!configFile.exists()) {
             try {
-                Files.copy(plugin.getBootstrap().getResource(CONFIG_FILE.getName()), CONFIG_FILE.toPath());
+                Files.copy(plugin.getBootstrap().getResource(configFile.getName()), configFile.toPath());
             } catch (IOException ex) {
                 Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while saving the default config.", ex);
             }
@@ -385,20 +389,20 @@ public class FileManager {
 
     private void checkLogs() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        File latestLog = new File(LOGS_FOLDER, "latest.log");
+        File latestLog = new File(logsFolder, "latest.log");
         if (latestLog.exists()) {
             try {
                 int filen = 1;
-                while (new File(LOGS_FOLDER, sdf.format(latestLog.lastModified()) + "-" + filen + ".log.gz").exists()) {
+                while (new File(logsFolder, sdf.format(latestLog.lastModified()) + "-" + filen + ".log.gz").exists()) {
                     filen++;
                 }
-                gzipFile(Files.newInputStream(latestLog.toPath()), LOGS_FOLDER + File.pathSeparator + sdf.format(latestLog.lastModified()) + "-" + filen + ".log.gz");
+                gzipFile(Files.newInputStream(latestLog.toPath()), logsFolder + File.pathSeparator + sdf.format(latestLog.lastModified()) + "-" + filen + ".log.gz");
                 latestLog.delete();
             } catch (IOException ex) {
                 Logger.getLogger(FileManager.class.getName()).log(Level.WARNING, "An unexpected error has ocurred while trying to compress the latest log file. {0}", ex.getMessage());
             }
         }
-        File[] fList = LOGS_FOLDER.listFiles();
+        File[] fList = logsFolder.listFiles();
         // Auto purge for old logs
         if (fList.length > 0) {
             for (File file : fList) {
@@ -423,10 +427,10 @@ public class FileManager {
     public void updateDatabaseVersion(int version) {
         if (plugin.getConfig().getInt("Database Version") != version) {
             try {
-                List<String> lines = Files.readAllLines(CONFIG_FILE.toPath());
+                List<String> lines = Files.readAllLines(configFile.toPath());
                 int index = lines.indexOf("Database Version: " + plugin.getConfig().getInt("Database Version"));
                 lines.set(index, "Database Version: " + version);
-                Files.write(CONFIG_FILE.toPath(), lines);
+                Files.write(configFile.toPath(), lines);
                 plugin.getConfig().reload();
             } catch (IOException ex) {
                 plugin.log("An unexpected error occurred while updating the config file.");

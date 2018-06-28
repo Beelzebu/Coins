@@ -29,7 +29,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
- *
  * @author Beelzebu
  */
 public class GUIListener implements Listener {

@@ -30,7 +30,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 /**
- *
  * @author Beelzebu
  */
 public final class BukkitMessaging extends ProxyMessaging implements PluginMessageListener {

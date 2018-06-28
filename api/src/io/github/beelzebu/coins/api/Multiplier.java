@@ -43,7 +43,7 @@ import lombok.Setter;
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class Multiplier {
 
-    private static final CoinsPlugin PLUGIN = CoinsPlugin.getInstance();
+    private static final CoinsPlugin PLUGIN = CoinsAPI.getPlugin();
     private MultiplierData baseData;
     @Setter(AccessLevel.PACKAGE)
     private int id;
@@ -64,9 +64,31 @@ public final class Multiplier {
         this.server = server;
     }
 
+    public static Multiplier fromJson(String multiplier, boolean callenable) {
+        Preconditions.checkNotNull(multiplier, "Tried to load a null Multiplier");
+        PLUGIN.debug("Loading multiplier from JSON: " + multiplier);
+        try {
+            JsonObject data = PLUGIN.getGson().fromJson(multiplier, JsonObject.class);
+            MultiplierBuilder multi = MultiplierBuilder
+                    .newBuilder(data.get("server").getAsString(), MultiplierType.valueOf(data.get("type").getAsString()), new MultiplierData(UUID.fromString(data.get("enableruuid").getAsString()), data.get("enabler").getAsString(), data.get("amount").getAsInt(), data.get("minutes").getAsInt()))
+                    .setID(data.get("id").getAsInt())
+                    .setEnablerName(data.get("enabler").getAsString())
+                    .setEnablerUUID(UUID.fromString(data.get("enableruuid").getAsString()))
+                    .setQueue(data.get("queue").getAsBoolean())
+                    .setEnabled(data.get("enabled").getAsBoolean());
+            if (data.get("endtime") != null) {
+                multi.setEndTime(data.get("endtime").getAsLong());
+            }
+            return multi.build(callenable);
+        } catch (JsonSyntaxException ex) {
+            PLUGIN.debug(ex);
+        }
+        return null;
+    }
+
     /**
      * Enable this multiplier with the default uuid and name from
-     * {@link getEnablerUUID()} and {@link getEnablerName()}
+     * {@link Multiplier#getEnablerUUID()} and {@link Multiplier#getEnablerName()}
      *
      * @param queue if the multiplier should be queued or inmediatly enabled.
      */
@@ -79,7 +101,7 @@ public final class Multiplier {
      *
      * @param enablerUUID the UUID of the enabler.
      * @param enablerName the name of the enabler, can't be null.
-     * @param queue if the multiplier should be queued or inmediatly enabled.
+     * @param queue       if the multiplier should be queued or inmediatly enabled.
      */
     public void enable(UUID enablerUUID, String enablerName, boolean queue) {
         Preconditions.checkNotNull(enablerName, "The enabler name can't be null");
@@ -88,7 +110,7 @@ public final class Multiplier {
         }
         this.enablerUUID = enablerUUID;
         this.enablerName = enablerName;
-        this.enabled = true;
+        enabled = true;
         endTime = System.currentTimeMillis() + baseData.getMinutes() * 60000;
         if (queue && (CoinsAPI.getMultiplier(server) == null || !CoinsAPI.getMultiplier(server).isEnabled())) {
             queue = false;
@@ -221,29 +243,7 @@ public final class Multiplier {
         return multiplier;
     }
 
-    public static Multiplier fromJson(String multiplier, boolean callenable) {
-        Preconditions.checkNotNull(multiplier, "Tried to load a null Multiplier");
-        PLUGIN.debug("Loading multiplier from JSON: " + multiplier);
-        try {
-            JsonObject data = PLUGIN.getGson().fromJson(multiplier, JsonObject.class);
-            MultiplierBuilder multi = MultiplierBuilder
-                    .newBuilder(data.get("server").getAsString(), MultiplierType.valueOf(data.get("type").getAsString()), new MultiplierData(UUID.fromString(data.get("enableruuid").getAsString()), data.get("enabler").getAsString(), data.get("amount").getAsInt(), data.get("minutes").getAsInt()))
-                    .setID(data.get("id").getAsInt())
-                    .setEnablerName(data.get("enabler").getAsString())
-                    .setEnablerUUID(UUID.fromString(data.get("enableruuid").getAsString()))
-                    .setQueue(data.get("queue").getAsBoolean())
-                    .setEnabled(data.get("enabled").getAsBoolean());
-            if (data.get("endtime") != null) {
-                multi.setEndTime(data.get("endtime").getAsLong());
-            }
-            return multi.build(callenable);
-        } catch (JsonSyntaxException ex) {
-            PLUGIN.debug(ex);
-        }
-        return null;
-    }
-
-    private String formatTime(final long millis) {
+    private String formatTime(long millis) {
         long seconds = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
         long minutes = TimeUnit.MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis));
         long hours = TimeUnit.MILLISECONDS.toHours(millis) - TimeUnit.DAYS.toHours(TimeUnit.MILLISECONDS.toDays(millis));
@@ -254,11 +254,11 @@ public final class Multiplier {
             b.append(days);
             b.append(", ");
         }
-        b.append(hours == 0 ? "00" : hours < 10 ? "0" + hours : hours);
+        b.append(hours == 0 ? "00" : hours < 10 ? "0" + hours : String.valueOf(hours));
         b.append(":");
-        b.append(minutes == 0 ? "00" : minutes < 10 ? "0" + minutes : minutes);
+        b.append(minutes == 0 ? "00" : minutes < 10 ? "0" + minutes : String.valueOf(minutes));
         b.append(":");
-        b.append(seconds == 0 ? "00" : seconds < 10 ? "0" + seconds : seconds);
+        b.append(seconds == 0 ? "00" : seconds < 10 ? "0" + seconds : String.valueOf(seconds));
         return b.toString();
     }
 }

@@ -19,7 +19,6 @@
 package io.github.beelzebu.coins.api.messaging;
 
 /**
- *
  * @author Beelzebu
  */
 public abstract class ProxyMessaging extends AbstractMessagingService {

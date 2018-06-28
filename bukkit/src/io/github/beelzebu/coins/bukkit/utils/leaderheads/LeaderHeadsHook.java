@@ -25,7 +25,6 @@ import me.robin.leaderheads.objects.BoardType;
 import org.bukkit.entity.Player;
 
 /**
- *
  * @author Beelzebu
  */
 public class LeaderHeadsHook extends OnlineDataCollector {

@@ -18,11 +18,11 @@
  */
 package io.github.beelzebu.coins.api.storage.sql;
 
+import io.github.beelzebu.coins.api.CoinsAPI;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- *
  * @author Beelzebu
  */
 @AllArgsConstructor
@@ -35,7 +35,7 @@ public enum SQLQuery {
      * <li> UUID for the query. </li>
      * </ul>
      */
-    SEARCH_USER_ONLINE("SELECT * FROM `" + SQLDatabase.DATA_TABLE + "` WHERE uuid = ?;"),
+    SEARCH_USER_ONLINE("SELECT * FROM `" + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getDataTable() + "` WHERE uuid = ?;"),
     /**
      * Select an user by his name.
      * <br></br>
@@ -44,7 +44,7 @@ public enum SQLQuery {
      * <li> Username for the query</li>
      * </ul>
      */
-    SEARCH_USER_OFFLINE("SELECT * FROM `" + SQLDatabase.DATA_TABLE + "` WHERE nick = ?;"),
+    SEARCH_USER_OFFLINE("SELECT * FROM `" + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getDataTable() + "` WHERE nick = ?;"),
     /**
      * Update coins for a user by his uuid:
      * <br></br>
@@ -54,7 +54,7 @@ public enum SQLQuery {
      * <li> UUID for the query</li>
      * </ul>
      */
-    UPDATE_COINS_ONLINE("UPDATE `" + SQLDatabase.DATA_TABLE + "` SET balance = ? WHERE uuid = ?;"),
+    UPDATE_COINS_ONLINE("UPDATE `" + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getDataTable() + "` SET balance = ? WHERE uuid = ?;"),
     /**
      * Update data for a user when the server is in online mode.
      * <br></br>
@@ -65,7 +65,7 @@ public enum SQLQuery {
      * <li> UUID for the query</li>
      * </ul>
      */
-    UPDATE_USER_ONLINE("UPDATE `" + SQLDatabase.DATA_TABLE + "` SET nick = ?, lastlogin = ? WHERE uuid = ?;"),
+    UPDATE_USER_ONLINE("UPDATE `" + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getDataTable() + "` SET nick = ?, lastlogin = ? WHERE uuid = ?;"),
     /**
      * Update data for a user when the server is in online mode.
      * <br></br>
@@ -76,7 +76,7 @@ public enum SQLQuery {
      * <li> Username for the query</li>
      * </ul>
      */
-    UPDATE_USER_OFFLINE("UPDATE `" + SQLDatabase.DATA_TABLE + "` SET uuid = ?, lastlogin = ? WHERE nick = ?;"),
+    UPDATE_USER_OFFLINE("UPDATE `" + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getDataTable() + "` SET uuid = ?, lastlogin = ? WHERE nick = ?;"),
     /**
      * Create a user in the database.
      * <br></br>
@@ -88,7 +88,7 @@ public enum SQLQuery {
      * <li> Current time in millis</li>
      * </ul>
      */
-    CREATE_USER("INSERT INTO `" + SQLDatabase.DATA_TABLE + "` (`id`, `uuid`, `nick`, `balance`, `lastlogin`) VALUES (null, ?, ?, ?, ?);"),
+    CREATE_USER("INSERT INTO `" + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getDataTable() + "` (`id`, `uuid`, `nick`, `balance`, `lastlogin`) VALUES (null, ?, ?, ?, ?);"),
     /**
      * Create a multiplier in the database.
      * <br></br>
@@ -103,9 +103,9 @@ public enum SQLQuery {
      * <li> If the multiplier is enabled</li>
      * </ul>
      *
-     * @see io.github.beelzebu.coins.MultiplierType
+     * @see io.github.beelzebu.coins.api.MultiplierType
      */
-    CREATE_MULTIPLIER("INSERT INTO `" + SQLDatabase.MULTIPLIERS_TABLE + "` (`id`, `server`, `uuid`, `type`, `amount`, `minutes`, `endtime`, `queue`, `enabled`) VALUES (null, ?, ?, ?, ?, ?, ?, ?, ?);"),
+    CREATE_MULTIPLIER("INSERT INTO `" + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getMultipliersTable() + "` (`id`, `server`, `uuid`, `type`, `amount`, `minutes`, `endtime`, `queue`, `enabled`) VALUES (null, ?, ?, ?, ?, ?, ?, ?, ?);"),
     /**
      * Select top users from the database.
      * <br></br>
@@ -114,15 +114,15 @@ public enum SQLQuery {
      * <li> Limit of users to select</li>
      * </ul>
      */
-    SELECT_TOP("SELECT * FROM `" + SQLDatabase.DATA_TABLE + "` ORDER BY balance DESC LIMIT ?;"),
-    DELETE_MULTIPLIER("DELETE FROM " + SQLDatabase.MULTIPLIERS_TABLE + " WHERE id = ?;"),
-    ENABLE_MULTIPLIER("UPDATE " + SQLDatabase.MULTIPLIERS_TABLE + " SET enabled = true WHERE id = ;"),
-    SELECT_ALL_MULTIPLIERS("SELECT * FROM " + SQLDatabase.MULTIPLIERS_TABLE + " WHERE uuid = ? AND enabled = false AND queue = false;"),
-    SELECT_ALL_MULTIPLIERS_SERVER("SELECT * FROM " + SQLDatabase.MULTIPLIERS_TABLE + " WHERE uuid = ? AND enabled = false AND queue = false AND server = ?;"),
-    SELECT_MULTIPLIER("SELECT * FROM " + SQLDatabase.MULTIPLIERS_TABLE + " WHERE id = ?;"),
-    SELECT_ALL_PLAYERS("SELECT * FROM " + SQLDatabase.DATA_TABLE + ";");
+    SELECT_TOP("SELECT * FROM `" + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getDataTable() + "` ORDER BY balance DESC LIMIT ?;"),
+    DELETE_MULTIPLIER("DELETE FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getMultipliersTable() + " WHERE id = ?;"),
+    ENABLE_MULTIPLIER("UPDATE " + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getMultipliersTable() + " SET enabled = true WHERE id = ;"),
+    SELECT_ALL_MULTIPLIERS("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getMultipliersTable() + " WHERE uuid = ? AND enabled = false AND queue = false;"),
+    SELECT_ALL_MULTIPLIERS_SERVER("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getMultipliersTable() + " WHERE uuid = ? AND enabled = false AND queue = false AND server = ?;"),
+    SELECT_MULTIPLIER("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getMultipliersTable() + " WHERE id = ?;"),
+    SELECT_ALL_PLAYERS("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getDataTable() + ";");
 
     @Getter
-    final String query;
+    private final String query;
 
 }

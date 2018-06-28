@@ -20,10 +20,12 @@ package io.github.beelzebu.coins.common.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.github.beelzebu.coins.api.CoinsAPI;
+import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.storage.sql.DatabaseUtils;
 import io.github.beelzebu.coins.api.storage.sql.SQLDatabase;
 import io.github.beelzebu.coins.api.storage.sql.SQLQuery;
-import io.github.beelzebu.coins.common.utils.FileManager;
+import io.github.beelzebu.coins.common.plugin.CommonCoinsPlugin;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -31,10 +33,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- *
  * @author Beelzebu
  */
 public final class SQLite extends SQLDatabase {
+
+    public SQLite(CoinsPlugin plugin) {
+        super(plugin);
+    }
 
     @Override
     public void setup() {
@@ -56,13 +61,13 @@ public final class SQLite extends SQLDatabase {
     protected void updateDatabase() {
         try (Connection c = ds.getConnection(); Statement st = c.createStatement()) {
             String data
-                    = "CREATE TABLE IF NOT EXISTS `" + DATA_TABLE + "`"
+                    = "CREATE TABLE IF NOT EXISTS `" + dataTable + "`"
                     + "(`id` INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + "`uuid` VARCHAR(50),"
                     + "`nick` VARCHAR(50),"
                     + "`balance` DOUBLE,"
                     + "`lastlogin` LONG);";
-            String multiplier = "CREATE TABLE IF NOT EXISTS `" + MULTIPLIERS_TABLE + "`"
+            String multiplier = "CREATE TABLE IF NOT EXISTS `" + multipliersTable + "`"
                     + "(`id` INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + "`server` VARCHAR(50),"
                     + "`uuid` VARCHAR(50),"
@@ -74,33 +79,33 @@ public final class SQLite extends SQLDatabase {
                     + "`enabled` BOOLEAN);";
             st.executeUpdate(data);
             st.executeUpdate(multiplier);
-            if (PLUGIN.getConfig().getInt("Database Version", 1) < 2) {
+            if (plugin.getConfig().getInt("Database Version", 1) < 2) {
                 try {
-                    if (DriverManager.getConnection("jdbc:sqlite:plugins/Coins/database.old.db").prepareStatement("SELECT * FROM Data;").executeQuery().next() && !c.prepareStatement("SELECT * FROM " + DATA_TABLE + ";").executeQuery().next()) {
-                        PLUGIN.log("Seems that your database is outdated, we'll try to update it...");
+                    if (DriverManager.getConnection("jdbc:sqlite:plugins/Coins/database.old.db").prepareStatement("SELECT * FROM Data;").executeQuery().next() && !c.prepareStatement("SELECT * FROM " + dataTable + ";").executeQuery().next()) {
+                        plugin.log("Seems that your database is outdated, we'll try to update it...");
                         ResultSet res = DriverManager.getConnection("jdbc:sqlite:plugins/Coins/database.old.db").prepareStatement("SELECT * FROM Data;").executeQuery();
                         while (res.next()) {
                             DatabaseUtils.prepareStatement(c, SQLQuery.CREATE_USER, res.getString("uuid"), res.getString("nick"), res.getDouble("balance"), res.getLong("lastlogin")).executeUpdate();
-                            PLUGIN.debug("Migrated the data for " + res.getString("nick") + " (" + res.getString("uuid") + ")");
+                            plugin.debug("Migrated the data for " + res.getString("nick") + " (" + res.getString("uuid") + ")");
                         }
-                        PLUGIN.log("Successfully upadated database to version 2");
+                        plugin.log("Successfully upadated database to version 2");
                     }
-                    new FileManager().updateDatabaseVersion(2);
+                    ((CommonCoinsPlugin) CoinsAPI.getPlugin()).getFileManager().updateDatabaseVersion(2);
                 } catch (SQLException ex) {
                     for (int i = 0; i < 5; i++) {
-                        PLUGIN.log("An error has ocurred migrating the data from the old database, check the logs ASAP!");
+                        plugin.log("An error has ocurred migrating the data from the old database, check the logs ASAP!");
                     }
-                    PLUGIN.debug(ex);
+                    plugin.debug(ex);
                     return;
                 }
             }
-            if (PLUGIN.getConfig().getBoolean("General.Purge.Enabled", true) && PLUGIN.getConfig().getInt("General.Purge.Days") > 0) {
-                st.executeUpdate("DELETE FROM " + DATA_TABLE + " WHERE lastlogin < " + (System.currentTimeMillis() - (PLUGIN.getConfig().getInt("General.Purge.Days", 60) * 86400000L)) + ";");
-                PLUGIN.debug("Inactive users were removed from the database.");
+            if (plugin.getConfig().getBoolean("General.Purge.Enabled", true) && plugin.getConfig().getInt("General.Purge.Days") > 0) {
+                st.executeUpdate("DELETE FROM " + dataTable + " WHERE lastlogin < " + (System.currentTimeMillis() - (plugin.getConfig().getInt("General.Purge.Days", 60) * 86400000L)) + ";");
+                plugin.debug("Inactive users were removed from the database.");
             }
         } catch (SQLException ex) {
-            PLUGIN.log("Something was wrong creating the default databases. Please check the debug log.");
-            PLUGIN.debug(ex);
+            plugin.log("Something was wrong creating the default databases. Please check the debug log.");
+            plugin.debug(ex);
         }
     }
 }

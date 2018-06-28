@@ -22,6 +22,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.Multiplier;
 import io.github.beelzebu.coins.api.cache.CacheProvider;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
@@ -39,19 +40,19 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- *
  * @author Beelzebu
  */
 public final class LocalCache implements CacheProvider {
 
-    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
+    private final CoinsPlugin plugin = CoinsAPI.getPlugin();
 
     private final LoadingCache<UUID, Double> players = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build((UUID key) -> {
         plugin.getDatabase().updatePlayer(key, plugin.getName(key, false).toLowerCase());
         return plugin.getDatabase().getCoins(key);
     });
+    private final List<Multiplier> queuedMultipliers = new ArrayList<>();
     private final LoadingCache<String, Multiplier> multipliers = Caffeine.newBuilder().build(k -> {
-        Iterator<Multiplier> it = LocalCache.this.queuedMultipliers.iterator();
+        Iterator<Multiplier> it = queuedMultipliers.iterator();
         if (it.hasNext()) {
             Multiplier multiplier = it.next();
             if (multiplier.getServer().equals(k)) {
@@ -63,7 +64,6 @@ public final class LocalCache implements CacheProvider {
         }
         return null;
     });
-    private final List<Multiplier> queuedMultipliers = new ArrayList<>();
 
     @Override
     public double getCoins(UUID uuid) {

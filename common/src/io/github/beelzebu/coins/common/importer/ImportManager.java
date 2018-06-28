@@ -29,12 +29,11 @@ import java.util.UUID;
 import lombok.Setter;
 
 /**
- *
  * @author Beelzebu
  */
 public class ImportManager {
 
-    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
+    private final CoinsPlugin plugin = CoinsAPI.getPlugin();
     @Setter
     private Importer importer = null;
 
@@ -59,7 +58,7 @@ public class ImportManager {
                     plugin.log("You can't migrate information from the same database that you are using.");
                     return;
                 }
-                SQLDatabase mysql = new MySQL();
+                SQLDatabase mysql = new MySQL(plugin);
                 mysql.setup();
                 Map<String, Double> mysqlData = mysql.getAllPlayers();
                 if (!mysqlData.isEmpty()) {
@@ -89,7 +88,7 @@ public class ImportManager {
                     plugin.log("You can't migrate information from the same database that you are using.");
                     return;
                 }
-                SQLDatabase sqlite = new SQLite();
+                SQLDatabase sqlite = new SQLite(plugin);
                 sqlite.setup();
                 Map<String, Double> sqliteData = sqlite.getAllPlayers();
                 if (!sqliteData.isEmpty()) {

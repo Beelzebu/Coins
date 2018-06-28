@@ -18,6 +18,7 @@
  */
 package io.github.beelzebu.coins.api.config;
 
+import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.messaging.MessagingService;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.storage.StorageType;
@@ -26,12 +27,11 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- *
  * @author Beelzebu
  */
 public abstract class CoinsConfig extends AbstractConfigFile {
 
-    protected final CoinsPlugin plugin = CoinsPlugin.getInstance();
+    protected final CoinsPlugin plugin = CoinsAPI.getPlugin();
 
     public CoinsConfig(File file) {
         super(file);

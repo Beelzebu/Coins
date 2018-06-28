@@ -20,17 +20,17 @@ package io.github.beelzebu.coins.bukkit.listener;
 
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.api.utils.StringUtils;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 /**
- *
  * @author Beelzebu
  */
 public class CommandListener implements Listener {
 
-    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
+    private final CoinsPlugin plugin = CoinsAPI.getPlugin();
 
     @EventHandler
     public void onCommandEvent(PlayerCommandPreprocessEvent e) {
@@ -42,7 +42,7 @@ public class CommandListener implements Listener {
             if (plugin.getConfig().getDouble("Command Cost." + msg) != 0) {
                 if (CoinsAPI.getCoins(e.getPlayer().getUniqueId()) < plugin.getConfig().getDouble("Command Cost." + msg)) {
                     e.setCancelled(true);
-                    e.getPlayer().sendMessage(plugin.rep(plugin.getMessages(e.getPlayer().spigot().getLocale()).getString("Errors.No Coins")));
+                    e.getPlayer().sendMessage(StringUtils.rep(plugin.getMessages(e.getPlayer().spigot().getLocale()).getString("Errors.No Coins")));
                 } else {
                     plugin.debug("Applied command cost for " + e.getPlayer().getName() + " in command: " + msg);
                     CoinsAPI.takeCoins(e.getPlayer().getName(), plugin.getConfig().getDouble("Command Cost." + msg));

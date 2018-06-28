@@ -23,7 +23,7 @@ import io.github.beelzebu.coins.api.config.AbstractConfigFile;
 import io.github.beelzebu.coins.api.config.CoinsConfig;
 import io.github.beelzebu.coins.api.messaging.ProxyMessaging;
 import io.github.beelzebu.coins.api.plugin.CoinsBootstrap;
-import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.api.utils.StringUtils;
 import io.github.beelzebu.coins.bukkit.command.CommandManager;
 import io.github.beelzebu.coins.bukkit.config.BukkitConfig;
 import io.github.beelzebu.coins.bukkit.config.BukkitMessages;
@@ -43,20 +43,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
 
     @Getter
-    private final CommandManager commandManager;
+    private final CommandManager commandManager = new CommandManager();
     @Getter
-    private final CoinsBukkitPlugin plugin;
+    private final CoinsBukkitPlugin plugin = new CoinsBukkitPlugin(this);
     private BukkitConfig config;
     private BukkitMessaging bmessaging;
 
-    public CoinsBukkitMain() {
-        plugin = new CoinsBukkitPlugin(this);
-        commandManager = new CommandManager();
-    }
-
     @Override
     public void onLoad() {
-        CoinsPlugin.setInstance(plugin);
         plugin.load();
         if (getConfig().getBoolean("Vault.Use", false)) {
             if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
@@ -116,7 +110,7 @@ public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
 
     @Override
     public void log(String msg) {
-        Bukkit.getConsoleSender().sendMessage(plugin.rep("&8[&cCoins&8] &7" + msg));
+        Bukkit.getConsoleSender().sendMessage(StringUtils.rep("&8[&cCoins&8] &7" + msg));
     }
 
     @Override

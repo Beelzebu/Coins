@@ -24,12 +24,11 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
 /**
- *
  * @author Beelzebu
  */
 public class MultipliersPlaceholders extends PlaceholderExpansion {
 
-    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
+    private final CoinsPlugin plugin = CoinsAPI.getPlugin();
 
     @Override
     public String getIdentifier() {

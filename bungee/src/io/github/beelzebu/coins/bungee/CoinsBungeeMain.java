@@ -28,12 +28,12 @@ import io.github.beelzebu.coins.api.executor.ExecutorManager;
 import io.github.beelzebu.coins.api.messaging.ProxyMessaging;
 import io.github.beelzebu.coins.api.plugin.CoinsBootstrap;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.api.utils.StringUtils;
 import io.github.beelzebu.coins.bungee.config.BungeeConfig;
 import io.github.beelzebu.coins.bungee.config.BungeeMessages;
 import io.github.beelzebu.coins.bungee.events.CoinsChangeEvent;
 import io.github.beelzebu.coins.bungee.events.MultiplierEnableEvent;
 import io.github.beelzebu.coins.bungee.messaging.BungeeMessaging;
-import io.github.beelzebu.coins.common.utils.FileManager;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -47,19 +47,13 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 
 /**
- *
  * @author Beelzebu
  */
 public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
 
-    private final CoinsBungeePlugin plugin;
+    private final CoinsBungeePlugin plugin = new CoinsBungeePlugin(this);
     private BungeeConfig config;
     private BungeeMessaging bmessaging;
-
-    public CoinsBungeeMain() {
-        plugin = new CoinsBungeePlugin(this);
-        CoinsPlugin.setInstance(plugin);
-    }
 
     @Override
     public void onLoad() {
@@ -68,7 +62,7 @@ public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
 
     @Override
     public void onEnable() {
-        config = new BungeeConfig(FileManager.CONFIG_FILE);
+        config = new BungeeConfig(new File(getDataFolder(), "config.yml"));
         plugin.enable();
     }
 
@@ -126,7 +120,7 @@ public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
 
     @Override
     public void log(String msg) {
-        ((CommandSender) getConsole()).sendMessage(TextComponent.fromLegacyText(plugin.rep("&8[&cCoins&8] &7" + msg)));
+        ((CommandSender) getConsole()).sendMessage(TextComponent.fromLegacyText(StringUtils.rep("&8[&cCoins&8] &7" + msg)));
     }
 
     @Override

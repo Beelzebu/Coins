@@ -26,7 +26,6 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
 /**
- *
  * @author Beelzebu
  */
 public class CoinsPlaceholders extends PlaceholderExpansion {

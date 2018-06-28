@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- *
  * @author Beelzebu
  */
 public interface StorageProvider {

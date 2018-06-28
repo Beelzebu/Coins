@@ -19,7 +19,6 @@
 package io.github.beelzebu.coins.api.storage;
 
 /**
- *
  * @author Beelzebu
  */
 public enum StorageType {

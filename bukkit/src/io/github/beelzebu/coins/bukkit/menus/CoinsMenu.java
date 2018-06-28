@@ -19,8 +19,10 @@
 package io.github.beelzebu.coins.bukkit.menus;
 
 import com.google.common.base.Preconditions;
+import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.config.AbstractConfigFile;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.api.utils.StringUtils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,17 +35,16 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- *
  * @author Beelzebu
  */
 public abstract class CoinsMenu {
 
-    protected final CoinsPlugin plugin = CoinsPlugin.getInstance();
+    private static final Map<UUID, CoinsMenu> inventoriesByUUID = new HashMap<>();
+    private static final Map<UUID, UUID> openInventories = new HashMap<>();
+    protected final CoinsPlugin plugin = CoinsAPI.getPlugin();
     protected final Inventory inv;
     protected final UUID uuid;
     private final Map<Integer, GUIAction> actions;
-    private static final Map<UUID, CoinsMenu> inventoriesByUUID = new HashMap<>();
-    private static final Map<UUID, UUID> openInventories = new HashMap<>();
 
     public CoinsMenu(int size, String name) {
         inv = Bukkit.createInventory(null, size, name);
@@ -52,13 +53,16 @@ public abstract class CoinsMenu {
         inventoriesByUUID.put(uuid, this);
     }
 
-    public final Inventory getInv() {
-        return inv;
+    public static Map<UUID, CoinsMenu> getInventoriesByUUID() {
+        return Collections.unmodifiableMap(inventoriesByUUID);
     }
 
-    public interface GUIAction {
+    public static Map<UUID, UUID> getOpenInventories() {
+        return openInventories;
+    }
 
-        void click(Player p);
+    public final Inventory getInv() {
+        return inv;
     }
 
     public final void setItem(int slot, ItemStack is, GUIAction action) {
@@ -78,14 +82,6 @@ public abstract class CoinsMenu {
             p.openInventory(inv);
             openInventories.put(p.getUniqueId(), uuid);
         });
-    }
-
-    public static Map<UUID, CoinsMenu> getInventoriesByUUID() {
-        return Collections.unmodifiableMap(inventoriesByUUID);
-    }
-
-    public static Map<UUID, UUID> getOpenInventories() {
-        return openInventories;
     }
 
     public final Map<Integer, GUIAction> getActions() {
@@ -116,10 +112,10 @@ public abstract class CoinsMenu {
         ItemMeta meta = is.getItemMeta();
         config.getConfigurationSection(path).forEach(data -> {
             if (data.equals("Name")) {
-                meta.setDisplayName(plugin.rep(config.getString(path + ".Name")));
+                meta.setDisplayName(StringUtils.rep(config.getString(path + ".Name")));
             }
             if (data.equals("Lore")) {
-                meta.setLore(plugin.rep(config.getStringList(path + ".Lore")));
+                meta.setLore(StringUtils.rep(config.getStringList(path + ".Lore")));
             }
             if (data.equals("Amount")) {
                 is.setAmount(config.getInt(path + ".Amount"));
@@ -133,4 +129,9 @@ public abstract class CoinsMenu {
     }
 
     protected abstract void setItems();
+
+    public interface GUIAction {
+
+        void click(Player p);
+    }
 }

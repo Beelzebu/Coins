@@ -27,7 +27,6 @@ import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
 
 /**
- *
  * @author Beelzebu
  */
 public class BungeeConfig extends CoinsConfig {

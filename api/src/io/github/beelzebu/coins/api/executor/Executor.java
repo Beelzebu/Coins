@@ -20,13 +20,12 @@ package io.github.beelzebu.coins.api.executor;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.api.CoinsAPI;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- *
  * @author Beelzebu
  */
 @Getter
@@ -38,15 +37,15 @@ public class Executor {
     private final double cost;
     private final List<String> commands;
 
-    public JsonObject toJson() {
-        return toJson(this);
-    }
-
     public static JsonObject toJson(Executor ex) {
-        return CoinsPlugin.getInstance().getGson().toJsonTree(ex).getAsJsonObject();
+        return CoinsAPI.getPlugin().getGson().toJsonTree(ex).getAsJsonObject();
     }
 
     public static Executor fromJson(String json) throws JsonParseException {
-        return CoinsPlugin.getInstance().getGson().fromJson(json, Executor.class);
+        return CoinsAPI.getPlugin().getGson().fromJson(json, Executor.class);
+    }
+
+    public JsonObject toJson() {
+        return toJson(this);
     }
 }

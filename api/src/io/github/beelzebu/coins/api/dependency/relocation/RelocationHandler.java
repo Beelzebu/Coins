@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- *
  * @author Beelzebu
  */
 public class RelocationHandler {

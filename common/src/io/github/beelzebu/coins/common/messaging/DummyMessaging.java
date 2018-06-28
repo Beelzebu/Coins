@@ -18,12 +18,11 @@
  */
 package io.github.beelzebu.coins.common.messaging;
 
-import io.github.beelzebu.coins.api.messaging.MessagingService;
-import io.github.beelzebu.coins.api.messaging.AbstractMessagingService;
 import com.google.gson.JsonObject;
+import io.github.beelzebu.coins.api.messaging.AbstractMessagingService;
+import io.github.beelzebu.coins.api.messaging.MessagingService;
 
 /**
- *
  * @author Beelzebu
  */
 public class DummyMessaging extends AbstractMessagingService {

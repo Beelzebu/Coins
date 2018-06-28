@@ -18,8 +18,10 @@
  */
 package io.github.beelzebu.coins.bukkit.menus;
 
+import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.Multiplier;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.api.utils.StringUtils;
 import io.github.beelzebu.coins.bukkit.utils.ItemBuilder;
 import java.util.List;
 import lombok.AccessLevel;
@@ -31,13 +33,12 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 
 /**
- *
  * @author Beelzebu
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PaginatedMenu {
 
-    private static final CoinsPlugin PLUGIN = CoinsPlugin.getInstance();
+    private static final CoinsPlugin PLUGIN = CoinsAPI.getPlugin();
 
     public static CoinsMenu createPaginatedGUI(Player player, List<Multiplier> contents) {
         return nextPage(player, contents, contents.size() > 53, 0);
@@ -53,7 +54,7 @@ public class PaginatedMenu {
     }
 
     private static ItemStack getItemFor(Player player, Multiplier multiplier) {
-        return ItemBuilder.newBuilder(Material.POTION).setDisplayName(PLUGIN.rep(PLUGIN.getString("Multipliers.Menu.Multipliers.Name", player.spigot().getLocale()), multiplier)).setLore(PLUGIN.rep(PLUGIN.getMessages(player.spigot().getLocale()).getStringList("Multipliers.Menu.Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build();
+        return ItemBuilder.newBuilder(Material.POTION).setDisplayName(StringUtils.rep(PLUGIN.getString("Multipliers.Menu.Multipliers.Name", player.spigot().getLocale()), multiplier)).setLore(StringUtils.rep(PLUGIN.getMessages(player.spigot().getLocale()).getStringList("Multipliers.Menu.Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build();
     }
 
     private static void handleSound(Player p) {
@@ -93,7 +94,7 @@ public class PaginatedMenu {
             }
             setItem(49, getItem(plugin.getConfig(), "Multipliers.GUI.Close"), p -> handleSound(p));
             if (contents.size() <= 0) {
-                setItem(22, ItemBuilder.newBuilder(Material.POTION).setDisplayName(plugin.getString("Multipliers.Menu.No Multipliers.Name", player.spigot().getLocale())).setLore(plugin.rep(plugin.getMessages(player.spigot().getLocale()).getStringList("Multipliers.Menu.No Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build());
+                setItem(22, ItemBuilder.newBuilder(Material.POTION).setDisplayName(plugin.getString("Multipliers.Menu.No Multipliers.Name", player.spigot().getLocale())).setLore(StringUtils.rep(plugin.getMessages(player.spigot().getLocale()).getStringList("Multipliers.Menu.No Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build());
             } else {
                 for (int i = 0; i <= (contents.size() - 1 < 35 ? contents.size() - 1 : 35); i++) {
                     Multiplier multiplier = contents.get(start + i);

@@ -22,6 +22,7 @@ import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.executor.Executor;
 import io.github.beelzebu.coins.api.executor.ExecutorManager;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.api.utils.StringUtils;
 import io.github.beelzebu.coins.bukkit.utils.LocationUtils;
 import java.io.File;
 import java.io.IOException;
@@ -38,12 +39,11 @@ import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 /**
- *
  * @author Beelzebu
  */
 public class SignListener implements Listener {
 
-    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
+    private final CoinsPlugin plugin = CoinsAPI.getPlugin();
     private final File signsFile;
     private final FileConfiguration signs;
 
@@ -63,7 +63,7 @@ public class SignListener implements Listener {
     @EventHandler
     public void onSignPlace(SignChangeEvent e) {
         if (e.getPlayer().hasPermission("coins.admin") && e.getLine(0).equalsIgnoreCase("[coins]") && !e.getLine(1).isEmpty()) {
-            e.setLine(0, plugin.rep(plugin.getConfig().getString("General.Executor Sign.1")));
+            e.setLine(0, StringUtils.rep(plugin.getConfig().getString("General.Executor Sign.1")));
             Executor ex = ExecutorManager.getExecutor(e.getLine(1));
             if (ex != null) {
                 int id = 0;
@@ -84,7 +84,7 @@ public class SignListener implements Listener {
                 } catch (IOException ex1) {
                     plugin.log("An error has ocurred while saving the signs.yml file");
                     plugin.log(ex1.getMessage());
-                    e.getPlayer().sendMessage(plugin.rep("%prefix% An error has ocurred while saving the signs.yml file, please check the console"));
+                    e.getPlayer().sendMessage(StringUtils.rep("%prefix% An error has ocurred while saving the signs.yml file, please check the console"));
                 }
             } else {
                 e.setLine(1, "Unknown Executor");
@@ -98,7 +98,7 @@ public class SignListener implements Listener {
     public void onSignBreak(BlockBreakEvent e) {
         if (e.getBlock().getState() instanceof Sign) {
             Sign sign = (Sign) e.getBlock().getState();
-            if ((sign.getLine(0).equals(plugin.rep(plugin.getConfig().getString("General.Executor Sign.1"))) || sign.getLine(0).equals(plugin.rep(plugin.getConfig().getString("General.Executor Sign.1")))) && !e.getPlayer().hasPermission("coins.admin")) {
+            if ((sign.getLine(0).equals(StringUtils.rep(plugin.getConfig().getString("General.Executor Sign.1"))) || sign.getLine(0).equals(StringUtils.rep(plugin.getConfig().getString("General.Executor Sign.1")))) && !e.getPlayer().hasPermission("coins.admin")) {
                 e.setCancelled(true);
             } else {
                 for (String id : signs.getKeys(false)) {
@@ -106,12 +106,12 @@ public class SignListener implements Listener {
                         signs.set(id, null);
                         try {
                             signs.save(signsFile);
-                            e.getPlayer().sendMessage(plugin.rep("%prefix% &7You removed a executor sign."));
+                            e.getPlayer().sendMessage(StringUtils.rep("%prefix% &7You removed a executor sign."));
                         } catch (IOException ex) {
                             e.setCancelled(true);
                             plugin.log("An error has ocurred while saving the signs.yml file");
                             plugin.log(ex.getMessage());
-                            e.getPlayer().sendMessage(plugin.rep("%prefix% An error has ocurred while saving the signs.yml file, please check the console"));
+                            e.getPlayer().sendMessage(StringUtils.rep("%prefix% An error has ocurred while saving the signs.yml file, please check the console"));
                         }
                         break;
                     }
@@ -142,11 +142,11 @@ public class SignListener implements Listener {
                             plugin.getBootstrap().runSync(() -> {
                                 String command;
                                 for (String str : ex.getCommands()) {
-                                    command = plugin.rep(str).replaceAll("%player%", p.getName());
+                                    command = StringUtils.rep(str).replaceAll("%player%", p.getName());
                                     if (command.startsWith("message:")) {
-                                        p.sendMessage(plugin.rep(command.replaceFirst("message:", "")));
+                                        p.sendMessage(StringUtils.rep(command.replaceFirst("message:", "")));
                                     } else if (command.startsWith("broadcast:")) {
-                                        Bukkit.getServer().broadcastMessage(plugin.rep(command.replaceFirst("broadcast:", "")));
+                                        Bukkit.getServer().broadcastMessage(StringUtils.rep(command.replaceFirst("broadcast:", "")));
                                     } else {
                                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
                                     }
@@ -161,6 +161,6 @@ public class SignListener implements Listener {
     }
 
     private String rep(String str, Executor ex) {
-        return plugin.rep(str).replaceAll("%executor_displayname%", ex.getDisplayname()).replaceAll("%executor_cost%", String.valueOf(ex.getCost()));
+        return StringUtils.rep(str).replaceAll("%executor_displayname%", ex.getDisplayname()).replaceAll("%executor_cost%", String.valueOf(ex.getCost()));
     }
 }

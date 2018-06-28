@@ -23,7 +23,6 @@ import java.util.UUID;
 import net.md_5.bungee.api.plugin.Event;
 
 /**
- *
  * @author Beelzebu
  */
 public class MultiplierEnableEvent extends Event {

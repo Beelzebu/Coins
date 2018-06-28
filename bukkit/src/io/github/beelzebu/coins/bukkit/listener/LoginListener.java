@@ -28,13 +28,12 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
- *
  * @author Beelzebu
  */
 public class LoginListener implements Listener {
 
-    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
     private static boolean first = true;
+    private final CoinsPlugin plugin = CoinsAPI.getPlugin();
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent e) {

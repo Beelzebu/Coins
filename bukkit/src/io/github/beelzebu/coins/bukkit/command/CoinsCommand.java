@@ -25,6 +25,7 @@ import io.github.beelzebu.coins.api.executor.Executor;
 import io.github.beelzebu.coins.api.executor.ExecutorManager;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.storage.StorageType;
+import io.github.beelzebu.coins.api.utils.StringUtils;
 import io.github.beelzebu.coins.bukkit.CoinsBukkitMain;
 import io.github.beelzebu.coins.bukkit.menus.PaginatedMenu;
 import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
@@ -38,12 +39,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 /**
- *
  * @author Beelzebu
  */
 public class CoinsCommand extends Command {
 
-    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
+    private final CoinsPlugin plugin = CoinsAPI.getPlugin();
     private final DecimalFormat df = new DecimalFormat("#.#");
 
     public CoinsCommand(String command) {
@@ -100,9 +100,9 @@ public class CoinsCommand extends Command {
     }
 
     private void help(CommandSender sender, String[] args, String lang) {
-        plugin.getMessages(lang).getStringList("Help.User").forEach(line -> sender.sendMessage(plugin.rep(line)));
+        plugin.getMessages(lang).getStringList("Help.User").forEach(line -> sender.sendMessage(StringUtils.rep(line)));
         if (sender.hasPermission(getPermission() + ".admin.help")) {
-            plugin.getMessages(lang).getStringList("Help.Admin").forEach(line -> sender.sendMessage(plugin.rep(line)));
+            plugin.getMessages(lang).getStringList("Help.Admin").forEach(line -> sender.sendMessage(StringUtils.rep(line)));
         }
     }
 
@@ -172,7 +172,7 @@ public class CoinsCommand extends Command {
         boolean multiply = false;
         if (args.length == 3 || args.length == 4) {
             double coins = Double.parseDouble(args[2]);
-            if (plugin.getBootstrap().isOnline(plugin.getUUID(args[1], false)) && args.length == 4 && args[3].equalsIgnoreCase("true")) {
+            if (plugin.getBootstrap().isOnline(plugin.getUniqueId(args[1], false)) && args.length == 4 && args[3].equalsIgnoreCase("true")) {
                 multiply = true;
                 Player target = Bukkit.getPlayer(args[1]);
                 int amount = CoinsAPI.getMultiplier() != null ? CoinsAPI.getMultiplier().getBaseData().getAmount() : 1;
@@ -180,8 +180,8 @@ public class CoinsCommand extends Command {
                     multiplier = plugin.getString("Multipliers.Format", target.spigot().getLocale()).replaceAll("%multiplier%", df.format(amount)).replaceAll("%enabler%", CoinsAPI.getMultiplier().getEnablerName());
                 }
             }
-            if (plugin.getBootstrap().isOnline(plugin.getUUID(args[1], false))) {
-                Player target = Bukkit.getPlayer(plugin.getUUID(args[1], false));
+            if (plugin.getBootstrap().isOnline(plugin.getUniqueId(args[1], false))) {
+                Player target = Bukkit.getPlayer(plugin.getUniqueId(args[1], false));
                 if (!plugin.getString("Coins.Give target", target.spigot().getLocale()).equals("")) {
                     target.sendMessage(plugin.getString("Coins.Give target", target.spigot().getLocale()).replaceAll("%coins%", df.format(coins)).replaceAll("%multiplier_format%", multiplier));
                 }
@@ -311,7 +311,7 @@ public class CoinsCommand extends Command {
         if (sender.hasPermission(getPermission() + ".admin.multiplier") && args.length >= 2) {
             if (args[1].equalsIgnoreCase("help")) {
                 plugin.getMessages(lang).getStringList("Help.Multiplier").forEach(line -> {
-                    sender.sendMessage(plugin.rep(line));
+                    sender.sendMessage(StringUtils.rep(line));
                 });
             }
             if (args[1].equalsIgnoreCase("create")) {
@@ -321,7 +321,7 @@ public class CoinsCommand extends Command {
                     }
                     int multiplier = Integer.parseInt(args[3]);
                     int minutes = Integer.parseInt(args[4]);
-                    plugin.getDatabase().createMultiplier(plugin.getUUID(args[2], false), multiplier, minutes, ((args.length == 6 && !args[5].equals("")) ? args[5] : plugin.getConfig().getServerName()), MultiplierType.SERVER);
+                    plugin.getDatabase().createMultiplier(plugin.getUniqueId(args[2], false), multiplier, minutes, ((args.length == 6 && !args[5].equals("")) ? args[5] : plugin.getConfig().getServerName()), MultiplierType.SERVER);
                     sender.sendMessage(plugin.getString("Multipliers.Created", lang).replaceAll("%player%", args[2]));
                 } else {
                     sender.sendMessage(plugin.getString("Help.Multiplier Create", lang));
@@ -361,11 +361,11 @@ public class CoinsCommand extends Command {
                     plugin.getBootstrap().runSync(() -> { // who knows ¯\_(ツ)_/¯
                         String command;
                         for (String str : ex.getCommands()) {
-                            command = plugin.rep(str).replaceAll("%player%", sender.getName());
+                            command = StringUtils.rep(str).replaceAll("%player%", sender.getName());
                             if (command.startsWith("message:")) {
-                                sender.sendMessage(plugin.rep(command.replaceFirst("message:", "")));
+                                sender.sendMessage(StringUtils.rep(command.replaceFirst("message:", "")));
                             } else if (command.startsWith("broadcast:")) {
-                                Bukkit.getServer().broadcastMessage(plugin.rep(command.replaceFirst("broadcast:", "")));
+                                Bukkit.getServer().broadcastMessage(StringUtils.rep(command.replaceFirst("broadcast:", "")));
                             } else {
                                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
                             }
@@ -380,7 +380,7 @@ public class CoinsCommand extends Command {
 
     private void importer(CommandSender sender, String[] args, String lang) {
         if (sender instanceof Player) {
-            sender.sendMessage(plugin.rep("%prefix% &cThis command must be executed from the console."));
+            sender.sendMessage(StringUtils.rep("%prefix% &cThis command must be executed from the console."));
             return;
         }
         if (args.length == 2) {
@@ -394,18 +394,18 @@ public class CoinsCommand extends Command {
                 }
             }
             if (!worked) {
-                sender.sendMessage(plugin.rep("%prefix% You specified an invalid plugin to import, possible values:"));
+                sender.sendMessage(StringUtils.rep("%prefix% You specified an invalid plugin to import, possible values:"));
                 sender.sendMessage(Arrays.toString(ImportManager.PluginToImport.values()));
             }
         } else {
-            sender.sendMessage(plugin.rep("%prefix% Command usage: /coins import <plugin>"));
-            sender.sendMessage(plugin.rep("&cCurrently supported plugins to import: " + Arrays.toString(ImportManager.PluginToImport.values())));
+            sender.sendMessage(StringUtils.rep("%prefix% Command usage: /coins import <plugin>"));
+            sender.sendMessage(StringUtils.rep("&cCurrently supported plugins to import: " + Arrays.toString(ImportManager.PluginToImport.values())));
         }
     }
 
     private void importDB(CommandSender sender, String[] args, String lang) {
         if (sender instanceof Player) {
-            sender.sendMessage(plugin.rep("%prefix% &cThis command must be executed from the console."));
+            sender.sendMessage(StringUtils.rep("%prefix% &cThis command must be executed from the console."));
             return;
         }
         if (args.length == 2) {
@@ -419,12 +419,12 @@ public class CoinsCommand extends Command {
                 }
             }
             if (!worked) {
-                sender.sendMessage(plugin.rep("%prefix% You specified an invalid storage to import, possible values:"));
+                sender.sendMessage(StringUtils.rep("%prefix% You specified an invalid storage to import, possible values:"));
                 sender.sendMessage(Arrays.toString(StorageType.values()));
             }
         } else {
-            sender.sendMessage(plugin.rep("%prefix% Command usage: /coins importdb <storage>"));
-            sender.sendMessage(plugin.rep("&cCurrently supported storages to import: " + Arrays.toString(StorageType.values())));
+            sender.sendMessage(StringUtils.rep("%prefix% Command usage: /coins importdb <storage>"));
+            sender.sendMessage(StringUtils.rep("&cCurrently supported storages to import: " + Arrays.toString(StorageType.values())));
         }
     }
 
@@ -444,21 +444,21 @@ public class CoinsCommand extends Command {
                 plugin.getMessagingService().getMultipliers();
                 plugin.getMessagingService().getExecutors();
             }
-            sender.sendMessage(plugin.rep("%prefix% Reloaded config and all loaded messages files. If you want reload the command, you need to restart the server."));
+            sender.sendMessage(StringUtils.rep("%prefix% Reloaded config and all loaded messages files. If you want reload the command, you need to restart the server."));
         }
     }
 
     private void about(CommandSender sender) {
-        sender.sendMessage(plugin.rep("%prefix% Coins plugin by Beelzebu, plugin info:"));
+        sender.sendMessage(StringUtils.rep("%prefix% Coins plugin by Beelzebu, plugin info:"));
         sender.sendMessage("");
-        sender.sendMessage(plugin.rep(" &cVersion:&7 " + plugin.getBootstrap().getVersion()));
-        sender.sendMessage(plugin.rep(" &cExecutors:&7 " + ExecutorManager.getExecutors().size()));
-        sender.sendMessage(plugin.rep(" &cStorage Type:&7 " + plugin.getStorageType()));
-        sender.sendMessage(plugin.rep(" &cMultipliers in cache:&7 " + plugin.getCache().getMultipliers()));
-        sender.sendMessage(plugin.rep(" &cPlayers in cache:&7 " + plugin.getCache().getPlayers().size()));
+        sender.sendMessage(StringUtils.rep(" &cVersion:&7 " + plugin.getBootstrap().getVersion()));
+        sender.sendMessage(StringUtils.rep(" &cExecutors:&7 " + ExecutorManager.getExecutors().size()));
+        sender.sendMessage(StringUtils.rep(" &cStorage Type:&7 " + plugin.getStorageType()));
+        sender.sendMessage(StringUtils.rep(" &cMultipliers in cache:&7 " + plugin.getCache().getMultipliers()));
+        sender.sendMessage(StringUtils.rep(" &cPlayers in cache:&7 " + plugin.getCache().getPlayers().size()));
         sender.sendMessage("");
-        sender.sendMessage(plugin.rep(" &cSource Code:&7 https://github.com/Beelzebu/Coins"));
-        sender.sendMessage(plugin.rep(" &cLicense:&7 GNU AGPL v3 (&ahttp://www.gnu.org/licenses/#AGPL&7)"));
+        sender.sendMessage(StringUtils.rep(" &cSource Code:&7 https://github.com/Beelzebu/Coins"));
+        sender.sendMessage(StringUtils.rep(" &cLicense:&7 GNU AGPL v3 (&ahttp://www.gnu.org/licenses/#AGPL&7)"));
         sender.sendMessage("");
     }
 

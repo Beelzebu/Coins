@@ -18,35 +18,33 @@
  */
 package io.github.beelzebu.coins.bukkit.utils;
 
+import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.api.utils.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- *
  * @author Beelzebu
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class ItemBuilder {
 
-    private final CoinsPlugin plugin = CoinsPlugin.getInstance();
+    private final CoinsPlugin plugin = CoinsAPI.getPlugin();
     private final Material material;
     private short data = 0;
     private String displayName;
     private List<String> lore;
-    private Map<Enchantment, Integer> enchants;
     private Set<ItemFlag> flags;
     private ItemMeta meta;
 
@@ -78,7 +76,7 @@ public class ItemBuilder {
         if (lore == null) {
             lore = new ArrayList<>();
         }
-        this.lore.add(line);
+        lore.add(line);
         return this;
     }
 
@@ -86,7 +84,7 @@ public class ItemBuilder {
         if (lore == null) {
             lore = new ArrayList<>();
         }
-        this.lore.add(index, line);
+        lore.add(index, line);
         return this;
     }
 
@@ -107,13 +105,10 @@ public class ItemBuilder {
         ItemStack item = new ItemStack(material, 1, data);
         meta = item.getItemMeta();
         if (displayName != null) {
-            meta.setDisplayName(plugin.rep(displayName));
+            meta.setDisplayName(StringUtils.rep(displayName));
         }
         if (lore != null) {
-            meta.setLore(plugin.rep(lore));
-        }
-        if (enchants != null) {
-            enchants.forEach((enchant, level) -> meta.addEnchant(enchant, level, true));
+            meta.setLore(StringUtils.rep(lore));
         }
         if (flags != null) {
             meta.addItemFlags(flags.toArray(new ItemFlag[]{}));

@@ -24,24 +24,23 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
- *
  * @author Beelzebu
  */
 public class MultiplierEnableEvent extends Event {
 
-    private final Multiplier data;
     private final static HandlerList handlers = new HandlerList();
+    private final Multiplier data;
 
     public MultiplierEnableEvent(Multiplier multiplier) {
         data = multiplier;
     }
 
-    @Override
-    public HandlerList getHandlers() {
+    public static HandlerList getHandlerList() {
         return handlers;
     }
 
-    public static HandlerList getHandlerList() {
+    @Override
+    public HandlerList getHandlers() {
         return handlers;
     }
 

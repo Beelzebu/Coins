@@ -19,7 +19,6 @@
 package io.github.beelzebu.coins.api;
 
 /**
- *
  * @author Beelzebu
  */
 public enum MultiplierType {

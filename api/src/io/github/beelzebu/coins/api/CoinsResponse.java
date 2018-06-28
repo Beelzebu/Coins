@@ -22,20 +22,19 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- *
  * @author Beelzebu
  */
 @AllArgsConstructor
 public class CoinsResponse {
+
+    @Getter
+    private final CoinsResponseType response;
+    @Getter
+    private final String message;
 
     public enum CoinsResponseType {
         SUCCESS,
         FAILED,
         NOT_IMPLEMENTED;
     }
-
-    @Getter
-    private final CoinsResponseType response;
-    @Getter
-    private final String message;
 }

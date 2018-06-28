@@ -19,12 +19,11 @@
 package io.github.beelzebu.coins.bungee;
 
 import io.github.beelzebu.coins.api.cache.CacheProvider;
-import io.github.beelzebu.coins.common.cache.CacheManager;
+import io.github.beelzebu.coins.common.cache.LocalCache;
 import io.github.beelzebu.coins.common.plugin.CommonCoinsPlugin;
 import net.md_5.bungee.api.ProxyServer;
 
 /**
- *
  * @author Beelzebu
  */
 public class CoinsBungeePlugin extends CommonCoinsPlugin {
@@ -41,6 +40,6 @@ public class CoinsBungeePlugin extends CommonCoinsPlugin {
 
     @Override
     public CacheProvider getCache() {
-        return new CacheManager();
+        return new LocalCache();
     }
 }
