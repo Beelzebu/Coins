@@ -16,18 +16,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.beelzebu.coins.common.database;
+package io.github.beelzebu.coins.common.storage;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.api.storage.StorageType;
 import io.github.beelzebu.coins.api.storage.sql.DatabaseUtils;
 import io.github.beelzebu.coins.api.storage.sql.SQLDatabase;
 import io.github.beelzebu.coins.api.storage.sql.SQLQuery;
 import io.github.beelzebu.coins.common.plugin.CommonCoinsPlugin;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -35,22 +35,38 @@ import java.sql.Statement;
 /**
  * @author Beelzebu
  */
-public final class SQLite extends SQLDatabase {
+public final class MySQL extends SQLDatabase {
 
-    public SQLite(CoinsPlugin plugin) {
+    public MySQL(CoinsPlugin plugin) {
         super(plugin);
     }
 
     @Override
     public void setup() {
         HikariConfig hc = new HikariConfig();
-        hc.setPoolName("Coins SQLite Connection Pool");
-        hc.setDriverClassName("org.sqlite.JDBC");
-        hc.setJdbcUrl("jdbc:sqlite:plugins/Coins/database.db");
-        hc.setConnectionTestQuery("SELECT 1");
-        hc.setMinimumIdle(1);
+        hc.setPoolName("Coins MySQL Connection Pool");
+        String urlprefix = "jdbc:mysql://";
+        if (plugin.getStorageType().equals(StorageType.MARIADB)) {
+            urlprefix = "jdbc:mariadb://";
+            hc.setDriverClassName("org.mariadb.jdbc.Driver");
+        } else {
+            hc.setDriverClassName("com.mysql.jdbc.Driver");
+        }
+        hc.addDataSourceProperty("cachePrepStmts", "true");
+        hc.addDataSourceProperty("useServerPrepStmts", "true");
+        hc.addDataSourceProperty("prepStmtCacheSize", "250");
+        hc.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        hc.addDataSourceProperty("encoding", "UTF-8");
+        hc.addDataSourceProperty("characterEncoding", "utf8");
+        hc.addDataSourceProperty("useUnicode", "true");
+        hc.setJdbcUrl(urlprefix + plugin.getConfig().getString("MySQL.Host") + ":" + plugin.getConfig().get("MySQL.Port", "3306") + "/" + plugin.getConfig().getString("MySQL.Database") + "?autoReconnect=true&useSSL=false");
+        hc.setUsername(plugin.getConfig().getString("MySQL.User"));
+        hc.setPassword(plugin.getConfig().getString("MySQL.Password"));
+        hc.setMaxLifetime(60000);
+        hc.setMinimumIdle(4);
+        hc.setIdleTimeout(30000);
         hc.setConnectionTimeout(10000);
-        hc.setMaximumPoolSize(4);
+        hc.setMaximumPoolSize(plugin.getConfig().getInt("MySQL.Connection Pool", 8));
         hc.setLeakDetectionThreshold(30000);
         hc.validate();
         ds = new HikariDataSource(hc);
@@ -62,28 +78,30 @@ public final class SQLite extends SQLDatabase {
         try (Connection c = ds.getConnection(); Statement st = c.createStatement()) {
             String data
                     = "CREATE TABLE IF NOT EXISTS `" + dataTable + "`"
-                    + "(`id` INTEGER PRIMARY KEY AUTOINCREMENT,"
-                    + "`uuid` VARCHAR(50),"
-                    + "`nick` VARCHAR(50),"
-                    + "`balance` DOUBLE,"
-                    + "`lastlogin` LONG);";
+                    + "(`id` INT NOT NULL AUTO_INCREMENT,"
+                    + "`uuid` VARCHAR(50) NOT NULL,"
+                    + "`nick` VARCHAR(50) NOT NULL,"
+                    + "`balance` DOUBLE NOT NULL,"
+                    + "`lastlogin` LONG NOT NULL,"
+                    + "PRIMARY KEY (`id`));";
             String multiplier = "CREATE TABLE IF NOT EXISTS `" + multipliersTable + "`"
-                    + "(`id` INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + "(`id` INT NOT NULL AUTO_INCREMENT,"
                     + "`server` VARCHAR(50),"
-                    + "`uuid` VARCHAR(50),"
-                    + "`type` VARCHAR(20),"
-                    + "`amount` INTEGER,"
-                    + "`minutes` INTEGER,"
+                    + "`uuid` VARCHAR(50) NOT NULL,"
+                    + "`type` VARCHAR(20) NOT NULL,"
+                    + "`amount` INT,"
+                    + "`minutes` INT,"
                     + "`endtime` LONG,"
                     + "`queue` INT,"
-                    + "`enabled` BOOLEAN);";
+                    + "`enabled` BOOLEAN,"
+                    + "PRIMARY KEY (`id`));";
             st.executeUpdate(data);
             st.executeUpdate(multiplier);
             if (plugin.getConfig().getInt("Database Version", 1) < 2) {
                 try {
-                    if (DriverManager.getConnection("jdbc:sqlite:plugins/Coins/database.old.db").prepareStatement("SELECT * FROM Data;").executeQuery().next() && !c.prepareStatement("SELECT * FROM " + dataTable + ";").executeQuery().next()) {
+                    if (c.prepareStatement("SELECT * FROM " + prefix + "Data;").executeQuery().next() && !c.prepareStatement("SELECT * FROM " + dataTable + ";").executeQuery().next()) {
                         plugin.log("Seems that your database is outdated, we'll try to update it...");
-                        ResultSet res = DriverManager.getConnection("jdbc:sqlite:plugins/Coins/database.old.db").prepareStatement("SELECT * FROM Data;").executeQuery();
+                        ResultSet res = c.prepareStatement("SELECT * FROM " + prefix + "Data;").executeQuery();
                         while (res.next()) {
                             DatabaseUtils.prepareStatement(c, SQLQuery.CREATE_USER, res.getString("uuid"), res.getString("nick"), res.getDouble("balance"), res.getLong("lastlogin")).executeUpdate();
                             plugin.debug("Migrated the data for " + res.getString("nick") + " (" + res.getString("uuid") + ")");
