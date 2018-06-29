@@ -93,7 +93,7 @@ public final class SQLite extends SQLDatabase {
                     ((CommonCoinsPlugin) CoinsAPI.getPlugin()).getFileManager().updateDatabaseVersion(2);
                 } catch (SQLException ex) {
                     for (int i = 0; i < 5; i++) {
-                        plugin.log("An error has ocurred migrating the data from the old database, check the logs ASAP!");
+                        plugin.log("An error has occurred migrating the data from the old database, check the logs ASAP!");
                     }
                     plugin.debug(ex);
                     return;

@@ -22,6 +22,7 @@ import io.github.beelzebu.coins.api.config.CoinsConfig;
 import io.github.beelzebu.coins.bukkit.CoinsBukkitMain;
 import io.github.beelzebu.coins.bukkit.CoinsBukkitPlugin;
 import java.io.File;
+import java.util.Collections;
 import java.util.Set;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -30,12 +31,10 @@ import org.bukkit.configuration.file.FileConfiguration;
  */
 public class BukkitConfig extends CoinsConfig {
 
-    private final CoinsBukkitPlugin plugin;
     private final FileConfiguration config;
 
     public BukkitConfig(File file, CoinsBukkitPlugin plugin) {
-        super(file);
-        this.plugin = plugin;
+        super(file, plugin);
         config = ((CoinsBukkitMain) plugin.getBootstrap()).getConfig();
         reload();
     }
@@ -47,7 +46,7 @@ public class BukkitConfig extends CoinsConfig {
 
     @Override
     public Set<String> getConfigurationSection(String path) {
-        return config.getConfigurationSection(path) != null ? config.getConfigurationSection(path).getKeys(false) : null;
+        return config.getConfigurationSection(path) != null ? config.getConfigurationSection(path).getKeys(false) : Collections.emptySet();
     }
 
     @Override

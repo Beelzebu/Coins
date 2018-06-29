@@ -73,7 +73,7 @@ public class ImportManager {
                             CoinsAPI.createPlayer(nick, uuid, balance);
                             plugin.debug("Migrated the data for: " + uuid);
                         } catch (Exception ex) {
-                            plugin.log("An error has ocurred while migrating the data for: " + nick + " (" + uuid + ")");
+                            plugin.log("An error has occurred while migrating the data for: " + nick + " (" + uuid + ")");
                             plugin.debug(ex);
                         }
                     });
@@ -103,7 +103,7 @@ public class ImportManager {
                             CoinsAPI.createPlayer(nick, uuid, balance);
                             plugin.debug("Migrated the data for: " + uuid);
                         } catch (Exception ex) {
-                            plugin.log("An error has ocurred while migrating the data for: " + nick + " (" + uuid + ")");
+                            plugin.log("An error has occurred while migrating the data for: " + nick + " (" + uuid + ")");
                             plugin.debug(ex);
                         }
                     });

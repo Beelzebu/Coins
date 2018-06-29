@@ -343,7 +343,7 @@ public class FileManager {
 
     public void copyFiles() {
         if (!logsFolder.exists()) {
-            if (plugin.getConfig().isDebugFile()) {
+            if (plugin.getConfig() == null || plugin.getConfig().isDebugFile()) {
                 logsFolder.mkdirs();
             } else {
                 logsFolder.delete();
@@ -358,7 +358,7 @@ public class FileManager {
                 try {
                     Files.move(f.toPath(), new File(messagesFolder, f.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
                 } catch (IOException ex) {
-                    Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while moving messages files to the new messages folder.", ex);
+                    Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has occurred while moving messages files to the new messages folder.", ex);
                 }
             }
         }
@@ -369,14 +369,14 @@ public class FileManager {
                     Files.copy(plugin.getBootstrap().getResource(messagesFiles.get(filename).getName()), messageFile.toPath());
                 }
             } catch (IOException ex) {
-                Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while saving messages files.", ex);
+                Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has occurred while saving messages files.", ex);
             }
         });
         if (!configFile.exists()) {
             try {
                 Files.copy(plugin.getBootstrap().getResource(configFile.getName()), configFile.toPath());
             } catch (IOException ex) {
-                Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has ocurred while saving the default config.", ex);
+                Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has occurred while saving the default config.", ex);
             }
         }
     }
@@ -399,7 +399,7 @@ public class FileManager {
                 gzipFile(Files.newInputStream(latestLog.toPath()), logsFolder + File.pathSeparator + sdf.format(latestLog.lastModified()) + "-" + filen + ".log.gz");
                 latestLog.delete();
             } catch (IOException ex) {
-                Logger.getLogger(FileManager.class.getName()).log(Level.WARNING, "An unexpected error has ocurred while trying to compress the latest log file. {0}", ex.getMessage());
+                Logger.getLogger(FileManager.class.getName()).log(Level.WARNING, "An unexpected error has occurred while trying to compress the latest log file. {0}", ex.getMessage());
             }
         }
         File[] fList = logsFolder.listFiles();

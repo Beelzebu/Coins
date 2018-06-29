@@ -61,7 +61,7 @@ public class BukkitImporter implements Importer {
                     }
                     plugin.debug("Migrated the data for: " + uuid);
                 } catch (Exception ex) {
-                    plugin.log("An error has ocurred while migrating the data for: " + uuid);
+                    plugin.log("An error has occurred while migrating the data for: " + uuid);
                     plugin.debug(ex);
                 }
             });
@@ -83,12 +83,12 @@ public class BukkitImporter implements Importer {
                             }
                             plugin.debug("Migrated the data for: " + uuid);
                         } catch (SQLException ex) {
-                            plugin.log("An error has ocurred while migrating the data for: " + res.getString("playername"));
+                            plugin.log("An error has occurred while migrating the data for: " + res.getString("playername"));
                             plugin.debug(ex);
                         }
                     }
                 } catch (SQLException ex) {
-                    plugin.log("An error has ocurred while migrating the data from PlayerPoints");
+                    plugin.log("An error has occurred while migrating the data from PlayerPoints");
                     plugin.debug(ex);
                 }
             } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
@@ -112,12 +112,12 @@ public class BukkitImporter implements Importer {
                             }
                             plugin.debug("Migrated the data for: " + uuid);
                         } catch (SQLException ex) {
-                            plugin.log("An error has ocurred while migrating the data for: " + res.getString("playername"));
+                            plugin.log("An error has occurred while migrating the data for: " + res.getString("playername"));
                             plugin.debug(ex);
                         }
                     }
                 } catch (SQLException ex) {
-                    plugin.log("An error has ocurred while migrating the data from PlayerPoints");
+                    plugin.log("An error has occurred while migrating the data from PlayerPoints");
                     plugin.debug(ex);
                 }
             } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {

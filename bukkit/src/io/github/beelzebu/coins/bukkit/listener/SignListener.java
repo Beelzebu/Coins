@@ -43,17 +43,18 @@ import org.bukkit.event.player.PlayerInteractEvent;
  */
 public class SignListener implements Listener {
 
-    private final CoinsPlugin plugin = CoinsAPI.getPlugin();
+    private final CoinsPlugin plugin;
     private final File signsFile;
     private final FileConfiguration signs;
 
-    public SignListener() {
+    public SignListener(CoinsPlugin plugin) {
+        this.plugin = plugin;
         signsFile = new File(plugin.getBootstrap().getDataFolder(), "signs.yml");
         if (!signsFile.exists()) {
             try {
                 signsFile.createNewFile();
             } catch (IOException ex) {
-                plugin.log("An error has ocurred while creating the signs.yml file.");
+                plugin.log("An error has occurred while creating the signs.yml file.");
                 plugin.log(ex.getMessage());
             }
         }
@@ -82,9 +83,9 @@ public class SignListener implements Listener {
                         e.setLine(3, rep(plugin.getConfig().getString("General.Executor Sign.4"), ex));
                     }
                 } catch (IOException ex1) {
-                    plugin.log("An error has ocurred while saving the signs.yml file");
+                    plugin.log("An error has occurred while saving the signs.yml file");
                     plugin.log(ex1.getMessage());
-                    e.getPlayer().sendMessage(StringUtils.rep("%prefix% An error has ocurred while saving the signs.yml file, please check the console"));
+                    e.getPlayer().sendMessage(StringUtils.rep("%prefix% An error has occurred while saving the signs.yml file, please check the console"));
                 }
             } else {
                 e.setLine(1, "Unknown Executor");
@@ -109,9 +110,9 @@ public class SignListener implements Listener {
                             e.getPlayer().sendMessage(StringUtils.rep("%prefix% &7You removed a executor sign."));
                         } catch (IOException ex) {
                             e.setCancelled(true);
-                            plugin.log("An error has ocurred while saving the signs.yml file");
+                            plugin.log("An error has occurred while saving the signs.yml file");
                             plugin.log(ex.getMessage());
-                            e.getPlayer().sendMessage(StringUtils.rep("%prefix% An error has ocurred while saving the signs.yml file, please check the console"));
+                            e.getPlayer().sendMessage(StringUtils.rep("%prefix% An error has occurred while saving the signs.yml file, please check the console"));
                         }
                         break;
                     }

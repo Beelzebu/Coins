@@ -153,7 +153,7 @@ public final class Multiplier {
             PLUGIN.getCache().deleteMultiplier(this);
             PLUGIN.getMessagingService().disableMultiplier(this);
         } catch (Exception ex) {
-            PLUGIN.log("An unexpected exception has ocurred while disabling a multiplier with the id: " + id);
+            PLUGIN.log("An unexpected exception has occurred while disabling a multiplier with the id: " + id);
             PLUGIN.log("Check plugin log files for more information, please report this bug on https://github.com/Beelzebu/Coins/issues");
             PLUGIN.debug(ex);
         }

@@ -16,19 +16,19 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.github.beelzebu</groupId>
-            <artifactId>coins-api</artifactId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>coins-common</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>io.github.beelzebu</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>coins-bukkit</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>io.github.beelzebu</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>coins-bungee</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>

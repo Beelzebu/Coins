@@ -21,6 +21,7 @@ package io.github.beelzebu.coins.bukkit.listener;
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.utils.StringUtils;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -28,9 +29,10 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 /**
  * @author Beelzebu
  */
+@RequiredArgsConstructor
 public class CommandListener implements Listener {
 
-    private final CoinsPlugin plugin = CoinsAPI.getPlugin();
+    private final CoinsPlugin plugin;
 
     @EventHandler
     public void onCommandEvent(PlayerCommandPreprocessEvent e) {

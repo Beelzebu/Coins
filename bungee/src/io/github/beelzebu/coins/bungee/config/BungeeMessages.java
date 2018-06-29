@@ -60,7 +60,7 @@ public class BungeeMessages extends AbstractConfigFile {
         try {
             messages = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
         } catch (IOException ex) {
-            Logger.getLogger(BungeeConfig.class.getName()).log(Level.WARNING, "An unexpected error has ocurred reloading the messages file. {0}", ex.getMessage());
+            Logger.getLogger(BungeeConfig.class.getName()).log(Level.WARNING, "An unexpected error has occurred reloading the messages file. {0}", ex.getMessage());
         }
         return messages;
     }

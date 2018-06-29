@@ -22,8 +22,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.github.beelzebu
-            </groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>coins-api</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
@@ -106,7 +105,18 @@
             <resource>
                 <targetPath>.</targetPath>
                 <filtering>true</filtering>
-                <directory>src/resources</directory>
+                <directory>src/resources/</directory>
+                <includes>
+                    <include>*.yml</include>
+                </includes>
+            </resource>
+            <resource>
+                <targetPath>.</targetPath>
+                <filtering>true</filtering>
+                <directory>src/resources/messages/</directory>
+                <includes>
+                    <include>messages*.yml</include>
+                </includes>
             </resource>
         </resources>
     </build>

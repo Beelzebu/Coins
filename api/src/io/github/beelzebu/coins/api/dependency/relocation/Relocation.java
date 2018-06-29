@@ -34,7 +34,7 @@ public final class Relocation {
     private final String relocatedPattern;
 
     public static Relocation of(String id, String pattern) {
-        return new Relocation(pattern.replace("{}", "."), "io.github.beelzebu.coins.lib." + id);
+        return new Relocation(pattern.replace("{}", "."), "io.github.beelzebu.lib." + id);
     }
 
     public static List<Relocation> allOf(Relocation... relocations) {

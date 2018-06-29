@@ -22,13 +22,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.github.beelzebu</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>coins-api</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>io.github.beelzebu</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>coins-common</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>

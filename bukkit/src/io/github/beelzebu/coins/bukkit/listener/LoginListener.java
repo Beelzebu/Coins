@@ -21,6 +21,7 @@ package io.github.beelzebu.coins.bukkit.listener;
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.messaging.MessagingService;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -30,10 +31,11 @@ import org.bukkit.event.player.PlayerQuitEvent;
 /**
  * @author Beelzebu
  */
+@RequiredArgsConstructor
 public class LoginListener implements Listener {
 
-    private static boolean first = true;
-    private final CoinsPlugin plugin = CoinsAPI.getPlugin();
+    private final CoinsPlugin plugin;
+    private boolean first = true;
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent e) {

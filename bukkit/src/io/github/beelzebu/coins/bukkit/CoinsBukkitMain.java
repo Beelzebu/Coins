@@ -30,7 +30,6 @@ import io.github.beelzebu.coins.bukkit.config.BukkitMessages;
 import io.github.beelzebu.coins.bukkit.events.CoinsChangeEvent;
 import io.github.beelzebu.coins.bukkit.events.MultiplierEnableEvent;
 import io.github.beelzebu.coins.bukkit.messaging.BukkitMessaging;
-import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,28 +42,22 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
 
     @Getter
-    private final CommandManager commandManager = new CommandManager();
+    private CommandManager commandManager;
     @Getter
-    private final CoinsBukkitPlugin plugin = new CoinsBukkitPlugin(this);
+    private CoinsBukkitPlugin plugin;
     private BukkitConfig config;
-    private BukkitMessaging bmessaging;
+    private BukkitMessaging messaging;
 
     @Override
     public void onLoad() {
+        plugin = new CoinsBukkitPlugin(this);
+        config = new BukkitConfig(null, plugin);
         plugin.load();
-        if (getConfig().getBoolean("Vault.Use", false)) {
-            if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
-                log("Vault found, hooking into it.");
-                new CoinsEconomy(this).setup();
-            } else {
-                plugin.log("You enabled Vault in the config, but the plugin Vault can't be found.");
-            }
-        }
     }
 
     @Override
     public void onEnable() {
-        config = new BukkitConfig(null, plugin);
+        commandManager = new CommandManager(plugin);
         plugin.enable();
     }
 
@@ -86,16 +79,6 @@ public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
     @Override
     public void runAsync(Runnable rn) {
         Bukkit.getScheduler().runTaskAsynchronously(this, rn);
-    }
-
-    @Override
-    public void runAsyncTimmer(Runnable rn, long timer) {
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, rn, 0, timer);
-    }
-
-    @Override
-    public void runTaskLater(Runnable rn, long ticks) {
-        Bukkit.getScheduler().runTaskLater(this, rn, ticks);
     }
 
     @Override
@@ -171,6 +154,6 @@ public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
 
     @Override
     public ProxyMessaging getBungeeMessaging() {
-        return bmessaging == null ? bmessaging = new BukkitMessaging() : bmessaging;
+        return messaging == null ? messaging = new BukkitMessaging() : messaging;
     }
 }

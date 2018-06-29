@@ -18,7 +18,6 @@
  */
 package io.github.beelzebu.coins.bukkit.command;
 
-import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -33,28 +32,32 @@ import org.bukkit.plugin.Plugin;
  */
 public class CommandManager {
 
-    private static final CoinsPlugin plugin = CoinsAPI.getPlugin();
+    private final CoinsPlugin plugin;
     private Command cmd;
 
-    private static void registerCommand(Plugin plugin, Command cmd) {
+    public CommandManager(CoinsPlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    private void registerCommand(Plugin plugin, Command cmd) {
         unregisterCommand(cmd);
         getCommandMap().register(plugin.getName(), cmd);
     }
 
-    private static void unregisterCommand(Command cmd) {
+    private void unregisterCommand(Command cmd) {
         Map<String, Command> knownCommands = getKnownCommandsMap();
         knownCommands.remove(cmd.getName());
         cmd.getAliases().forEach(knownCommands::remove);
     }
 
-    private static Object getPrivateField(Object object, String field) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+    private Object getPrivateField(Object object, String field) throws SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
         Class<?> clazz = object.getClass();
         Field objectField = clazz.getDeclaredField(field);
         objectField.setAccessible(true);
         return objectField.get(object);
     }
 
-    private static SimpleCommandMap getCommandMap() {
+    private SimpleCommandMap getCommandMap() {
         try {
             return (SimpleCommandMap) getPrivateField(Bukkit.getPluginManager(), "commandMap");
         } catch (IllegalAccessException | IllegalArgumentException | NoSuchFieldException | SecurityException ex) {
@@ -62,7 +65,7 @@ public class CommandManager {
         }
     }
 
-    private static Map<String, Command> getKnownCommandsMap() {
+    private Map<String, Command> getKnownCommandsMap() {
         try {
             return (Map<String, Command>) getPrivateField(getCommandMap(), "knownCommands");
         } catch (SecurityException | NoSuchFieldException | IllegalArgumentException | IllegalAccessException ex) {
@@ -71,7 +74,11 @@ public class CommandManager {
     }
 
     public void registerCommand() {
-        cmd = new CoinsCommand(plugin.getConfig().getString("General.Command.Name", "coins")).setDescription(plugin.getConfig().getString("General.Command.Description", "Base command of the Coins plugin")).setAliases(plugin.getConfig().getStringList("General.Command.Aliases")).setUsage(plugin.getConfig().getString("General.Command.Usage", "/coins"));
+        cmd = new CoinsCommand(plugin
+                .getConfig().getString("General.Command.Name", "coins"))
+                .setDescription(plugin.getConfig().getString("General.Command.Description", "Base command of the Coins plugin"))
+                .setAliases(plugin.getConfig().getStringList("General.Command.Aliases"))
+                .setUsage(plugin.getConfig().getString("General.Command.Usage", "/coins"));
         cmd.setPermission(plugin.getConfig().getString("General.Command.Permission", "coins.use"));
         registerCommand((Plugin) plugin.getBootstrap(), cmd);
     }

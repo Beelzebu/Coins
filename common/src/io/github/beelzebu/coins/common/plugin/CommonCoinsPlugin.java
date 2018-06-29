@@ -1,5 +1,5 @@
 /**
- * This file is part of coins-common
+ * This file is part of Coins
  *
  * Copyright (C) 2018 Beelzebu
  *
@@ -23,6 +23,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.Multiplier;
+import io.github.beelzebu.coins.api.cache.CacheProvider;
 import io.github.beelzebu.coins.api.config.AbstractConfigFile;
 import io.github.beelzebu.coins.api.config.CoinsConfig;
 import io.github.beelzebu.coins.api.dependency.Dependency;
@@ -36,12 +37,12 @@ import io.github.beelzebu.coins.api.plugin.CoinsBootstrap;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.storage.StorageProvider;
 import io.github.beelzebu.coins.api.storage.StorageType;
-import io.github.beelzebu.coins.api.storage.sql.SQLDatabase;
 import io.github.beelzebu.coins.api.utils.StringUtils;
-import io.github.beelzebu.coins.common.storage.MySQL;
-import io.github.beelzebu.coins.common.storage.SQLite;
+import io.github.beelzebu.coins.common.cache.LocalCache;
 import io.github.beelzebu.coins.common.messaging.DummyMessaging;
 import io.github.beelzebu.coins.common.messaging.RedisMessaging;
+import io.github.beelzebu.coins.common.storage.MySQL;
+import io.github.beelzebu.coins.common.storage.SQLite;
 import io.github.beelzebu.coins.common.utils.FileManager;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -80,7 +81,8 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
     protected AbstractMessagingService messagingService;
     protected boolean logEnabled = false;
     protected StorageType storageType;
-    private SQLDatabase db;
+    private StorageProvider database;
+    private CacheProvider cache;
 
     public CommonCoinsPlugin(CoinsBootstrap bootstrap) {
         this.bootstrap = bootstrap;
@@ -89,7 +91,6 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
 
     @Override
     public void load() {
-        CoinsAPI.setPlugin(this);
         EnumSet<Dependency> dependencies = EnumSet.of(Dependency.CAFFEINE);
         log("Loading main dependencies: " + dependencies);
         getDependencyManager().loadDependencies(dependencies);
@@ -103,7 +104,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         storageType = getConfig().getStorageType();
         getDependencyManager().loadStorageDependencies(storageType);
         if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingService.BUNGEECORD.toString())) {
-            messagingService = getBootstrap().getBungeeMessaging();
+            messagingService = bootstrap.getBungeeMessaging();
         } else if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingService.REDIS.toString())) {
             messagingService = new RedisMessaging();
         } else {
@@ -131,7 +132,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         }
         if (storageType.equals(StorageType.SQLITE) && getConfig().getInt("Database Version", 1) < 2) {
             try {
-                Files.move(new File(getBootstrap().getDataFolder(), "database.db").toPath(), new File(getBootstrap().getDataFolder(), "database.old.db").toPath());
+                Files.move(new File(bootstrap.getDataFolder(), "database.db").toPath(), new File(bootstrap.getDataFolder(), "database.old.db").toPath());
             } catch (IOException ex) {
                 log("An error has occurred moving the old database");
                 debug(ex.getMessage());
@@ -143,6 +144,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         getMessagingService().getMultipliers();
         getMessagingService().getExecutors();
         loadExecutors();
+        CoinsAPI.setPlugin(this);
     }
 
     @Override
@@ -163,19 +165,24 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
     }
 
     @Override
-    public StorageProvider getDatabase() {
-        if (db != null) {
-            return db;
+    public final StorageProvider getDatabase() {
+        if (database != null) {
+            return database;
         }
         switch (storageType) {
             case MARIADB:
             case MYSQL:
-                return db = new MySQL(this);
+                return database = new MySQL(this);
             case SQLITE:
-                return db = new SQLite(this);
+                return database = new SQLite(this);
             default:
                 return null;
         }
+    }
+
+    @Override
+    public final CacheProvider getCache() {
+        return cache == null ? cache = new LocalCache() : cache;
     }
 
     @Override

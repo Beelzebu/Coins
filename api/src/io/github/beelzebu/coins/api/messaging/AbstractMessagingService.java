@@ -23,7 +23,6 @@ import com.google.gson.JsonObject;
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.Multiplier;
 import io.github.beelzebu.coins.api.MultiplierType;
-import io.github.beelzebu.coins.api.cache.CacheProvider;
 import io.github.beelzebu.coins.api.executor.Executor;
 import io.github.beelzebu.coins.api.executor.ExecutorManager;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
@@ -38,7 +37,6 @@ public abstract class AbstractMessagingService {
 
     protected final CoinsPlugin plugin = CoinsAPI.getPlugin();
     protected final LinkedHashSet<UUID> messages = new LinkedHashSet<>();
-    protected final CacheProvider cache = plugin.getCache();
 
     /**
      * Start this messaging service.
@@ -67,7 +65,7 @@ public abstract class AbstractMessagingService {
         Preconditions.checkNotNull(uuid, "UUID can't be null");
         if (coins > -1) {
             try {
-                cache.addPlayer(uuid, coins);
+                plugin.getCache().addPlayer(uuid, coins);
                 plugin.debug("Updated local data for: " + uuid);
                 if (!getType().equals(MessagingService.NONE)) {
                     JsonObject user = new JsonObject();
@@ -76,7 +74,7 @@ public abstract class AbstractMessagingService {
                     sendMessage(user, MessageType.USER_UPDATE);
                 }
             } catch (Exception ex) {
-                plugin.log("An unexpected error has ocurred while updating coins for: " + uuid);
+                plugin.log("An unexpected error has occurred while updating coins for: " + uuid);
                 plugin.log("Check plugin log files for more information, please report this bug on https://github.com/Beelzebu/Coins/issues");
                 plugin.debug(ex);
             }
@@ -91,10 +89,10 @@ public abstract class AbstractMessagingService {
     public final void updateMultiplier(Multiplier multiplier) {
         Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
         try {
-            cache.addMultiplier(multiplier.getServer(), multiplier);
+            plugin.getCache().addMultiplier(multiplier.getServer(), multiplier);
             sendMessage(objectWith("multiplier", multiplier.toJson()), MessageType.MULTIPLIER_UPDATE);
         } catch (Exception ex) {
-            plugin.log("An unexpected error has ocurred while publishing a multiplier over messaging service.");
+            plugin.log("An unexpected error has occurred while publishing a multiplier over messaging service.");
             plugin.log("Check plugin log files for more information, please report this bug on https://github.com/Beelzebu/Coins/issues");
             plugin.debug(ex);
         }
@@ -108,10 +106,10 @@ public abstract class AbstractMessagingService {
     public final void enableMultiplier(Multiplier multiplier) {
         Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
         try {
-            cache.addMultiplier(multiplier.getServer(), multiplier);
+            plugin.getCache().addMultiplier(multiplier.getServer(), multiplier);
             sendMessage(add(objectWith("multiplier", multiplier.toJson()), "enable", true), MessageType.MULTIPLIER_UPDATE);
         } catch (Exception ex) {
-            plugin.log("An unexpected error has ocurred while enabling a multiplier over messaging service.");
+            plugin.log("An unexpected error has occurred while enabling a multiplier over messaging service.");
             plugin.log("Check plugin log files for more information, please report this bug on https://github.com/Beelzebu/Coins/issues");
             plugin.debug(ex);
         }
@@ -125,10 +123,10 @@ public abstract class AbstractMessagingService {
     public final void disableMultiplier(Multiplier multiplier) {
         Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
         try {
-            cache.addMultiplier(multiplier.getServer(), multiplier);
+            plugin.getCache().addMultiplier(multiplier.getServer(), multiplier);
             sendMessage(objectWith("multiplier", multiplier.toJson()), MessageType.MULTIPLIER_DISABLE);
         } catch (Exception ex) {
-            plugin.log("An unexpected error has ocurred while disabling a multiplier over messaging service.");
+            plugin.log("An unexpected error has occurred while disabling a multiplier over messaging service.");
             plugin.log("Check plugin log files for more information, please report this bug on https://github.com/Beelzebu/Coins/issues");
             plugin.debug(ex);
         }
@@ -191,7 +189,7 @@ public abstract class AbstractMessagingService {
                 UUID uuid = UUID.fromString(message.get("uuid").getAsString());
                 double coins = message.get("coins").getAsDouble();
                 plugin.getDatabase().setCoins(uuid, coins);
-                cache.addPlayer(uuid, coins);
+                plugin.getCache().addPlayer(uuid, coins);
             }
             break;
             case GET_EXECUTORS: {
@@ -206,15 +204,15 @@ public abstract class AbstractMessagingService {
             case MULTIPLIER_UPDATE: {
                 if (message.has("multiplier")) {
                     Multiplier multiplier = Multiplier.fromJson(message.getAsJsonObject("multiplier").toString(), message.has("enable"));
-                    cache.addMultiplier(multiplier.getType().equals(MultiplierType.GLOBAL) ? plugin.getConfig().getServerName() : multiplier.getServer(), multiplier);
+                    plugin.getCache().addMultiplier(multiplier.getType().equals(MultiplierType.GLOBAL) ? plugin.getConfig().getServerName() : multiplier.getServer(), multiplier);
                 } else {
-                    cache.getMultipliers().forEach(multiplier -> sendMessage(objectWith("multiplier", multiplier.toJson()), type));
+                    plugin.getCache().getMultipliers().forEach(multiplier -> sendMessage(objectWith("multiplier", multiplier.toJson()), type));
                 }
             }
             break;
             case MULTIPLIER_DISABLE: {
                 Multiplier multiplier = Multiplier.fromJson(message.get("multiplier").getAsString(), false);
-                cache.deleteMultiplier(multiplier); // remove from the local cache and storage
+                plugin.getCache().deleteMultiplier(multiplier); // remove from the local cache and storage
                 if (plugin.getStorageType().equals(StorageType.SQLITE)) {// may be it wasn't removed from this database
                     plugin.getDatabase().deleteMultiplier(multiplier);
                 }

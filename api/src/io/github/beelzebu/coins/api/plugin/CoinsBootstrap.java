@@ -1,7 +1,7 @@
 /**
  * This file is part of Coins
  *
- * Copyright © 2018 Beelzebu
+ * Copyright (C) 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -34,65 +34,59 @@ import java.util.logging.Logger;
  */
 public interface CoinsBootstrap {
 
-    public CoinsPlugin getPlugin();
+    CoinsPlugin getPlugin();
 
-    public CoinsConfig getPluginConfig();
+    CoinsConfig getPluginConfig();
 
-    public AbstractConfigFile getFileAsConfig(File file);
+    AbstractConfigFile getFileAsConfig(File file);
 
-    public void runAsync(Runnable rn);
+    void runAsync(Runnable rn);
 
-    public void runAsyncTimmer(Runnable rn, long timmer);
+    void runSync(Runnable rn);
 
-    public void runTaskLater(Runnable rn, long ticks);
+    void executeCommand(String cmd);
 
-    public void runSync(Runnable rn);
+    void log(String msg);
 
-    public void executeCommand(String cmd);
+    Object getConsole();
 
-    public void log(String msg);
+    void sendMessage(Object CommandSender, String msg);
 
-    public Object getConsole();
+    File getDataFolder();
 
-    public void sendMessage(Object CommandSender, String msg);
+    InputStream getResource(String filename);
 
-    public File getDataFolder();
+    String getVersion();
 
-    public InputStream getResource(String filename);
+    boolean isOnline(UUID uuid);
 
-    public String getVersion();
-
-    public boolean isOnline(UUID uuid);
-
-    public boolean isOnline(String name);
+    boolean isOnline(String name);
 
     /**
      * Get the UUID of a online player by his name.
      *
      * @param name The name of the online player to get the uuid.
      * @return The uuid of the online player.
-     * @throws NullPointerException if the player with that name is offline.
      */
-    public UUID getUUID(String name) throws NullPointerException;
+    UUID getUUID(String name);
 
     /**
      * Get the name of a online player by his UUID.
      *
      * @param uuid The UUID of the online player to get the name.
      * @return The uuid of the online player.
-     * @throws NullPointerException if the player with that uuid is offline.
      */
-    public String getName(UUID uuid) throws NullPointerException;
+    String getName(UUID uuid);
 
-    public void callCoinsChangeEvent(UUID uuid, double oldCoins, double newCoins);
+    void callCoinsChangeEvent(UUID uuid, double oldCoins, double newCoins);
 
-    public void callMultiplierEnableEvent(Multiplier multiplier);
+    void callMultiplierEnableEvent(Multiplier multiplier);
 
-    public List<String> getPermissions(UUID uuid);
+    List<String> getPermissions(UUID uuid);
 
-    public Logger getLogger();
+    Logger getLogger();
 
-    public ProxyMessaging getBungeeMessaging();
+    ProxyMessaging getBungeeMessaging();
 
     default ReflectionClassLoader getReflectionClassLoader() {
         return new ReflectionClassLoader(getPlugin());

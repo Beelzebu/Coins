@@ -18,8 +18,6 @@
  */
 package io.github.beelzebu.coins.bungee;
 
-import io.github.beelzebu.coins.api.cache.CacheProvider;
-import io.github.beelzebu.coins.common.cache.LocalCache;
 import io.github.beelzebu.coins.common.plugin.CommonCoinsPlugin;
 import net.md_5.bungee.api.ProxyServer;
 
@@ -36,10 +34,5 @@ public class CoinsBungeePlugin extends CommonCoinsPlugin {
     public void disable() {
         super.disable();
         ProxyServer.getInstance().getScheduler().cancel((CoinsBungeeMain) getBootstrap());
-    }
-
-    @Override
-    public CacheProvider getCache() {
-        return new LocalCache();
     }
 }

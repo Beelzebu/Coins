@@ -18,13 +18,9 @@
  */
 package io.github.beelzebu.coins.bungee;
 
-import io.github.beelzebu.coins.api.CoinsAPI;
-import io.github.beelzebu.coins.api.CoinsResponse.CoinsResponseType;
 import io.github.beelzebu.coins.api.Multiplier;
 import io.github.beelzebu.coins.api.config.AbstractConfigFile;
 import io.github.beelzebu.coins.api.config.CoinsConfig;
-import io.github.beelzebu.coins.api.executor.Executor;
-import io.github.beelzebu.coins.api.executor.ExecutorManager;
 import io.github.beelzebu.coins.api.messaging.ProxyMessaging;
 import io.github.beelzebu.coins.api.plugin.CoinsBootstrap;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
@@ -39,11 +35,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 
 /**
@@ -51,31 +45,25 @@ import net.md_5.bungee.api.plugin.Plugin;
  */
 public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
 
-    private final CoinsBungeePlugin plugin = new CoinsBungeePlugin(this);
+    private CoinsBungeePlugin plugin;
     private BungeeConfig config;
-    private BungeeMessaging bmessaging;
+    private BungeeMessaging messaging;
 
     @Override
     public void onLoad() {
+        plugin = new CoinsBungeePlugin(this);
         plugin.load();
     }
 
     @Override
     public void onEnable() {
-        config = new BungeeConfig(new File(getDataFolder(), "config.yml"));
+        config = new BungeeConfig(new File(getDataFolder(), "config.yml"), plugin);
         plugin.enable();
     }
 
     @Override
     public void onDisable() {
         plugin.disable();
-    }
-
-    public void execute(String executorid, ProxiedPlayer p) {
-        Executor executor = ExecutorManager.getExecutor(executorid);
-        if (CoinsAPI.getCoins(p.getUniqueId()) >= executor.getCost() && CoinsAPI.takeCoins(p.getUniqueId(), executor.getCost()).getResponse().equals(CoinsResponseType.SUCCESS)) {
-            ExecutorManager.getExecutor(executorid).getCommands().forEach(cmd -> ProxyServer.getInstance().getPluginManager().dispatchCommand(p, cmd));
-        }
     }
 
     @Override
@@ -96,16 +84,6 @@ public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
     @Override
     public void runAsync(Runnable rn) {
         ProxyServer.getInstance().getScheduler().runAsync(this, rn);
-    }
-
-    @Override
-    public void runAsyncTimmer(Runnable rn, long timer) {
-        ProxyServer.getInstance().getScheduler().schedule(this, rn, 0, timer / 20, TimeUnit.SECONDS);
-    }
-
-    @Override
-    public void runTaskLater(Runnable rn, long ticks) {
-        ProxyServer.getInstance().getScheduler().schedule(this, rn, ticks / 20, TimeUnit.SECONDS);
     }
 
     @Override
@@ -179,7 +157,7 @@ public class CoinsBungeeMain extends Plugin implements CoinsBootstrap {
 
     @Override
     public ProxyMessaging getBungeeMessaging() {
-        return bmessaging == null ? bmessaging = new BungeeMessaging() : bmessaging;
+        return messaging == null ? messaging = new BungeeMessaging() : messaging;
     }
 
     @Override

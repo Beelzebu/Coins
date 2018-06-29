@@ -124,12 +124,12 @@ public final class LocalCache implements CacheProvider {
                 try {
                     Files.write(plugin.getMultipliersFile().toPath(), Collections.singletonList(multiplier.toJson().toString() + "\n"), StandardOpenOption.APPEND);
                 } catch (IOException ex) {
-                    plugin.log("An error has ocurred saving a multiplier in the local storage.");
+                    plugin.log("An error has occurred saving a multiplier in the local storage.");
                     plugin.debug(ex.getMessage());
                 }
             }
         } catch (IOException ex) {
-            plugin.log("An error has ocurred saving a multiplier in the local storage.");
+            plugin.log("An error has occurred saving a multiplier in the local storage.");
             plugin.debug(ex.getMessage());
         }
     }
@@ -148,7 +148,7 @@ public final class LocalCache implements CacheProvider {
             }
             Files.write(plugin.getMultipliersFile().toPath(), Lists.newArrayList(lines));
         } catch (IOException ex) {
-            plugin.log("An error has ocurred removing a multiplier from local storage.");
+            plugin.log("An error has occurred removing a multiplier from local storage.");
             plugin.debug(ex.getMessage());
         }
         multipliers.invalidate(multiplier.getServer());

@@ -104,7 +104,7 @@ public abstract class SQLDatabase implements StorageProvider {
                 response = new CoinsResponse(CoinsResponse.CoinsResponseType.FAILED, "This user isn't in the database or the cache.");
             }
         } catch (SQLException ex) {
-            response = new CoinsResponse(CoinsResponse.CoinsResponseType.FAILED, "An exception as ocurred with the database.");
+            response = new CoinsResponse(CoinsResponse.CoinsResponseType.FAILED, "An exception as occurred with the database.");
             plugin.log("An internal error has occurred setting coins to the player: " + uuid);
             plugin.debug(ex);
         }
@@ -142,7 +142,7 @@ public abstract class SQLDatabase implements StorageProvider {
         try (Connection c = getConnection()) {
             createPlayer(c, uuid, name, balance);
         } catch (SQLException ex) {
-            plugin.log("An internal error has ocurred while creating the player " + name + " in the database, check the logs for more info.");
+            plugin.log("An internal error has occurred while creating the player " + name + " in the database, check the logs for more info.");
             plugin.debug(ex);
         }
 
@@ -175,7 +175,7 @@ public abstract class SQLDatabase implements StorageProvider {
         try (Connection c = getConnection()) {
             updatePlayer(c, uuid, name);
         } catch (SQLException ex) {
-            plugin.log("An internal error has ocurred updating the data for player '" + name + "', check the logs for more info.");
+            plugin.log("An internal error has occurred updating the data for player '" + name + "', check the logs for more info.");
             plugin.debug(ex);
         }
     }
@@ -199,7 +199,7 @@ public abstract class SQLDatabase implements StorageProvider {
                 c.close();
             }
         } catch (SQLException ex) {
-            plugin.log("An internal error has ocurred updating the data for player '" + name + "'");
+            plugin.log("An internal error has occurred updating the data for player '" + name + "'");
             plugin.debug(ex);
         }
     }
@@ -263,7 +263,7 @@ public abstract class SQLDatabase implements StorageProvider {
                 return MultiplierBuilder.newBuilder(res.getString("server"), MultiplierType.valueOf(res.getString("type")), new MultiplierData(UUID.fromString(res.getString("uuid")), plugin.getName(UUID.fromString(res.getString("uuid")), false), res.getInt("amount"), res.getInt("minutes"))).setID(res.getInt("id")).setEnabled(res.getBoolean("enabled")).setQueue(res.getBoolean("queue")).build(false);
             }
         } catch (SQLException ex) {
-            plugin.log("An error has ocurred getting the multiplier with the id #" + id + " from the database.");
+            plugin.log("An error has occurred getting the multiplier with the id #" + id + " from the database.");
             plugin.debug(ex);
         }
         return null;
@@ -277,7 +277,7 @@ public abstract class SQLDatabase implements StorageProvider {
                 multipliers.add(getMultiplier(res.getInt("id")));
             }
         } catch (SQLException ex) {
-            plugin.log("An error has ocurred getting all the multipliers for " + uuid);
+            plugin.log("An error has occurred getting all the multipliers for " + uuid);
             plugin.debug(ex);
         }
         return multipliers;
@@ -291,7 +291,7 @@ public abstract class SQLDatabase implements StorageProvider {
                 multipliers.add(getMultiplier(res.getInt("id")));
             }
         } catch (SQLException ex) {
-            plugin.log("An error has ocurred getting all the multipliers for " + uuid + " in server " + server);
+            plugin.log("An error has occurred getting all the multipliers for " + uuid + " in server " + server);
             plugin.debug(ex);
         }
         return multipliers;
@@ -302,7 +302,7 @@ public abstract class SQLDatabase implements StorageProvider {
         try (Connection c = getConnection()) {
             DatabaseUtils.prepareStatement(c, SQLQuery.ENABLE_MULTIPLIER, multiplier.getId()).executeUpdate();
         } catch (SQLException ex) {
-            plugin.log("An error has ocurred enabling the multiplier #" + multiplier.getId());
+            plugin.log("An error has occurred enabling the multiplier #" + multiplier.getId());
             plugin.debug(ex);
         }
     }
@@ -312,7 +312,7 @@ public abstract class SQLDatabase implements StorageProvider {
         try (Connection c = getConnection()) {
             DatabaseUtils.prepareStatement(c, SQLQuery.DELETE_MULTIPLIER, multiplier.getId()).executeUpdate();
         } catch (SQLException ex) {
-            plugin.log("An error has ocurred while deleting the multiplier #" + multiplier.getId());
+            plugin.log("An error has occurred while deleting the multiplier #" + multiplier.getId());
             plugin.debug(ex);
         }
     }
@@ -325,7 +325,7 @@ public abstract class SQLDatabase implements StorageProvider {
                 data.put(res.getString("nick") + "," + res.getString("uuid"), res.getDouble("balance"));
             }
         } catch (SQLException ex) {
-            plugin.log("An error has ocurred getting all the players from the database, check the logs for more info.");
+            plugin.log("An error has occurred getting all the players from the database, check the logs for more info.");
             plugin.debug(ex);
         }
         return data;

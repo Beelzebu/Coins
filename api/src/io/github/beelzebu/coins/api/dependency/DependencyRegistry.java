@@ -66,7 +66,6 @@ public final class DependencyRegistry {
             case ASM:
             case ASM_COMMONS:
             case JAR_RELOCATOR:
-            case SQLITE_DRIVER:
                 return false;
             default:
                 return true;
