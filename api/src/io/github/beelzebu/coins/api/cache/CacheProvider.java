@@ -19,7 +19,7 @@
 package io.github.beelzebu.coins.api.cache;
 
 import io.github.beelzebu.coins.api.Multiplier;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,19 +34,17 @@ public interface CacheProvider {
      * @param uuid
      * @return
      */
-    public double getCoins(UUID uuid);
+    Optional<Double> getCoins(UUID uuid);
 
-    public void addPlayer(UUID uuid, double coins);
+    void updatePlayer(UUID uuid, double coins);
 
-    public void removePlayer(UUID uuid);
+    void removePlayer(UUID uuid);
 
-    public Multiplier getMultiplier(String server);
+    Optional<Multiplier> getMultiplier(int id);
 
-    public default void addMultiplier(Multiplier multiplier) {
-        addMultiplier(multiplier.getServer(), multiplier);
-    }
+    Set<Multiplier> getMultipliers(String server);
 
-    public void addMultiplier(String server, Multiplier multiplier);
+    void addMultiplier(Multiplier multiplier);
 
     /**
      * Remove a multiplier from the cache and enabled multipliers storage
@@ -54,16 +52,16 @@ public interface CacheProvider {
      *
      * @param multiplier what multiplier we should delete.
      */
-    public void deleteMultiplier(Multiplier multiplier);
+    void deleteMultiplier(Multiplier multiplier);
 
-    public void updateMultiplier(Multiplier multiplier, boolean callenable);
+    void updateMultiplier(Multiplier multiplier, boolean callenable);
 
-    public void addQueueMultiplier(Multiplier multiplier);
+    void addQueueMultiplier(Multiplier multiplier);
 
-    public void removeQueueMultiplier(Multiplier multiplier);
+    void removeQueueMultiplier(Multiplier multiplier);
 
-    public Set<Multiplier> getMultipliers();
+    Set<Multiplier> getMultipliers();
 
-    public Map<UUID, Double> getPlayers();
+    Set<UUID> getPlayers();
 
 }

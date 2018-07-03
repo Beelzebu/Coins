@@ -35,7 +35,7 @@ import lombok.NoArgsConstructor;
 public final class CoinsAPI {
 
     private static final DecimalFormat DF = new DecimalFormat("#.#");
-    private static CoinsPlugin PLUGIN;
+    private static CoinsPlugin PLUGIN = null;
 
     /**
      * Get the coins of a Player by his name.
@@ -44,7 +44,7 @@ public final class CoinsAPI {
      * @return coins of the player
      */
     public static double getCoins(@Nonnull String name) {
-        return PLUGIN.getCache().getCoins(PLUGIN.getUniqueId(name, false));
+        return PLUGIN.getCache().getCoins(PLUGIN.getUniqueId(name, false)).orElse(PLUGIN.getDatabase().getCoins(PLUGIN.getUniqueId(name, false)));
     }
 
     /**
@@ -53,8 +53,8 @@ public final class CoinsAPI {
      * @param uuid Player to get the coins.
      * @return coins of the player
      */
-    public static double getCoins(UUID uuid) {
-        return PLUGIN.getCache().getCoins(uuid);
+    public static double getCoins(@Nonnull UUID uuid) {
+        return PLUGIN.getCache().getCoins(uuid).orElse(PLUGIN.getDatabase().getCoins(uuid));
     }
 
     /**
@@ -78,7 +78,7 @@ public final class CoinsAPI {
      * @param uuid Player to get the coins string.
      * @return Coins in decimal format "#.#"
      */
-    public static String getCoinsString(UUID uuid) {
+    public static String getCoinsString(@Nonnull UUID uuid) {
         double coins = getCoins(uuid);
         if (coins >= 0) {
             return DF.format(coins);
@@ -109,16 +109,14 @@ public final class CoinsAPI {
      * @param multiply Multiply coins if there are any active multipliers
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
-    public static CoinsResponse addCoins(UUID uuid, double coins, boolean multiply) {
+    public static CoinsResponse addCoins(@Nonnull UUID uuid, double coins, boolean multiply) {
         if (!isindb(uuid)) {
             return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the database.");
         }
         double finalCoins = coins;
-        if (multiply && getMultiplier() != null) {
-            if (getMultiplier().getType().equals(MultiplierType.PERSONAL) && !getMultiplier().getEnablerUUID().equals(uuid)) {
-            } else {
-                finalCoins *= getMultiplier().getAmount();
-            }
+        if (multiply && !getMultipliers().isEmpty()) {
+            int multiplyTotal = getMultipliers().stream().filter(multiplier -> multiplier.getType().equals(MultiplierType.PERSONAL) && uuid.equals(multiplier.getData().getEnablerUUID())).filter(Multiplier::isEnabled).mapToInt(multiplier -> multiplier.getData().getAmount()).sum();
+            finalCoins *= multiplyTotal >= 1 ? multiplyTotal : 1;
             for (String perm : PLUGIN.getBootstrap().getPermissions(uuid)) {
                 if (perm.startsWith("coins.multiplier.x")) {
                     try {
@@ -152,7 +150,7 @@ public final class CoinsAPI {
      * @param coins Coins to take from the player.
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
-    public static CoinsResponse takeCoins(UUID uuid, double coins) {
+    public static CoinsResponse takeCoins(@Nonnull UUID uuid, double coins) {
         return setCoins(uuid, getCoins(uuid) - coins);
     }
 
@@ -172,7 +170,7 @@ public final class CoinsAPI {
      * @param uuid The UUID of the player to reset the coins.
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
-    public static CoinsResponse resetCoins(UUID uuid) {
+    public static CoinsResponse resetCoins(@Nonnull UUID uuid) {
         return setCoins(uuid, PLUGIN.getConfig().getDouble("General.Starting Coins", 0));
     }
 
@@ -194,7 +192,7 @@ public final class CoinsAPI {
      * @param coins Coins to set.
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
-    public static CoinsResponse setCoins(UUID uuid, double coins) {
+    public static CoinsResponse setCoins(@Nonnull UUID uuid, double coins) {
         if (isindb(uuid)) {
             PLUGIN.getMessagingService().publishUser(uuid, coins);
             return PLUGIN.getDatabase().setCoins(uuid, coins);
@@ -211,13 +209,13 @@ public final class CoinsAPI {
      * @param amount The amount of coins to pay.
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
-    public static CoinsResponse payCoins(String from, String to, double amount) {
+    public static CoinsResponse payCoins(@Nonnull String from, @Nonnull String to, double amount) {
         if (getCoins(from) >= amount) {
             takeCoins(from, amount);
             addCoins(to, amount, false);
             return new CoinsResponse(CoinsResponseType.SUCCESS, "");
         }
-        return new CoinsResponse(CoinsResponseType.FAILED, "The user from doesn't have enought coins.");
+        return new CoinsResponse(CoinsResponseType.FAILED, "The user from doesn't have enough coins.");
     }
 
     /**
@@ -228,7 +226,7 @@ public final class CoinsAPI {
      * @param amount The amount of coins to pay.
      * @return {@link io.github.beelzebu.coins.api.CoinsResponse}
      */
-    public static CoinsResponse payCoins(UUID from, UUID to, double amount) {
+    public static CoinsResponse payCoins(@Nonnull UUID from, @Nonnull UUID to, double amount) {
         if (getCoins(from) >= amount) {
             takeCoins(from, amount);
             addCoins(to, amount, false);
@@ -258,7 +256,7 @@ public final class CoinsAPI {
      * @param uuid The uuid to look for in the database.
      * @return true if the player exists in the database or false if not.
      */
-    public static boolean isindb(UUID uuid) {
+    public static boolean isindb(@Nonnull UUID uuid) {
         if (getCoins(uuid) > -1) { // If the player is in the cache it should be in the database.
             return true;
         }
@@ -268,7 +266,7 @@ public final class CoinsAPI {
     /**
      * Get the top players in coins data.
      *
-     * @param top The lenght of the top list, for example 5 will get a max of 5
+     * @param top The length of the top list, for example 5 will get a max of 5
      *            users for the top.
      * @return The ordered top list of players and his balance.
      */
@@ -282,7 +280,7 @@ public final class CoinsAPI {
      * @param nick The name of the user that will be registered.
      * @param uuid The uuid of the user.
      */
-    public static void createPlayer(String nick, UUID uuid) {
+    public static void createPlayer(@Nonnull String nick, UUID uuid) {
         createPlayer(nick, uuid, PLUGIN.getConfig().getDouble("General.Starting Coins", 0));
     }
 
@@ -293,18 +291,27 @@ public final class CoinsAPI {
      * @param uuid    The uuid of the user.
      * @param balance The balance of the user.
      */
-    public static void createPlayer(String nick, UUID uuid, double balance) {
+    public static void createPlayer(@Nonnull String nick, UUID uuid, double balance) {
         PLUGIN.getDatabase().createPlayer(uuid, nick, balance);
     }
 
     /**
-     * Get the multiplier for this server from the cache if any exists.
+     * Get all enabled multipliers for this server.
+     *
+     * @return The active multiplier for this server.
+     */
+    public static Set<Multiplier> getMultipliers() {
+        return getMultipliers(PLUGIN.getConfig().getString("Multipliers.Server", "default"));
+    }
+
+    /**
+     * Get all enabled multipliers in this server.
      *
      * @param server The server to modify and get info about multiplier.
      * @return The active multiplier for the specified server can be null;
      */
-    public static Multiplier getMultiplier(String server) {
-        return PLUGIN.getCache().getMultiplier(server);
+    public static Set<Multiplier> getMultipliers(@Nonnull String server) {
+        return PLUGIN.getCache().getMultipliers(server);
     }
 
     /**
@@ -314,22 +321,7 @@ public final class CoinsAPI {
      * @return The multiplier from the Cache.
      */
     public static Multiplier getMultiplier(int id) {
-        Multiplier multiplier = PLUGIN.getDatabase().getMultiplier(id);
-        if (multiplier != null) {
-            PLUGIN.getCache().addMultiplier(multiplier.getServer(), multiplier);
-            return PLUGIN.getCache().getMultiplier(multiplier.getServer());
-        }
-        return null;
-    }
-
-    /**
-     * Get and modify information about the multiplier for the server specified
-     * in the plugin's config.
-     *
-     * @return The active multiplier for this server.
-     */
-    public static Multiplier getMultiplier() {
-        return getMultiplier(PLUGIN.getConfig().getString("Multipliers.Server", "default"));
+        return PLUGIN.getCache().getMultiplier(id).orElse(PLUGIN.getDatabase().getMultiplier(id));
     }
 
     /**
@@ -338,7 +330,7 @@ public final class CoinsAPI {
      * @param uuid player to get the multipliers from the database.
      * @return all multipliers that this player have.
      */
-    public static Set<Multiplier> getAllMultipliersFor(UUID uuid) {
+    public static Set<Multiplier> getAllMultipliersFor(@Nonnull UUID uuid) {
         return PLUGIN.getDatabase().getMultipliers(uuid);
     }
 
@@ -348,7 +340,7 @@ public final class CoinsAPI {
      * @param uuid player to get multipliers from the database.
      * @return multipliers of the player in this server.
      */
-    public static Set<Multiplier> getMultipliersFor(UUID uuid) {
+    public static Set<Multiplier> getMultipliersFor(@Nonnull UUID uuid) {
         return PLUGIN.getDatabase().getMultipliers(uuid, PLUGIN.getConfig().getServerName());
     }
 
@@ -359,7 +351,7 @@ public final class CoinsAPI {
      * @param server where we should get the multipliers.
      * @return multipliers of the player in that server.
      */
-    public static Set<Multiplier> getMultipliersFor(UUID uuid, String server) {
+    public static Set<Multiplier> getMultipliersFor(@Nonnull UUID uuid, @Nonnull String server) {
         return PLUGIN.getDatabase().getMultipliers(uuid, server);
     }
 
@@ -368,8 +360,10 @@ public final class CoinsAPI {
     }
 
     public static void setPlugin(@Nonnull CoinsPlugin plugin) {
-        if (PLUGIN != null) {
-            PLUGIN = plugin;
-        }
+        PLUGIN = plugin;
+    }
+
+    public static void deletePlugin() {
+        PLUGIN = null;
     }
 }

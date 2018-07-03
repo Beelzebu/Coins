@@ -41,11 +41,11 @@ Database Version: 2
 # connected servers of changes.
 #
 # Available options:
-#  -> bungeecord   uses the plugin messaging channels. You must enable bungeecord
-#                  in spigot.yml and install the plugin in BungeeCord to work.
-#  -> redis        uses redis pub sub to push changes. You redis server must be
-#                  configured below.
-#  -> none         nothing.
+#  -> bungeecord           uses the plugin messaging channels. You must enable bungeecord
+#                          in spigot.yml and install the plugin in BungeeCord to work.
+#  -> redis (recommended)  uses redis pub sub to push changes. You redis server must be
+#                          configured below.
+#  -> none                 nothing.
 Messaging Service: none
 
 # Here are the MySQL server settings.
@@ -71,7 +71,7 @@ Redis:
 
 # Plugin general configurations.
 General:
-  # Here you can define the starting coins of a player when is registred in the
+  # Here you can define the starting coins of a player when is registered in the
   # database or his coins are reset with "/coins reset"
   Starting Coins: 0
   # Here you can configure the base command of the plugin.
@@ -81,9 +81,9 @@ General:
     Usage: '/coins'
     Permission: 'coins.use'
     Aliases: [mycoins, coinsalias]
-  # Here you can configure the autopurge of inactive accounts.
+  # Here you can configure the auto purge of inactive accounts.
   Purge:
-    Enabled: true # If this is true the old accouns would be purged at server startup.
+    Enabled: true # If this is true the old accounts would be purged at server startup.
     Days: 60 # The time in days before deleting an account.
     Log Purge:
       Enabled: true
@@ -94,7 +94,7 @@ General:
   Logging:
     Debug:
       # Enable or disable debug mode, all errors and debug messages will be
-      # inmediatly logged to the console.
+      # immediately logged to the console.
       Enabled: false
       # If debug messages should be written to the file, if this option is disabled
       # logs folder inside Coins folder won't be generated and will be deleted if

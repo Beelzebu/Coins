@@ -74,11 +74,7 @@ public class CommandManager {
     }
 
     public void registerCommand() {
-        cmd = new CoinsCommand(plugin
-                .getConfig().getString("General.Command.Name", "coins"))
-                .setDescription(plugin.getConfig().getString("General.Command.Description", "Base command of the Coins plugin"))
-                .setAliases(plugin.getConfig().getStringList("General.Command.Aliases"))
-                .setUsage(plugin.getConfig().getString("General.Command.Usage", "/coins"));
+        cmd = new CoinsCommand(plugin.getConfig().getString("General.Command.Name", "coins"), plugin).setDescription(plugin.getConfig().getString("General.Command.Description", "Base command of the Coins plugin")).setAliases(plugin.getConfig().getStringList("General.Command.Aliases")).setUsage(plugin.getConfig().getString("General.Command.Usage", "/coins"));
         cmd.setPermission(plugin.getConfig().getString("General.Command.Permission", "coins.use"));
         registerCommand((Plugin) plugin.getBootstrap(), cmd);
     }

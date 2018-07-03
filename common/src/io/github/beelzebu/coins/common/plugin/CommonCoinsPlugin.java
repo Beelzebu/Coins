@@ -21,7 +21,6 @@ package io.github.beelzebu.coins.common.plugin;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
-import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.Multiplier;
 import io.github.beelzebu.coins.api.cache.CacheProvider;
 import io.github.beelzebu.coins.api.config.AbstractConfigFile;
@@ -39,6 +38,7 @@ import io.github.beelzebu.coins.api.storage.StorageProvider;
 import io.github.beelzebu.coins.api.storage.StorageType;
 import io.github.beelzebu.coins.api.utils.StringUtils;
 import io.github.beelzebu.coins.common.cache.LocalCache;
+import io.github.beelzebu.coins.common.cache.RedisCache;
 import io.github.beelzebu.coins.common.messaging.DummyMessaging;
 import io.github.beelzebu.coins.common.messaging.RedisMessaging;
 import io.github.beelzebu.coins.common.storage.MySQL;
@@ -54,9 +54,12 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -99,6 +102,9 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
 
     @Override
     public void enable() { // now the plugin is enabled and we can read config files
+        Arrays.asList(Objects.requireNonNull(fileManager.getMessagesFolder().listFiles())).forEach(file -> messagesMap.put((file.getName().split("_").length == 2 ? file.getName().split("_")[1] : "default").split(".yml")[0], bootstrap.getFileAsConfig(file)));
+        // update files before we read something
+        fileManager.updateFiles();
         logEnabled = getConfig().isDebugFile();
         // identify storage type and start messaging service before start things
         storageType = getConfig().getStorageType();
@@ -144,7 +150,6 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         getMessagingService().getMultipliers();
         getMessagingService().getExecutors();
         loadExecutors();
-        CoinsAPI.setPlugin(this);
     }
 
     @Override
@@ -182,7 +187,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
 
     @Override
     public final CacheProvider getCache() {
-        return cache == null ? cache = new LocalCache() : cache;
+        return cache == null ? cache = messagingService.getType().equals(MessagingService.REDIS) ? new RedisCache() : new LocalCache() : cache;
     }
 
     @Override
@@ -192,16 +197,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
 
     @Override
     public final AbstractConfigFile getMessages(String locale) {
-        String lang = "_" + locale.split("_")[0];
-        File file = new File(bootstrap.getDataFolder(), "messages" + lang + ".yml");
-        if (lang == null || lang.equals("default") || !file.exists()) {
-            lang = "";
-        }
-        file = new File(bootstrap.getDataFolder(), "messages" + lang + ".yml");
-        if (!messagesMap.containsKey(lang)) {
-            messagesMap.put(lang, bootstrap.getFileAsConfig(file));
-        }
-        return messagesMap.get(lang);
+        return Optional.ofNullable(messagesMap.get(locale.split("_")[0])).orElse(messagesMap.get("default"));
     }
 
     @Override
@@ -238,7 +234,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
     public final void debug(Exception ex) {
         debug("Unknown Exception:");
         debug("   Error message: " + ex.getMessage());
-        debug(getStackTrace(ex));
+        debug("   Stacktrace: " + getStackTrace(ex));
     }
 
     @Override
@@ -247,6 +243,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         debug("   Database state: " + ex.getSQLState());
         debug("   Error code: " + ex.getErrorCode());
         debug("   Error message: " + ex.getMessage());
+        debug("   Stacktrace: " + getStackTrace(ex));
     }
 
     @Override
@@ -265,7 +262,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         return getDatabase().getName(uniqueId);
     }
 
-    private final void motd(boolean enable) {
+    private void motd(boolean enable) {
         bootstrap.sendMessage(bootstrap.getConsole(), StringUtils.rep(""));
         bootstrap.sendMessage(bootstrap.getConsole(), StringUtils.rep("&6-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"));
         bootstrap.sendMessage(bootstrap.getConsole(), StringUtils.rep("           &4Coins &fBy:  &7Beelzebu"));
@@ -305,14 +302,14 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         }
     }
 
-    private final String getStackTrace(Exception ex) {
+    private String getStackTrace(Exception ex) {
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
         ex.printStackTrace(printWriter);
         return stringWriter.toString();
     }
 
-    private final void logToFile(Object msg) {
+    private void logToFile(Object msg) {
         if (!logEnabled) {
             return;
         }
@@ -333,7 +330,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         }
     }
 
-    private final String getFromURL(String surl) {
+    private String getFromURL(String surl) {
         String response = null;
         try {
             URL url = new URL(surl);
@@ -347,5 +344,4 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         }
         return response;
     }
-
 }

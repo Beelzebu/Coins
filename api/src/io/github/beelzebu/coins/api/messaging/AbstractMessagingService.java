@@ -22,7 +22,6 @@ import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.Multiplier;
-import io.github.beelzebu.coins.api.MultiplierType;
 import io.github.beelzebu.coins.api.executor.Executor;
 import io.github.beelzebu.coins.api.executor.ExecutorManager;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
@@ -65,7 +64,7 @@ public abstract class AbstractMessagingService {
         Preconditions.checkNotNull(uuid, "UUID can't be null");
         if (coins > -1) {
             try {
-                plugin.getCache().addPlayer(uuid, coins);
+                plugin.getCache().updatePlayer(uuid, coins);
                 plugin.debug("Updated local data for: " + uuid);
                 if (!getType().equals(MessagingService.NONE)) {
                     JsonObject user = new JsonObject();
@@ -89,7 +88,7 @@ public abstract class AbstractMessagingService {
     public final void updateMultiplier(Multiplier multiplier) {
         Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
         try {
-            plugin.getCache().addMultiplier(multiplier.getServer(), multiplier);
+            plugin.getCache().addMultiplier(multiplier);
             sendMessage(objectWith("multiplier", multiplier.toJson()), MessageType.MULTIPLIER_UPDATE);
         } catch (Exception ex) {
             plugin.log("An unexpected error has occurred while publishing a multiplier over messaging service.");
@@ -106,7 +105,7 @@ public abstract class AbstractMessagingService {
     public final void enableMultiplier(Multiplier multiplier) {
         Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
         try {
-            plugin.getCache().addMultiplier(multiplier.getServer(), multiplier);
+            plugin.getCache().addMultiplier(multiplier);
             sendMessage(add(objectWith("multiplier", multiplier.toJson()), "enable", true), MessageType.MULTIPLIER_UPDATE);
         } catch (Exception ex) {
             plugin.log("An unexpected error has occurred while enabling a multiplier over messaging service.");
@@ -123,7 +122,7 @@ public abstract class AbstractMessagingService {
     public final void disableMultiplier(Multiplier multiplier) {
         Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
         try {
-            plugin.getCache().addMultiplier(multiplier.getServer(), multiplier);
+            plugin.getCache().addMultiplier(multiplier);
             sendMessage(objectWith("multiplier", multiplier.toJson()), MessageType.MULTIPLIER_DISABLE);
         } catch (Exception ex) {
             plugin.log("An unexpected error has occurred while disabling a multiplier over messaging service.");
@@ -167,12 +166,11 @@ public abstract class AbstractMessagingService {
         if (getType().equals(MessagingService.NONE)) {
             return;
         }
-        JsonObject jobj = message;
         UUID uuid = UUID.randomUUID();
         messages.add(uuid);
-        jobj.addProperty("messageid", uuid.toString());
-        jobj.addProperty("type", type.toString());
-        sendMessage(jobj);
+        message.addProperty("messageid", uuid.toString());
+        message.addProperty("type", type.toString());
+        sendMessage(message);
     }
 
     protected final void handleMessage(JsonObject message) {
@@ -189,7 +187,7 @@ public abstract class AbstractMessagingService {
                 UUID uuid = UUID.fromString(message.get("uuid").getAsString());
                 double coins = message.get("coins").getAsDouble();
                 plugin.getDatabase().setCoins(uuid, coins);
-                plugin.getCache().addPlayer(uuid, coins);
+                plugin.getCache().updatePlayer(uuid, coins);
             }
             break;
             case GET_EXECUTORS: {
@@ -204,7 +202,7 @@ public abstract class AbstractMessagingService {
             case MULTIPLIER_UPDATE: {
                 if (message.has("multiplier")) {
                     Multiplier multiplier = Multiplier.fromJson(message.getAsJsonObject("multiplier").toString(), message.has("enable"));
-                    plugin.getCache().addMultiplier(multiplier.getType().equals(MultiplierType.GLOBAL) ? plugin.getConfig().getServerName() : multiplier.getServer(), multiplier);
+                    plugin.getCache().addMultiplier(multiplier);
                 } else {
                     plugin.getCache().getMultipliers().forEach(multiplier -> sendMessage(objectWith("multiplier", multiplier.toJson()), type));
                 }
@@ -223,9 +221,7 @@ public abstract class AbstractMessagingService {
 
     // simple method to use one line lambda expressions when handling messages
     private JsonObject objectWith(String key, JsonObject value) {
-        JsonObject jobj = new JsonObject();
-        jobj.add(key, value);
-        return jobj;
+        return add(new JsonObject(), key, value);
     }
 
     private JsonObject add(JsonObject jobj, String key, Object value) {

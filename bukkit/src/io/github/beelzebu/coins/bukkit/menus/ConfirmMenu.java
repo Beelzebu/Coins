@@ -20,15 +20,17 @@ package io.github.beelzebu.coins.bukkit.menus;
 
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.Multiplier;
+import io.github.beelzebu.coins.api.MultiplierType;
 import io.github.beelzebu.coins.api.utils.StringUtils;
+import io.github.beelzebu.coins.bukkit.utils.ItemBuilder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffectType;
 
@@ -51,68 +53,54 @@ public class ConfirmMenu extends CoinsMenu {
         if (p == null) {
             return;
         }
-        {
-            ItemStack is = new ItemStack(Material.STAINED_GLASS, 1, (short) 5);
-            ItemMeta meta = is.getItemMeta();
-            meta.setDisplayName(plugin.getString("Multipliers.Menu.Confirm.Accept", p.spigot().getLocale()));
-            is.setItemMeta(meta);
-            setItem(2, is, player -> {
-                if (CoinsAPI.getMultiplier() == null) {
-                    multiplier.enable(player.getUniqueId(), player.getName(), false);
+        ItemStack accept = ItemBuilder.newBuilder(Material.STAINED_GLASS).setData(5).setDisplayName(plugin.getString("Multipliers.Menu.Confirm.Accept", p.spigot().getLocale())).build();
+        setItem(2, accept, player -> {
+            if (CoinsAPI.getMultipliers().stream().filter(multiplier -> !multiplier.getType().equals(MultiplierType.GLOBAL) && !multiplier.getType().equals(MultiplierType.PERSONAL)).collect(Collectors.toSet()).isEmpty()) {
+                multiplier.enable(player.getUniqueId(), player.getName(), false);
+                try {
+                    player.playSound(player.getLocation(), Sound.valueOf(plugin.getConfig().getString("Multipliers.GUI.Use.Sound")), 10, 2);
+                } catch (IllegalArgumentException ex) {
                     try {
-                        player.playSound(player.getLocation(), Sound.valueOf(plugin.getConfig().getString("Multipliers.GUI.Use.Sound")), 10, 2);
-                    } catch (IllegalArgumentException ex) {
-                        try {
-                            player.playSound(player.getLocation(), Sound.valueOf("LEVEL_UP"), 10, 2);
-                        } catch (IllegalArgumentException ignore) {
-                        }
-                        plugin.log("Seems that you're using an invalind sound, please edit the config and set the sound that corresponds for the version of your server.");
-                        plugin.log("If you're using 1.8 please check http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html\n"
-                                + "If you're using 1.9+ use https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html\n"
-                                + "If need more help, please open an issue in https://github.com/Beelzebu/Coins/issues");
+                        player.playSound(player.getLocation(), Sound.valueOf("LEVEL_UP"), 10, 2);
+                    } catch (IllegalArgumentException ignore) {
                     }
-                } else {
-                    multiplier.enable(player.getUniqueId(), player.getName(), true);
-                    try {
-                        player.playSound(player.getLocation(), Sound.valueOf(plugin.getConfig().getString("Multipliers.GUI.Use.Fail.Sound")), 10, 1);
-                    } catch (IllegalArgumentException ex) {
-                        try {
-                            player.playSound(player.getLocation(), Sound.valueOf("VILLAGER_NO"), 10, 2);
-                        } catch (IllegalArgumentException ignore) {
-                        }
-                        plugin.log("Seems that you're using an invalind sound, please edit the config and set the sound that corresponds for the version of your server.");
-                        plugin.log("If you're using 1.8 please check http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html\n"
-                                + "If you're using 1.9+ use https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html\n"
-                                + "If need more help, please open an issue in https://github.com/Beelzebu/Coins/issues");
-                    }
-                    player.sendMessage(plugin.getString("Multipliers.Already active", player.spigot().getLocale()));
+                    plugin.log("Seems that you're using an invalid sound, please edit the config and set the sound that corresponds for the version of your server.");
+                    plugin.log("If you're using 1.8 please check http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html\n"
+                            + "If you're using 1.9+ use https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html\n"
+                            + "If need more help, please open an issue in https://github.com/Beelzebu/Coins/issues");
                 }
-                player.closeInventory();
-            });
-        }
-        {
-            ItemStack is = new ItemStack(Material.POTION);
-            PotionMeta meta = (PotionMeta) is.getItemMeta();
-            meta.setMainEffect(PotionEffectType.FIRE_RESISTANCE);
-            meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
-            meta.setDisplayName(StringUtils.rep(plugin.getString("Multipliers.Menu.Multipliers.Name", p.spigot().getLocale()), multiplier));
-            List<String> lore = new ArrayList<>();
-            plugin.getMessages(p.spigot().getLocale()).getStringList("Multipliers.Menu.Multipliers.Lore").forEach(line -> {
-                lore.add(StringUtils.rep(line, multiplier));
-            });
-            meta.setLore(lore);
-            is.setItemMeta(meta);
-            setItem(4, is);
-        }
-        {
-            ItemStack is = new ItemStack(Material.STAINED_GLASS, 1, (short) 14);
-            ItemMeta meta = is.getItemMeta();
-            meta.setDisplayName(plugin.getString("Multipliers.Menu.Confirm.Decline", p.spigot().getLocale()));
-            is.setItemMeta(meta);
-            setItem(6, is, player -> {
-                player.playSound(player.getLocation(), Sound.valueOf(plugin.getConfig().getString("Multipliers.GUI.Use.Fail.Sound", "VILLAGER_NO")), 10, 1);
-                player.closeInventory();
-            });
-        }
+            } else {
+                multiplier.enable(player.getUniqueId(), player.getName(), true);
+                try {
+                    player.playSound(player.getLocation(), Sound.valueOf(plugin.getConfig().getString("Multipliers.GUI.Use.Fail.Sound")), 10, 1);
+                } catch (IllegalArgumentException ex) {
+                    try {
+                        player.playSound(player.getLocation(), Sound.valueOf("VILLAGER_NO"), 10, 2);
+                    } catch (IllegalArgumentException ignore) {
+                    }
+                    plugin.log("Seems that you're using an invalid sound, please edit the config and set the sound that corresponds for the version of your server.");
+                    plugin.log("If you're using 1.8 please check http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html\n"
+                            + "If you're using 1.9+ use https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html\n"
+                            + "If need more help, please open an issue in https://github.com/Beelzebu/Coins/issues");
+                }
+                player.sendMessage(plugin.getString("Multipliers.Already active", player.spigot().getLocale()));
+            }
+            player.closeInventory();
+        });
+        ItemStack potion = new ItemStack(Material.POTION);
+        PotionMeta potionMeta = (PotionMeta) potion.getItemMeta();
+        potionMeta.setMainEffect(PotionEffectType.FIRE_RESISTANCE);
+        potionMeta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+        potionMeta.setDisplayName(StringUtils.rep(plugin.getString("Multipliers.Menu.Multipliers.Name", p.spigot().getLocale()), multiplier));
+        List<String> lore = new ArrayList<>();
+        plugin.getMessages(p.spigot().getLocale()).getStringList("Multipliers.Menu.Multipliers.Lore").forEach(line -> lore.add(StringUtils.rep(line, multiplier)));
+        potionMeta.setLore(lore);
+        potion.setItemMeta(potionMeta);
+        setItem(4, potion);
+        ItemStack decline = ItemBuilder.newBuilder(Material.STAINED_GLASS).setData(14).setDisplayName(plugin.getString("Multipliers.Menu.Confirm.Decline", p.spigot().getLocale())).build();
+        setItem(6, decline, player -> {
+            player.playSound(player.getLocation(), Sound.valueOf(plugin.getConfig().getString("Multipliers.GUI.Use.Fail.Sound", "VILLAGER_NO")), 10, 1);
+            player.closeInventory();
+        });
     }
 }

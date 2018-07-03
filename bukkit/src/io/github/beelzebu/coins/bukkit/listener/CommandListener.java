@@ -41,7 +41,7 @@ public class CommandListener implements Listener {
             if (msg.replaceFirst("/", "").startsWith(plugin.getConfig().getCommand()) || plugin.getConfig().getCommandAliases().contains(msg.split(" ")[0].replaceFirst("/", ""))) {
                 plugin.debug(e.getPlayer().getName() + " issued command: " + msg);
             }
-            if (plugin.getConfig().getDouble("Command Cost." + msg) != 0) {
+            if (plugin.getConfig().getDouble("Command Cost." + msg, 0) != 0) {
                 if (CoinsAPI.getCoins(e.getPlayer().getUniqueId()) < plugin.getConfig().getDouble("Command Cost." + msg)) {
                     e.setCancelled(true);
                     e.getPlayer().sendMessage(StringUtils.rep(plugin.getMessages(e.getPlayer().spigot().getLocale()).getString("Errors.No Coins")));

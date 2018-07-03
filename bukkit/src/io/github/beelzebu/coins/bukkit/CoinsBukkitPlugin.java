@@ -18,6 +18,7 @@
  */
 package io.github.beelzebu.coins.bukkit;
 
+import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.bukkit.listener.CommandListener;
 import io.github.beelzebu.coins.bukkit.listener.GUIListener;
 import io.github.beelzebu.coins.bukkit.listener.LoginListener;
@@ -40,7 +41,7 @@ public class CoinsBukkitPlugin extends CommonCoinsPlugin {
 
     private boolean vault, placeholderapi, leaderheads = false;
 
-    public CoinsBukkitPlugin(CoinsBukkitMain bootstrap) {
+    CoinsBukkitPlugin(CoinsBukkitMain bootstrap) {
         super(bootstrap);
     }
 
@@ -68,6 +69,7 @@ public class CoinsBukkitPlugin extends CommonCoinsPlugin {
                 }
             }
         }, (CoinsBukkitMain) getBootstrap());
+        CoinsAPI.setPlugin(this);
     }
 
     @Override

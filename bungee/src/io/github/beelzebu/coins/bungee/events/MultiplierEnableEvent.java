@@ -19,25 +19,16 @@
 package io.github.beelzebu.coins.bungee.events;
 
 import io.github.beelzebu.coins.api.Multiplier;
-import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import net.md_5.bungee.api.plugin.Event;
 
 /**
  * @author Beelzebu
  */
+@Getter
+@AllArgsConstructor
 public class MultiplierEnableEvent extends Event {
 
-    private final Multiplier data;
-
-    public MultiplierEnableEvent(Multiplier multiplier) {
-        data = multiplier;
-    }
-
-    public UUID getEnablerUUID() {
-        return data.getEnablerUUID();
-    }
-
-    public Multiplier getMultiplier() {
-        return data;
-    }
+    private final Multiplier multiplier;
 }

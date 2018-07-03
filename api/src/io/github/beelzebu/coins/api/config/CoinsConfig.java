@@ -67,7 +67,7 @@ public abstract class CoinsConfig extends AbstractConfigFile {
         try {
             return StorageType.valueOf(getString("Storage Type", "sqlite").toUpperCase());
         } catch (IllegalArgumentException ex) {
-            plugin.log("You have deffined a invalid storage type in the config.");
+            plugin.log("You have defined a invalid storage type in the config.");
         }
         return type;
     }
@@ -77,7 +77,7 @@ public abstract class CoinsConfig extends AbstractConfigFile {
         try {
             return MessagingService.valueOf(getString("Messaging Service", "none").toUpperCase());
         } catch (IllegalArgumentException ex) {
-            plugin.log("You have deffined a invalid storage type in the config.");
+            plugin.log("You have defined a invalid storage type in the config.");
         }
         return type;
     }

@@ -117,7 +117,8 @@ public enum SQLQuery {
     SELECT_TOP("SELECT * FROM `" + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getDataTable() + "` ORDER BY balance DESC LIMIT ?;"),
     DELETE_MULTIPLIER("DELETE FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getMultipliersTable() + " WHERE id = ?;"),
     ENABLE_MULTIPLIER("UPDATE " + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getMultipliersTable() + " SET enabled = true WHERE id = ;"),
-    SELECT_ALL_MULTIPLIERS("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getMultipliersTable() + " WHERE uuid = ? AND enabled = false AND queue = false;"),
+    SELECT_ALL_MULTIPLIERS("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getMultipliersTable()),
+    SELECT_ALL_MULTIPLIERS_PLAYER("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getMultipliersTable() + " WHERE uuid = ? AND enabled = false AND queue = false;"),
     SELECT_ALL_MULTIPLIERS_SERVER("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getMultipliersTable() + " WHERE uuid = ? AND enabled = false AND queue = false AND server = ?;"),
     SELECT_MULTIPLIER("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getMultipliersTable() + " WHERE id = ?;"),
     SELECT_ALL_PLAYERS("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getDatabase()).getDataTable() + ";");

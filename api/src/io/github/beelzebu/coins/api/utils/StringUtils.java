@@ -21,6 +21,7 @@ package io.github.beelzebu.coins.api.utils;
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.Multiplier;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import net.md_5.bungee.api.ChatColor;
 
@@ -29,36 +30,55 @@ import net.md_5.bungee.api.ChatColor;
  */
 public final class StringUtils {
 
-    public static final String rep(String msg) {
+    public static String rep(String msg) {
         if (msg == null) {
             return "";
         }
-        String message = msg;
-        if (CoinsAPI.getPlugin() != null && CoinsAPI.getPlugin().getConfig() != null) {
-            message = message.replaceAll("%prefix%", CoinsAPI.getPlugin().getConfig().getString("Prefix", "&c&lCoins &6&l>&7"));
+        if (CoinsAPI.getPlugin() != null) {
+            msg = msg.replace("%prefix%", CoinsAPI
+                    .getPlugin()
+                    .getConfig()
+                    .getString("Prefix", "&c&lCoins &6&l>&7"));
         }
-        return message.replaceAll("&", "§");
+        return msg.replace('&', ChatColor.COLOR_CHAR);
     }
 
-    public static final String rep(String msg, Multiplier multiplier) {
+    public static String rep(String msg, Multiplier multiplier) {
         String string = msg;
         if (multiplier != null) {
-            string = msg.replaceAll("%enabler%", multiplier.getEnablerName()).replaceAll("%server%", multiplier.getServer()).replaceAll("%amount%", String.valueOf(multiplier.getAmount())).replaceAll("%minutes%", String.valueOf(multiplier.getMinutes())).replaceAll("%id%", String.valueOf(multiplier.getId()));
+            string = msg.replaceAll("%enabler%", multiplier.getData().getEnablerName()).replaceAll("%server%", multiplier.getServer()).replaceAll("%amount%", String.valueOf(multiplier.getData().getAmount())).replaceAll("%minutes%", String.valueOf(multiplier.getData().getMinutes())).replaceAll("%id%", String.valueOf(multiplier.getId()));
         }
         return rep(string);
     }
 
-    public static final List<String> rep(List<String> msgs) {
-        List<String> message = msgs.stream().map(StringUtils::rep).collect(Collectors.toList());
-        return message;
+    public static List<String> rep(List<String> msgs) {
+        return msgs.stream().map(StringUtils::rep).collect(Collectors.toList());
     }
 
-    public static final List<String> rep(List<String> msgs, Multiplier multiplierData) {
-        List<String> message = msgs.stream().map(msg -> rep(msg, multiplierData)).collect(Collectors.toList());
-        return message;
+    public static List<String> rep(List<String> msgs, Multiplier multiplierData) {
+        return msgs.stream().map(msg -> rep(msg, multiplierData)).collect(Collectors.toList());
     }
 
-    public static final String removeColor(String str) {
+    public static String removeColor(String str) {
         return ChatColor.stripColor(rep(str)).replaceAll("Debug: ", "");
+    }
+
+    public static String formatTime(long millis) {
+        long seconds = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis));
+        long hours = TimeUnit.MILLISECONDS.toHours(millis) - TimeUnit.DAYS.toHours(TimeUnit.MILLISECONDS.toDays(millis));
+        long days = TimeUnit.MILLISECONDS.toDays(millis);
+
+        StringBuilder b = new StringBuilder();
+        if (days > 0) {
+            b.append(days);
+            b.append(", ");
+        }
+        b.append(hours == 0 ? "00" : hours < 10 ? "0" + hours : String.valueOf(hours));
+        b.append(":");
+        b.append(minutes == 0 ? "00" : minutes < 10 ? "0" + minutes : String.valueOf(minutes));
+        b.append(":");
+        b.append(seconds == 0 ? "00" : seconds < 10 ? "0" + seconds : String.valueOf(seconds));
+        return b.toString();
     }
 }

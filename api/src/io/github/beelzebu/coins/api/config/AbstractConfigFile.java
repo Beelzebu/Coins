@@ -43,15 +43,15 @@ public abstract class AbstractConfigFile {
     }
 
     public boolean getBoolean(String path) {
-        return (boolean) get(path);
+        return (boolean) get(path, false);
     }
 
     public int getInt(String path) {
-        return (int) get(path);
+        return (int) get(path, -1);
     }
 
     public double getDouble(String path) {
-        return (double) get(path);
+        return (double) get(path, -1);
     }
 
     public Object get(String path, Object def) {

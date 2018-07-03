@@ -97,6 +97,10 @@
                             <pattern>org.apache.commons.pool2</pattern>
                             <shadedPattern>io.github.beelzebu.lib.commonspool2</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>com.github.benmanes</pattern>
+                            <shadedPattern>io.github.beelzebu.lib.caffeine</shadedPattern>
+                        </relocation>
                     </relocations>
                 </configuration>
             </plugin>

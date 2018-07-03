@@ -43,11 +43,12 @@ import org.bukkit.entity.Player;
  */
 public class CoinsCommand extends Command {
 
-    private final CoinsPlugin plugin = CoinsAPI.getPlugin();
+    private final CoinsPlugin plugin;
     private final DecimalFormat df = new DecimalFormat("#.#");
 
-    public CoinsCommand(String command) {
+    public CoinsCommand(String command, CoinsPlugin plugin) {
         super(command);
+        this.plugin = plugin;
     }
 
     @Override
@@ -160,7 +161,7 @@ public class CoinsCommand extends Command {
             sender.sendMessage(plugin.getString("Errors.No permissions", lang));
             return;
         }
-        if (args.length < 3 || args.length > 4 || args.length >= 3 && !isNumber(args[2])) {
+        if (args.length < 3 || args.length >= 4 || (args.length >= 3 && !isNumber(args[2]))) {
             sender.sendMessage(plugin.getString("Help.Give Usage", lang));
             return;
         }
@@ -175,9 +176,9 @@ public class CoinsCommand extends Command {
             if (plugin.getBootstrap().isOnline(plugin.getUniqueId(args[1], false)) && args.length == 4 && args[3].equalsIgnoreCase("true")) {
                 multiply = true;
                 Player target = Bukkit.getPlayer(args[1]);
-                int amount = CoinsAPI.getMultiplier() != null ? CoinsAPI.getMultiplier().getBaseData().getAmount() : 1;
+                int amount = !CoinsAPI.getMultipliers().isEmpty() ? CoinsAPI.getMultipliers().stream().mapToInt(m -> m.getData().getAmount()).sum() : 1;
                 if (amount > 1) {
-                    multiplier = plugin.getString("Multipliers.Format", target.spigot().getLocale()).replaceAll("%multiplier%", df.format(amount)).replaceAll("%enabler%", CoinsAPI.getMultiplier().getEnablerName());
+                    multiplier = plugin.getString("Multipliers.Format", target.spigot().getLocale()).replaceAll("%multiplier%", df.format(amount)).replaceAll("%enabler%", CoinsAPI.getMultipliers().stream().findFirst().get().getData().getEnablerName());
                 }
             }
             if (plugin.getBootstrap().isOnline(plugin.getUniqueId(args[1], false))) {
@@ -328,7 +329,7 @@ public class CoinsCommand extends Command {
                 }
             }
             if (args[1].equalsIgnoreCase("get")) {
-                sender.sendMessage(CoinsAPI.getMultiplier().getMultiplierTimeFormated());
+                sender.sendMessage(CoinsAPI.getMultipliers().stream().findFirst().get().getMultiplierTimeFormatted());
             }
             return;
         }

@@ -19,15 +19,12 @@
 package io.github.beelzebu.coins.api;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
+import io.github.beelzebu.coins.api.utils.StringUtils;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -43,32 +40,32 @@ import lombok.Setter;
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public final class Multiplier {
 
-    private static final CoinsPlugin PLUGIN = CoinsAPI.getPlugin();
-    private MultiplierData baseData;
+    private final CoinsPlugin plugin = CoinsAPI.getPlugin();
     @Setter(AccessLevel.PACKAGE)
     private int id;
     private String server;
+    private MultiplierData data;
     private MultiplierType type;
-    private String enablerName = "SERVER";
-    private UUID enablerUUID = UUID.randomUUID();
     @Setter(AccessLevel.NONE)
     private boolean enabled = false;
     @Setter(AccessLevel.PACKAGE)
     private boolean queue = false;
     @Setter(AccessLevel.PACKAGE)
+    private boolean custom = false;
+    @Setter(AccessLevel.PACKAGE)
     private long endTime = 0;
-    private Set<MultiplierData> extradata;
 
-    public Multiplier(String server, MultiplierData baseData) {
-        this.baseData = baseData;
+    public Multiplier(String server, MultiplierData data) {
+        this.data = data;
         this.server = server;
     }
 
     public static Multiplier fromJson(String multiplier, boolean callenable) {
         Preconditions.checkNotNull(multiplier, "Tried to load a null Multiplier");
-        PLUGIN.debug("Loading multiplier from JSON: " + multiplier);
+        CoinsAPI.getPlugin().debug("Loading multiplier from JSON: " + multiplier);
         try {
-            JsonObject data = PLUGIN.getGson().fromJson(multiplier, JsonObject.class);
+            Multiplier jsonMultiplier = CoinsAPI.getPlugin().getGson().fromJson(multiplier, Multiplier.class);// data = CoinsAPI.getPlugin().getGson().fromJson(multiplier, JsonObject.class);
+            /*
             MultiplierBuilder multi = MultiplierBuilder
                     .newBuilder(data.get("server").getAsString(), MultiplierType.valueOf(data.get("type").getAsString()), new MultiplierData(UUID.fromString(data.get("enableruuid").getAsString()), data.get("enabler").getAsString(), data.get("amount").getAsInt(), data.get("minutes").getAsInt()))
                     .setID(data.get("id").getAsInt())
@@ -80,20 +77,22 @@ public final class Multiplier {
                 multi.setEndTime(data.get("endtime").getAsLong());
             }
             return multi.build(callenable);
+            */
+            return jsonMultiplier;
         } catch (JsonSyntaxException ex) {
-            PLUGIN.debug(ex);
+            CoinsAPI.getPlugin().debug(ex);
         }
         return null;
     }
 
     /**
      * Enable this multiplier with the default uuid and name from
-     * {@link Multiplier#getEnablerUUID()} and {@link Multiplier#getEnablerName()}
+     * {@link Multiplier#data#getEnablerUUID()} and {@link Multiplier#data#getEnablerName()}
      *
-     * @param queue if the multiplier should be queued or inmediatly enabled.
+     * @param queue if the multiplier should be queued or immediately enabled.
      */
     public void enable(boolean queue) {
-        enable(getEnablerUUID(), getEnablerName(), queue);
+        enable(data.getEnablerUUID(), data.getEnablerName(), queue);
     }
 
     /**
@@ -101,45 +100,30 @@ public final class Multiplier {
      *
      * @param enablerUUID the UUID of the enabler.
      * @param enablerName the name of the enabler, can't be null.
-     * @param queue       if the multiplier should be queued or inmediatly enabled.
+     * @param queue       if the multiplier should be queued or immediately enabled.
      */
-    public void enable(UUID enablerUUID, String enablerName, boolean queue) {
-        Preconditions.checkNotNull(enablerName, "The enabler name can't be null");
-        if (System.currentTimeMillis() + baseData.getMinutes() * 60000 > endTime && endTime > 1) {
+    public void enable(UUID enablerUUID, @Nonnull String enablerName, boolean queue) {
+        if (System.currentTimeMillis() + data.getMinutes() * 60000 > endTime && endTime > 1) {
             return;
         }
-        this.enablerUUID = enablerUUID;
-        this.enablerName = enablerName;
+        if (enablerUUID != null) {
+            data.setEnablerUUID(enablerUUID);
+        } else {
+            plugin.debug("Trying to enable a multiplier using a null UUID. " + toJson());
+        }
+        data.setEnablerName(enablerName);
         enabled = true;
-        endTime = System.currentTimeMillis() + baseData.getMinutes() * 60000;
-        if (queue && (CoinsAPI.getMultiplier(server) == null || !CoinsAPI.getMultiplier(server).isEnabled())) {
+        endTime = System.currentTimeMillis() + data.getMinutes() * 60000;
+        if (queue && (CoinsAPI.getMultipliers(server).isEmpty() || CoinsAPI.getMultipliers().stream().noneMatch(Multiplier::isEnabled))) {
             queue = false;
         }
         this.queue = queue;
         if (!queue) {
-            if (PLUGIN.getCache().getMultiplier(server) != null && PLUGIN.getCache().getMultiplier(server).getId() != id) {
-                switch (PLUGIN.getCache().getMultiplier(server).getType()) {
-                    case GLOBAL:
-                        PLUGIN.getCache().getMultiplier(server).addExtraData(baseData);
-                        PLUGIN.getCache().getMultiplier(server).addExtraData(extradata);
-                        break;
-                    case SERVER:
-                        PLUGIN.getCache().deleteMultiplier(PLUGIN.getCache().getMultiplier(server));
-                        PLUGIN.getCache().addMultiplier(server, this);
-                        break;
-                    case PERSONAL:
-                        extradata.add(PLUGIN.getCache().getMultiplier(server).getBaseData());
-                        extradata.addAll(PLUGIN.getCache().getMultiplier(server).getExtradata());
-                        PLUGIN.getCache().addMultiplier(server + " " + enablerUUID, this);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            PLUGIN.getDatabase().enableMultiplier(this);
-            PLUGIN.getBootstrap().callMultiplierEnableEvent(this);
+            plugin.getCache().addMultiplier(this);
+            plugin.getDatabase().enableMultiplier(this);
+            plugin.getBootstrap().callMultiplierEnableEvent(this);
         } else {
-            PLUGIN.getCache().addQueueMultiplier(this);
+            plugin.getCache().addQueueMultiplier(this);
         }
     }
 
@@ -148,55 +132,26 @@ public final class Multiplier {
      */
     public void disable() {
         try {
-            PLUGIN.getDatabase().deleteMultiplier(this);
-            PLUGIN.getCache().removeQueueMultiplier(this);
-            PLUGIN.getCache().deleteMultiplier(this);
-            PLUGIN.getMessagingService().disableMultiplier(this);
+            plugin.getDatabase().deleteMultiplier(this);
+            plugin.getCache().removeQueueMultiplier(this);
+            plugin.getCache().deleteMultiplier(this);
+            plugin.getMessagingService().disableMultiplier(this);
         } catch (Exception ex) {
-            PLUGIN.log("An unexpected exception has occurred while disabling a multiplier with the id: " + id);
-            PLUGIN.log("Check plugin log files for more information, please report this bug on https://github.com/Beelzebu/Coins/issues");
-            PLUGIN.debug(ex);
+            plugin.log("An unexpected exception has occurred while disabling a multiplier with the id: " + id);
+            plugin.log("Check plugin log files for more information, please report this bug on https://github.com/Beelzebu/Coins/issues");
+            plugin.debug(ex);
         }
     }
 
     public long checkMultiplierTime() {
-        long endtime = endTime - System.currentTimeMillis();
-        Iterator<MultiplierData> edata = extradata.iterator();
-        while (edata.hasNext()) {
-            MultiplierData data = edata.next();
-            if (data.getMinutes() * 60000 <= endtime) {
-                edata.remove();
-            }
-        }
-        extradata = Sets.newHashSet(edata);
-        if (endtime <= 0) {
+        if (endTime - System.currentTimeMillis() <= 0) {
             disable();
         }
-        return endtime >= 0 ? endtime : 0;
+        return endTime - System.currentTimeMillis() >= 0 ? endTime - System.currentTimeMillis() : 0;
     }
 
-    public String getMultiplierTimeFormated() {
-        return formatTime(checkMultiplierTime());
-    }
-
-    public void addExtraData(MultiplierData data) {
-        extradata.add(data);
-    }
-
-    public void addExtraData(Collection<MultiplierData> data) {
-        extradata.addAll(data);
-    }
-
-    public int getAmount() {
-        int amount = baseData.getAmount();
-        if (!extradata.isEmpty()) {
-            amount = extradata.stream().map(edata -> edata.getAmount()).reduce(amount, Integer::sum);
-        }
-        return amount;
-    }
-
-    public int getMinutes() {
-        return baseData.getMinutes();
+    public String getMultiplierTimeFormatted() {
+        return StringUtils.formatTime(checkMultiplierTime());
     }
 
     /**
@@ -205,30 +160,11 @@ public final class Multiplier {
      * @return server for this multiplier.
      */
     public String getServer() {
-        return server.toLowerCase();
-    }
-
-    /**
-     * Get the UUID of who enabled this multiplier
-     *
-     * @return UUID of who enabled this multiplier, never should be null unless
-     * specified by other plugin.
-     */
-    public UUID getEnablerUUID() {
-        return enablerUUID == null ? baseData.getEnablerUUID() : enablerUUID;
-    }
-
-    /**
-     * Get the username of who enabled this multiplier
-     *
-     * @return username of who enabled this multiplier, never should be null
-     * unless specified by other plugin.
-     */
-    public String getEnablerName() {
-        return enablerName == null ? baseData.getEnablerName() : enablerName;
+        return type == MultiplierType.GLOBAL ? plugin.getConfig().getServerName() : server.toLowerCase();
     }
 
     public JsonObject toJson() {
+        /*
         JsonObject multiplier = new JsonObject();
         multiplier.addProperty("id", getId());
         multiplier.addProperty("server", getServer());
@@ -240,25 +176,7 @@ public final class Multiplier {
         multiplier.addProperty("enabled", isEnabled());
         multiplier.addProperty("queue", isQueue());
         multiplier.addProperty("endtime", endTime);
-        return multiplier;
-    }
-
-    private String formatTime(long millis) {
-        long seconds = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
-        long minutes = TimeUnit.MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis));
-        long hours = TimeUnit.MILLISECONDS.toHours(millis) - TimeUnit.DAYS.toHours(TimeUnit.MILLISECONDS.toDays(millis));
-        long days = TimeUnit.MILLISECONDS.toDays(millis);
-
-        StringBuilder b = new StringBuilder();
-        if (days > 0) {
-            b.append(days);
-            b.append(", ");
-        }
-        b.append(hours == 0 ? "00" : hours < 10 ? "0" + hours : String.valueOf(hours));
-        b.append(":");
-        b.append(minutes == 0 ? "00" : minutes < 10 ? "0" + minutes : String.valueOf(minutes));
-        b.append(":");
-        b.append(seconds == 0 ? "00" : seconds < 10 ? "0" + seconds : String.valueOf(seconds));
-        return b.toString();
+        */
+        return plugin.getGson().toJsonTree(this).getAsJsonObject();
     }
 }

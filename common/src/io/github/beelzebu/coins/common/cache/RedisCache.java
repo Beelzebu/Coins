@@ -26,10 +26,10 @@ import io.github.beelzebu.coins.api.cache.CacheProvider;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.common.messaging.RedisMessaging;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisException;
 
@@ -42,20 +42,24 @@ public class RedisCache implements CacheProvider {
     private final RedisMessaging redis = (RedisMessaging) plugin.getMessagingService();
 
     @Override
-    public double getCoins(UUID uuid) {
+    public Optional<Double> getCoins(UUID uuid) {
         try (Jedis jedis = redis.getPool().getResource()) {
-            return getDouble(jedis.get("coins:" + uuid));
+            return Optional.ofNullable(getDouble(jedis.get("coins:" + uuid)));
         } catch (JedisException ex) {
             plugin.log("An error has occurred getting coins for '" + uuid + "' from redis cache.");
             plugin.debug(ex);
         }
-        return -1;
+        return Optional.empty();
     }
 
     @Override
-    public void addPlayer(UUID uuid, double coins) {
+    public void updatePlayer(UUID uuid, double coins) {
         try (Jedis jedis = redis.getPool().getResource()) {
-            jedis.setex("coins:" + uuid, 1800, Double.toString(coins));
+            if (getCoins(uuid).isPresent()) {
+                jedis.incrByFloat("coins:" + uuid, coins);
+            } else {
+                jedis.setex("coins:" + uuid, 1800, Double.toString(coins));
+            }
         } catch (JedisException ex) {
             plugin.log("An error has occurred adding user '" + uuid + "' to cache.");
             plugin.debug(ex);
@@ -73,20 +77,19 @@ public class RedisCache implements CacheProvider {
     }
 
     @Override
-    public Multiplier getMultiplier(String server) {
-        try (Jedis jedis = redis.getPool().getResource()) {
-            return Multiplier.fromJson(jedis.get("multiplier:" + server), false);
-        } catch (JedisException ex) {
-            plugin.log("An error has occurred getting multiplier from cache for '" + server + "'");
-            plugin.debug(ex);
-        }
-        return null;
+    public Optional<Multiplier> getMultiplier(int id) {
+        return Optional.empty();
     }
 
     @Override
-    public void addMultiplier(String server, Multiplier multiplier) {
+    public Set<Multiplier> getMultipliers(String server) {
+        return getMultipliers().stream().filter(multiplier -> server.equals(multiplier.getServer())).collect(Collectors.toSet());
+    }
+
+    @Override
+    public void addMultiplier(Multiplier multiplier) {
         try (Jedis jedis = redis.getPool().getResource()) {
-            jedis.setex("multiplier:" + server, multiplier.getMinutes() * 60, multiplier.toJson().toString());
+            jedis.setex("multiplier:" + multiplier.getId(), multiplier.getData().getMinutes() * 60, multiplier.toJson().toString());
         } catch (JedisException ex) {
             plugin.log("An error has occurred adding multiplier '" + multiplier.toJson() + "' to cache.");
             plugin.debug(ex);
@@ -110,7 +113,7 @@ public class RedisCache implements CacheProvider {
             multiplier.enable(true);
         }
         try (Jedis jedis = redis.getPool().getResource()) {
-            jedis.setex("multiplier:" + multiplier.getServer(), multiplier.getMinutes() * 60, multiplier.toJson().toString());
+            jedis.setex("multiplier:" + multiplier.getServer(), multiplier.getData().getMinutes() * 60, multiplier.toJson().toString());
         } catch (JedisException ex) {
             plugin.log("An error has occurred updating multiplier '" + multiplier.toJson() + "' in the cache.");
             plugin.debug(ex);
@@ -120,7 +123,7 @@ public class RedisCache implements CacheProvider {
     @Override
     public void addQueueMultiplier(Multiplier multiplier) {
         try (Jedis jedis = redis.getPool().getResource()) {
-            jedis.setex("qmultiplier:" + multiplier.getServer(), multiplier.getMinutes() * 60, multiplier.toJson().toString());
+            jedis.setex("qmultiplier:" + multiplier.getServer(), multiplier.getData().getMinutes() * 60, multiplier.toJson().toString());
         } catch (JedisException ex) {
             plugin.log("An error has occurred adding multiplier '" + multiplier.toJson() + "' to queue.");
             plugin.debug(ex);
@@ -141,7 +144,10 @@ public class RedisCache implements CacheProvider {
     public Set<Multiplier> getMultipliers() {
         Set<Multiplier> multipliers = new HashSet<>();
         try (Jedis jedis = redis.getPool().getResource()) {
-            jedis.keys("multiplier:*").forEach(multiplier -> multipliers.add(Multiplier.fromJson(multiplier, false)));
+            Set<String> keys = jedis.keys("multiplier:*");
+            if (!keys.isEmpty()) {
+                keys.forEach(key -> multipliers.add(Multiplier.fromJson(jedis.get(key), false)));
+            }
         } catch (JedisException | JsonSyntaxException ex) {
             plugin.log("An error has occurred getting all multipliers from cache.");
             plugin.debug(ex);
@@ -150,10 +156,10 @@ public class RedisCache implements CacheProvider {
     }
 
     @Override
-    public Map<UUID, Double> getPlayers() {
-        Map<UUID, Double> players = new LinkedHashMap<>();
+    public Set<UUID> getPlayers() {
+        Set<UUID> players = new HashSet<>();
         try (Jedis jedis = redis.getPool().getResource()) {
-            jedis.keys("coins:*").forEach(key -> players.put(UUID.fromString(key.split(":")[1]), getDouble(jedis.get(key))));
+            jedis.keys("coins:*").forEach(key -> players.add(UUID.fromString(key.split(":")[1])));
         } catch (JedisException ex) {
             plugin.log("An error has occurred getting all players from cache.");
             plugin.debug(ex);
@@ -161,11 +167,11 @@ public class RedisCache implements CacheProvider {
         return players;
     }
 
-    private double getDouble(String string) {
+    private Double getDouble(String string) {
         try {
             return Double.parseDouble(string);
-        } catch (NumberFormatException ex) {
+        } catch (NumberFormatException ignore) {
         }
-        return -1;
+        return null;
     }
 }

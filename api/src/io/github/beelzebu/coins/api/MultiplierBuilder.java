@@ -19,9 +19,6 @@
 package io.github.beelzebu.coins.api;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * Class to build multipliers.
@@ -35,11 +32,10 @@ public final class MultiplierBuilder {
     private final String server;
     private final MultiplierType type;
     private final MultiplierData data;
+    private final long endtime = 0L;
     private int id = -1;
-    private Set<MultiplierData> extradata = Sets.newHashSet();
     private boolean enabled = false;
     private boolean queue = false;
-    private long endtime = 0L;
 
     private MultiplierBuilder(String server, MultiplierType type, MultiplierData data) {
         Preconditions.checkNotNull(server, "Server can't be null.");
@@ -56,27 +52,6 @@ public final class MultiplierBuilder {
 
     public MultiplierBuilder setID(int id) {
         this.id = id;
-        return this;
-    }
-
-    public MultiplierBuilder setEnablerName(String enablerName) {
-        Preconditions.checkNotNull(enablerName, "The enabler name can't be null");
-        data.setEnablerName(enablerName);
-        return this;
-    }
-
-    public MultiplierBuilder setEnablerUUID(UUID uuid) {
-        data.setEnablerUUID(uuid);
-        return this;
-    }
-
-    public MultiplierBuilder setExtraData(Set<MultiplierData> extradata) {
-        this.extradata = extradata;
-        return this;
-    }
-
-    public MultiplierBuilder addExtraData(MultiplierData data) {
-        this.extradata.add(data);
         return this;
     }
 
@@ -100,11 +75,6 @@ public final class MultiplierBuilder {
         return this;
     }
 
-    public MultiplierBuilder setEndTime(long endtime) {
-        this.endtime = endtime;
-        return this;
-    }
-
     public Multiplier build(boolean callenable) {
         Multiplier multiplier = new Multiplier(server, data);
         if (server == null) {
@@ -113,10 +83,9 @@ public final class MultiplierBuilder {
             multiplier.setType(type);
         }
         multiplier.setId(id);
-        multiplier.setExtradata(extradata);
         multiplier.setQueue(queue);
-        multiplier.setEnablerName(data.getEnablerName());
-        multiplier.setEnablerUUID(data.getEnablerUUID());
+        multiplier.getData().setEnablerName(data.getEnablerName());
+        multiplier.getData().setEnablerUUID(data.getEnablerUUID());
         multiplier.setEndTime(endtime);
         if (enabled && callenable) {
             multiplier.enable(data.getEnablerUUID(), data.getEnablerName(), queue);

@@ -33,10 +33,12 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
+import lombok.Getter;
 
 /**
  * @author Beelzebu
  */
+@Getter
 public class FileManager {
 
     private final CoinsPlugin plugin;
@@ -385,6 +387,7 @@ public class FileManager {
         updateMessages();
         updateConfig();
         checkLogs();
+        messagesFiles.clear();
     }
 
     private void checkLogs() {

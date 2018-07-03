@@ -30,40 +30,42 @@ import java.util.UUID;
  */
 public interface StorageProvider {
 
-    public void setup();
+    void setup();
 
-    public void shutdown();
+    void shutdown();
 
-    public void createPlayer(UUID uuid, String name, double balance);
+    void createPlayer(UUID uuid, String name, double balance);
 
-    public void updatePlayer(UUID uuid, String name);
+    void updatePlayer(UUID uuid, String name);
 
-    public UUID getUUID(String name);
+    UUID getUUID(String name);
 
-    public String getName(UUID uuid);
+    String getName(UUID uuid);
 
-    public double getCoins(UUID uuid);
+    double getCoins(UUID uuid);
 
-    public CoinsResponse setCoins(UUID uuid, double balance);
+    CoinsResponse setCoins(UUID uuid, double balance);
 
-    public boolean isindb(UUID uuid);
+    boolean isindb(UUID uuid);
 
-    public boolean isindb(String name);
+    boolean isindb(String name);
 
-    public LinkedHashMap<String, Double> getTopPlayers(int top);
+    LinkedHashMap<String, Double> getTopPlayers(int top);
 
-    public void createMultiplier(UUID uuid, int amount, int minutes, String server, MultiplierType type);
+    void createMultiplier(UUID uuid, int amount, int minutes, String server, MultiplierType type);
 
-    public Multiplier getMultiplier(int id);
+    Multiplier getMultiplier(int id);
 
-    public Set<Multiplier> getMultipliers(UUID uuid);
+    Set<Multiplier> getMultipliers(UUID uuid);
 
-    public Set<Multiplier> getMultipliers(UUID uuid, String server);
+    Set<Multiplier> getMultipliers(UUID uuid, String server);
 
-    public void enableMultiplier(Multiplier multiplier);
+    Set<Multiplier> getMultipliers();
 
-    public void deleteMultiplier(Multiplier multiplier);
+    void enableMultiplier(Multiplier multiplier);
 
-    public LinkedHashMap<String, Double> getAllPlayers();
+    void deleteMultiplier(Multiplier multiplier);
+
+    LinkedHashMap<String, Double> getAllPlayers();
 
 }

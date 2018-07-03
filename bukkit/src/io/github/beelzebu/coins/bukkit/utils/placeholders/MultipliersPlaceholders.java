@@ -63,15 +63,15 @@ public class MultipliersPlaceholders extends PlaceholderExpansion {
         try {
             String server = placeholder.split("_")[1];
             if (placeholder.startsWith("enabler_")) {
-                String enabler = CoinsAPI.getMultiplier(server) != null ? CoinsAPI.getMultiplier(server).getEnablerName() : "";
-                if (enabler.equals("")) {
+                String enabler = !CoinsAPI.getMultipliers(server).isEmpty() ? CoinsAPI.getMultipliers(server).stream().findFirst().get().getData().getEnablerName() : "";
+                if ("".equals(enabler)) {
                     return plugin.getString("Multipliers.Placeholders.Enabler.Anyone", p.spigot().getLocale());
                 } else {
                     return plugin.getString("Multipliers.Placeholders.Enabler.Message", p.spigot().getLocale()).replaceAll("%enabler%", enabler);
                 }
             }
             if (placeholder.startsWith("amount_")) {
-                return String.valueOf(CoinsAPI.getMultiplier(server) != null ? CoinsAPI.getMultiplier(server).getBaseData().getAmount() : 1);
+                return String.valueOf(!CoinsAPI.getMultipliers(server).isEmpty() ? CoinsAPI.getMultipliers(server).stream().findFirst().get().getData().getAmount() : 1);
             }
             if (placeholder.startsWith("time_")) {
                 //return CoinsAPI.getMultiplier(server[1]).getMultiplierTimeFormated();

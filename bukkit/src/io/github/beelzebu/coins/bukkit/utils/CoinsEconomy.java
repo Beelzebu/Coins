@@ -87,6 +87,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public boolean hasAccount(String string) {
         return CoinsAPI.isindb(string);
     }
@@ -97,6 +98,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public boolean hasAccount(String string, String string1) {
         return CoinsAPI.isindb(string);
     }
@@ -107,6 +109,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public double getBalance(String string) {
         return CoinsAPI.getCoins(string);
     }
@@ -117,6 +120,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public double getBalance(String string, String string1) {
         return CoinsAPI.getCoins(string);
     }
@@ -127,6 +131,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public boolean has(String string, double d) {
         return CoinsAPI.getCoins(string) >= d;
     }
@@ -137,6 +142,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public boolean has(String string, String string1, double d) {
         return CoinsAPI.getCoins(string) >= d;
     }
@@ -147,6 +153,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public EconomyResponse withdrawPlayer(String string, double d) {
         if (has(string, d)) {
             CoinsAPI.takeCoins(string, d);
@@ -165,6 +172,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public EconomyResponse withdrawPlayer(String string, String string1, double d) {
         if (has(string, d)) {
             CoinsAPI.takeCoins(string, d);
@@ -183,6 +191,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public EconomyResponse depositPlayer(String string, double d) {
         CoinsAPI.addCoins(string, d, plugin.getPluginConfig().vaultMultipliers());
         return new EconomyResponse(d, getBalance(string), ResponseType.SUCCESS, "");
@@ -195,6 +204,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public EconomyResponse depositPlayer(String string, String string1, double d) {
         CoinsAPI.addCoins(string, d, plugin.getPluginConfig().vaultMultipliers());
         return new EconomyResponse(d, getBalance(string), ResponseType.SUCCESS, "");
@@ -207,6 +217,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public EconomyResponse createBank(String string, String string1) {
         return new EconomyResponse(0, 0, ResponseType.NOT_IMPLEMENTED, "");
     }
@@ -242,6 +253,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public EconomyResponse isBankOwner(String string, String string1) {
         return new EconomyResponse(0, 0, ResponseType.NOT_IMPLEMENTED, "");
     }
@@ -252,6 +264,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public EconomyResponse isBankMember(String string, String string1) {
         return new EconomyResponse(0, 0, ResponseType.NOT_IMPLEMENTED, "");
     }
@@ -267,6 +280,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public boolean createPlayerAccount(String string) {
         UUID uuid = plugin.getPlugin().getUniqueId(string, false);
         CoinsAPI.createPlayer(string, uuid != null ? uuid : UUID.randomUUID());
@@ -280,6 +294,7 @@ public class CoinsEconomy implements Economy {
     }
 
     @Override
+    @Deprecated
     public boolean createPlayerAccount(String string, String string1) {
         UUID uuid = plugin.getPlugin().getUniqueId(string, false);
         CoinsAPI.createPlayer(string, uuid != null ? uuid : UUID.randomUUID());

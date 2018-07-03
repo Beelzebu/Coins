@@ -20,20 +20,25 @@ package io.github.beelzebu.coins.bukkit.events;
 
 import io.github.beelzebu.coins.api.Multiplier;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
  * @author Beelzebu
  */
+@Getter
+@AllArgsConstructor
 public class MultiplierEnableEvent extends Event {
 
     private final static HandlerList handlers = new HandlerList();
-    private final Multiplier data;
-
-    public MultiplierEnableEvent(Multiplier multiplier) {
-        data = multiplier;
-    }
+    /**
+     * Get the multiplier that fired this event.
+     *
+     * @return the multiplier.
+     */
+    private final Multiplier multiplier;
 
     public static HandlerList getHandlerList() {
         return handlers;
@@ -51,15 +56,6 @@ public class MultiplierEnableEvent extends Event {
      * @throws NullPointerException if the multiplier is fake, this can be null.
      */
     public UUID getEnablerUUID() throws NullPointerException {
-        return data.getEnablerUUID();
-    }
-
-    /**
-     * Get the multiplier that fired this event.
-     *
-     * @return the multiplier.
-     */
-    public Multiplier getMultiplier() {
-        return data;
+        return multiplier.getData().getEnablerUUID();
     }
 }

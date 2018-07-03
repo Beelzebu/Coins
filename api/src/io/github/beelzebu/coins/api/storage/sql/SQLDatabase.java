@@ -272,7 +272,7 @@ public abstract class SQLDatabase implements StorageProvider {
     @Override
     public final Set<Multiplier> getMultipliers(UUID uuid) {
         Set<Multiplier> multipliers = new LinkedHashSet<>();
-        try (Connection c = getConnection(); ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SELECT_ALL_MULTIPLIERS, uuid).executeQuery();) {
+        try (Connection c = getConnection(); ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SELECT_ALL_MULTIPLIERS_PLAYER, uuid).executeQuery();) {
             while (res.next()) {
                 multipliers.add(getMultiplier(res.getInt("id")));
             }
@@ -292,6 +292,20 @@ public abstract class SQLDatabase implements StorageProvider {
             }
         } catch (SQLException ex) {
             plugin.log("An error has occurred getting all the multipliers for " + uuid + " in server " + server);
+            plugin.debug(ex);
+        }
+        return multipliers;
+    }
+
+    @Override
+    public Set<Multiplier> getMultipliers() {
+        Set<Multiplier> multipliers = new LinkedHashSet<>();
+        try (Connection c = getConnection(); ResultSet res = DatabaseUtils.prepareStatement(c, SQLQuery.SELECT_ALL_MULTIPLIERS).executeQuery();) {
+            while (res.next()) {
+                multipliers.add(getMultiplier(res.getInt("id")));
+            }
+        } catch (SQLException ex) {
+            plugin.log("An error has occurred getting all the multipliers");
             plugin.debug(ex);
         }
         return multipliers;
