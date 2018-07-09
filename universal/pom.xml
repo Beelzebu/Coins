@@ -17,12 +17,6 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>coins-common</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
             <artifactId>coins-bukkit</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
@@ -53,7 +47,8 @@
                             <minimizeJar>false</minimizeJar>
                             <artifactSet>
                                 <includes>
-                                    <include>io.github.beelzebu:*</include>
+                                    <include>io.github.beelzebu:coins-bukkit</include>
+                                    <include>io.github.beelzebu:coins-bungee</include>
                                 </includes>
                             </artifactSet>
                         </configuration>

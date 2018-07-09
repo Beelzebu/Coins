@@ -98,7 +98,7 @@
                             <shadedPattern>io.github.beelzebu.lib.commonspool2</shadedPattern>
                         </relocation>
                         <relocation>
-                            <pattern>com.github.benmanes</pattern>
+                            <pattern>com.github.benmanes.caffeine</pattern>
                             <shadedPattern>io.github.beelzebu.lib.caffeine</shadedPattern>
                         </relocation>
                     </relocations>

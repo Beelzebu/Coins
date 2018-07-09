@@ -18,6 +18,7 @@
  */
 package io.github.beelzebu.coins.common.cache;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.base.Preconditions;
@@ -50,10 +51,7 @@ public final class LocalCache implements CacheProvider {
 
     private final CoinsPlugin plugin = CoinsAPI.getPlugin();
 
-    private final LoadingCache<UUID, Double> players = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build((UUID key) -> {
-        plugin.getDatabase().updatePlayer(key, plugin.getName(key, false).toLowerCase());
-        return plugin.getDatabase().getCoins(key);
-    });
+    private final Cache<UUID, Double> players = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build();
     private final List<Multiplier> queuedMultipliers = new ArrayList<>();
     private final LoadingCache<Integer, Multiplier> multipliers = Caffeine.newBuilder().build(k -> {
         Iterator<Multiplier> it = queuedMultipliers.iterator();
@@ -71,7 +69,7 @@ public final class LocalCache implements CacheProvider {
 
     @Override
     public Optional<Double> getCoins(@NonNull UUID uuid) {
-        return Optional.ofNullable(players.get(uuid));
+        return Optional.ofNullable(players.getIfPresent(uuid));
     }
 
     @Override
@@ -91,7 +89,7 @@ public final class LocalCache implements CacheProvider {
 
     @Override
     public Set<Multiplier> getMultipliers(String server) {
-        return multipliers.asMap().values().stream().filter(server::equals).collect(Collectors.toSet());
+        return multipliers.asMap().values().stream().filter(multiplier -> multiplier.getServer().equals(server)).collect(Collectors.toSet());
     }
 
     @Override
@@ -107,7 +105,7 @@ public final class LocalCache implements CacheProvider {
             // check if the multiplier was already stored in this server
             while (lines.hasNext()) {
                 String line = lines.next();
-                if (Objects.requireNonNull(Multiplier.fromJson(line, false)).getId() == multiplier.getId()) {
+                if (Objects.requireNonNull(Multiplier.fromJson(line)).getId() == multiplier.getId()) {
                     exists = true;
                     plugin.debug("Trying to add an existent multiplier: " + line);
                     break;
@@ -133,7 +131,7 @@ public final class LocalCache implements CacheProvider {
         try { // remove it from local multiplier storage
             Iterator<String> lines = Files.readAllLines(plugin.getMultipliersFile().toPath()).iterator();
             while (lines.hasNext()) {
-                if (Objects.requireNonNull(Multiplier.fromJson(lines.next(), false)).getId() == multiplier.getId()) {
+                if (Objects.requireNonNull(Multiplier.fromJson(lines.next())).getId() == multiplier.getId()) {
                     multipliers.invalidate(multiplier.getServer());
                     lines.remove();
                     break;

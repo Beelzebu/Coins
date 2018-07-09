@@ -1,5 +1,5 @@
 # Coins plugin by: Beelzebu
-# If you need support or find a bug open a issuse in the official github repo
+# If you need support or find a bug open a issue in the official github repo
 # https://github.com/Beelzebu/Coins/issues/
 
 # The version of the config, don't touch!
@@ -76,11 +76,18 @@ General:
   Starting Coins: 0
   # Here you can configure the base command of the plugin.
   Command:
-    Name: 'coins'
-    Description: 'Base command of the Coins plugin'
-    Usage: '/coins'
-    Permission: 'coins.use'
-    Aliases: [mycoins, coinsalias]
+    Coins:
+      Name: 'coins'
+      Description: 'Base command of the Coins plugin'
+      Usage: '/coins'
+      Permission: 'coins.use'
+      Aliases: [mycoins, coinsalias]
+    Multiplier:
+      Name: 'multiplier'
+      Description: 'Command to see and edit multipliers'
+      Usage: '/multiplier'
+      Permission: 'coins.use.multiplier'
+      Aliases: [multipliers]
   # Here you can configure the auto purge of inactive accounts.
   Purge:
     Enabled: true # If this is true the old accounts would be purged at server startup.
@@ -103,7 +110,7 @@ General:
   Executor Sign:
     '1': '&c&lCoins'
     '2': '%executor_displayname%'
-    '3': '%xexecutor_cost%'
+    '3': '%executor_cost%'
     '4': ''
   # If you want the users to be created when they join to the server, enable this,
   # otherwise the players will be created when his coins are modified or consulted

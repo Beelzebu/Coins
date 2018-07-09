@@ -46,7 +46,7 @@ public class CoinsCommand extends Command {
     private final CoinsPlugin plugin;
     private final DecimalFormat df = new DecimalFormat("#.#");
 
-    public CoinsCommand(String command, CoinsPlugin plugin) {
+    CoinsCommand(String command, CoinsPlugin plugin) {
         super(command);
         this.plugin = plugin;
     }
@@ -286,7 +286,7 @@ public class CoinsCommand extends Command {
     }
 
     private void top(CommandSender sender, String[] args, String lang) {
-        if (sender.hasPermission(getPermission() + ".top")) {
+        if (!sender.hasPermission(getPermission() + ".top")) {
             sender.sendMessage(plugin.getString("Errors.No permissions", lang));
             return;
         }

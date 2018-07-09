@@ -35,10 +35,7 @@ public final class StringUtils {
             return "";
         }
         if (CoinsAPI.getPlugin() != null) {
-            msg = msg.replace("%prefix%", CoinsAPI
-                    .getPlugin()
-                    .getConfig()
-                    .getString("Prefix", "&c&lCoins &6&l>&7"));
+            msg = msg.replace("%prefix%", CoinsAPI.getPlugin().getConfig().getString("Prefix", "&c&lCoins &6&l>&7"));
         }
         return msg.replace('&', ChatColor.COLOR_CHAR);
     }

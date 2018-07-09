@@ -60,25 +60,11 @@ public final class Multiplier {
         this.server = server;
     }
 
-    public static Multiplier fromJson(String multiplier, boolean callenable) {
+    public static Multiplier fromJson(String multiplier) {
         Preconditions.checkNotNull(multiplier, "Tried to load a null Multiplier");
         CoinsAPI.getPlugin().debug("Loading multiplier from JSON: " + multiplier);
         try {
-            Multiplier jsonMultiplier = CoinsAPI.getPlugin().getGson().fromJson(multiplier, Multiplier.class);// data = CoinsAPI.getPlugin().getGson().fromJson(multiplier, JsonObject.class);
-            /*
-            MultiplierBuilder multi = MultiplierBuilder
-                    .newBuilder(data.get("server").getAsString(), MultiplierType.valueOf(data.get("type").getAsString()), new MultiplierData(UUID.fromString(data.get("enableruuid").getAsString()), data.get("enabler").getAsString(), data.get("amount").getAsInt(), data.get("minutes").getAsInt()))
-                    .setID(data.get("id").getAsInt())
-                    .setEnablerName(data.get("enabler").getAsString())
-                    .setEnablerUUID(UUID.fromString(data.get("enableruuid").getAsString()))
-                    .setQueue(data.get("queue").getAsBoolean())
-                    .setEnabled(data.get("enabled").getAsBoolean());
-            if (data.get("endtime") != null) {
-                multi.setEndTime(data.get("endtime").getAsLong());
-            }
-            return multi.build(callenable);
-            */
-            return jsonMultiplier;
+            return CoinsAPI.getPlugin().getGson().fromJson(multiplier, Multiplier.class);
         } catch (JsonSyntaxException ex) {
             CoinsAPI.getPlugin().debug(ex);
         }
@@ -114,7 +100,7 @@ public final class Multiplier {
         data.setEnablerName(enablerName);
         enabled = true;
         endTime = System.currentTimeMillis() + data.getMinutes() * 60000;
-        if (queue && (CoinsAPI.getMultipliers(server).isEmpty() || CoinsAPI.getMultipliers().stream().noneMatch(Multiplier::isEnabled))) {
+        if (queue && (CoinsAPI.getMultipliers(server).isEmpty() || CoinsAPI.getMultipliers().stream().noneMatch(Multiplier::isEnabled)) || !getType().equals(MultiplierType.SERVER)) {
             queue = false;
         }
         this.queue = queue;
@@ -143,7 +129,7 @@ public final class Multiplier {
         }
     }
 
-    public long checkMultiplierTime() {
+    private long checkMultiplierTime() {
         if (endTime - System.currentTimeMillis() <= 0) {
             disable();
         }
@@ -164,19 +150,6 @@ public final class Multiplier {
     }
 
     public JsonObject toJson() {
-        /*
-        JsonObject multiplier = new JsonObject();
-        multiplier.addProperty("id", getId());
-        multiplier.addProperty("server", getServer());
-        multiplier.addProperty("type", getType().toString());
-        multiplier.addProperty("amount", getAmount());
-        multiplier.addProperty("minutes", getMinutes());
-        multiplier.addProperty("enabler", getEnablerName());
-        multiplier.addProperty("enableruuid", getEnablerUUID().toString());
-        multiplier.addProperty("enabled", isEnabled());
-        multiplier.addProperty("queue", isQueue());
-        multiplier.addProperty("endtime", endTime);
-        */
         return plugin.getGson().toJsonTree(this).getAsJsonObject();
     }
 }

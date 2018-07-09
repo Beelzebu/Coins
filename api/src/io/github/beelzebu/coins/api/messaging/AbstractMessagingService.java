@@ -201,7 +201,7 @@ public abstract class AbstractMessagingService {
             break;
             case MULTIPLIER_UPDATE: {
                 if (message.has("multiplier")) {
-                    Multiplier multiplier = Multiplier.fromJson(message.getAsJsonObject("multiplier").toString(), message.has("enable"));
+                    Multiplier multiplier = Multiplier.fromJson(message.getAsJsonObject("multiplier").toString());
                     plugin.getCache().addMultiplier(multiplier);
                 } else {
                     plugin.getCache().getMultipliers().forEach(multiplier -> sendMessage(objectWith("multiplier", multiplier.toJson()), type));
@@ -209,7 +209,7 @@ public abstract class AbstractMessagingService {
             }
             break;
             case MULTIPLIER_DISABLE: {
-                Multiplier multiplier = Multiplier.fromJson(message.get("multiplier").getAsString(), false);
+                Multiplier multiplier = Multiplier.fromJson(message.get("multiplier").getAsString());
                 plugin.getCache().deleteMultiplier(multiplier); // remove from the local cache and storage
                 if (plugin.getStorageType().equals(StorageType.SQLITE)) {// may be it wasn't removed from this database
                     plugin.getDatabase().deleteMultiplier(multiplier);

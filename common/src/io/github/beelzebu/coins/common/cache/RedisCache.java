@@ -146,7 +146,7 @@ public class RedisCache implements CacheProvider {
         try (Jedis jedis = redis.getPool().getResource()) {
             Set<String> keys = jedis.keys("multiplier:*");
             if (!keys.isEmpty()) {
-                keys.forEach(key -> multipliers.add(Multiplier.fromJson(jedis.get(key), false)));
+                keys.forEach(key -> multipliers.add(Multiplier.fromJson(jedis.get(key))));
             }
         } catch (JedisException | JsonSyntaxException ex) {
             plugin.log("An error has occurred getting all multipliers from cache.");
@@ -170,7 +170,7 @@ public class RedisCache implements CacheProvider {
     private Double getDouble(String string) {
         try {
             return Double.parseDouble(string);
-        } catch (NumberFormatException ignore) {
+        } catch (NumberFormatException | NullPointerException ignore) {
         }
         return null;
     }

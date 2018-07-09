@@ -65,7 +65,7 @@ public class PaginatedMenu {
                 p.playSound(p.getLocation(), Sound.valueOf("CLICK"), 10, PLUGIN.getConfig().getInt("Multipliers.GUI.Close.Pitch", 1));
             } catch (IllegalArgumentException ignore) { // the sound just doesn't exists.
             }
-            PLUGIN.log("Seems that you're using an invalind sound, please edit the config and set the sound that corresponds for the version of your server.");
+            PLUGIN.log("Seems that you're using an invalid sound, please edit the config and set the sound that corresponds for the version of your server.");
             PLUGIN.log("If you're using 1.8 please check http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html\n"
                     + "If you're using 1.9+ use https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html\n"
                     + "If need more help, please open an issue in https://github.com/Beelzebu/Coins/issues");
@@ -79,7 +79,7 @@ public class PaginatedMenu {
         private final List<Multiplier> contents;
         private final int start;
 
-        public MultipliersMenu(Player player, String title, List<Multiplier> contents, int start) {
+        MultipliersMenu(Player player, String title, List<Multiplier> contents, int start) {
             super(54, title);
             this.player = player;
             this.contents = contents;
@@ -92,7 +92,7 @@ public class PaginatedMenu {
             for (int i = 36; i < 45; i++) {
                 setItem(i, ItemBuilder.newBuilder(Material.STAINED_GLASS_PANE).setData(2).setDisplayName("&f").build());
             }
-            setItem(49, getItem(plugin.getConfig(), "Multipliers.GUI.Close"), p -> handleSound(p));
+            setItem(49, getItem(plugin.getConfig(), "Multipliers.GUI.Close"), PaginatedMenu::handleSound);
             if (contents.size() <= 0) {
                 setItem(22, ItemBuilder.newBuilder(Material.POTION).setDisplayName(plugin.getString("Multipliers.Menu.No Multipliers.Name", player.spigot().getLocale())).setLore(StringUtils.rep(plugin.getMessages(player.spigot().getLocale()).getStringList("Multipliers.Menu.No Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build());
             } else {

@@ -360,7 +360,9 @@ public final class CoinsAPI {
     }
 
     public static void setPlugin(@Nonnull CoinsPlugin plugin) {
-        PLUGIN = plugin;
+        if (PLUGIN == null) {
+            PLUGIN = plugin;
+        }
     }
 
     public static void deletePlugin() {

@@ -21,6 +21,7 @@ package io.github.beelzebu.coins.common.plugin;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
+import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.Multiplier;
 import io.github.beelzebu.coins.api.cache.CacheProvider;
 import io.github.beelzebu.coins.api.config.AbstractConfigFile;
@@ -88,6 +89,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
     private CacheProvider cache;
 
     public CommonCoinsPlugin(CoinsBootstrap bootstrap) {
+        CoinsAPI.setPlugin(this);
         this.bootstrap = bootstrap;
         fileManager = new FileManager(this);
     }
@@ -124,8 +126,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
             while (lines.hasNext()) {
                 String line = lines.next();
                 try {
-                    Multiplier multiplier = Multiplier.fromJson(line, false);
-                    getCache().addMultiplier(multiplier);
+                    getCache().addMultiplier(Multiplier.fromJson(line));
                 } catch (JsonParseException ignore) { // Invalid line
                     debug(line + " isn't a valid multiplier in json format.");
                     lines.remove();
@@ -177,9 +178,9 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         switch (storageType) {
             case MARIADB:
             case MYSQL:
-                return database = new MySQL(this);
+                return database = new MySQL(bootstrap.getPlugin());
             case SQLITE:
-                return database = new SQLite(this);
+                return database = new SQLite(bootstrap.getPlugin());
             default:
                 return null;
         }
@@ -279,16 +280,15 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         // Only send this in the onEnable
         if (enable) {
             logToFile("Enabled Coins v: " + bootstrap.getVersion());
-            if (getConfig().isDebug()) {
-                log("Debug mode is enabled.");
-            }
+            debug("Debug mode is enabled.");
             if (!logEnabled) {
-                log("Logging to file is disabled, all debug messages will be sent to the console.");
+                debug("Logging to file is disabled, all debug messages will be sent to the console.");
             }
-            log("Using \"" + storageType.toString().toLowerCase() + "\" for storage.");
+            debug("Using \"" + storageType.toString().toLowerCase() + "\" for storage.");
             if (!messagingService.getType().equals(MessagingService.NONE)) {
-                log("Using \"" + messagingService.getType().toString().toLowerCase() + "\" as messaging service.");
+                debug("Using \"" + messagingService.getType().toString().toLowerCase() + "\" as messaging service.");
             }
+            debug("Using \"" + getCache().getClass().getSimpleName() + "\" for cache");
             bootstrap.runAsync(() -> { // run update check async, so it doesn't delay the startup
                 String upt = "You have the newest version";
                 String response = getFromURL("https://api.spigotmc.org/legacy/update.php?resource=48536");
@@ -303,10 +303,13 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
     }
 
     private String getStackTrace(Exception ex) {
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
-        ex.printStackTrace(printWriter);
-        return stringWriter.toString();
+        try (StringWriter stringWriter = new StringWriter(); PrintWriter printWriter = new PrintWriter(stringWriter)) {
+            ex.printStackTrace(printWriter);
+            return stringWriter.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "Error getting the stacktrace";
     }
 
     private void logToFile(Object msg) {
@@ -334,10 +337,10 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         String response = null;
         try {
             URL url = new URL(surl);
-            Scanner s = new Scanner(url.openStream());
-            if (s.hasNext()) {
-                response = s.next();
-                s.close();
+            try (Scanner s = new Scanner(url.openStream())) {
+                if (s.hasNext()) {
+                    response = s.next();
+                }
             }
         } catch (IOException ex) {
             debug("Failed to connect to URL: " + surl);

@@ -39,7 +39,7 @@ public abstract class AbstractConfigFile {
     }
 
     public List<String> getStringList(String path) {
-        return (List<String>) get(path);
+        return get(path) != null ? (List<String>) get(path) : null;
     }
 
     public boolean getBoolean(String path) {
@@ -47,11 +47,11 @@ public abstract class AbstractConfigFile {
     }
 
     public int getInt(String path) {
-        return (int) get(path, -1);
+        return get(path) instanceof Number ? ((Number) get(path)).intValue() : -1;
     }
 
     public double getDouble(String path) {
-        return (double) get(path, -1);
+        return get(path) instanceof Number ? ((Number) get(path)).doubleValue() : -1;
     }
 
     public Object get(String path, Object def) {
@@ -71,11 +71,11 @@ public abstract class AbstractConfigFile {
     }
 
     public int getInt(String path, int def) {
-        return get(path) != null ? (int) get(path) : def;
+        return get(path) != null ? getInt(path) : def;
     }
 
     public double getDouble(String path, double def) {
-        return get(path) != null ? (double) get(path) : def;
+        return get(path) != null ? getDouble(path) : def;
     }
 
     public abstract Set<String> getConfigurationSection(String path);
