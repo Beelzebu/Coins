@@ -24,6 +24,7 @@ import io.github.beelzebu.coins.api.MultiplierType;
 import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.UUID;
+import javax.annotation.Nonnull;
 
 /**
  * @author Beelzebu
@@ -34,9 +35,9 @@ public interface StorageProvider {
 
     void shutdown();
 
-    void createPlayer(UUID uuid, String name, double balance);
+    void createPlayer(@Nonnull UUID uuid, @Nonnull String name, double balance);
 
-    void updatePlayer(UUID uuid, String name);
+    void updatePlayer(@Nonnull UUID uuid, @Nonnull String name);
 
     UUID getUUID(String name);
 

@@ -244,7 +244,7 @@ public final class CoinsAPI {
      */
     public static boolean isindb(@Nonnull String name) {
         UUID uuid = PLUGIN.getUniqueId(name, false);
-        if (getCoins(uuid != null ? uuid : UUID.randomUUID()) > -1) { // If the player is in the cache it should be in the database.
+        if (PLUGIN.getCache().getCoins(uuid != null ? uuid : UUID.randomUUID()).isPresent()) { // If the player is in the cache it should be in the database.
             return true;
         }
         return PLUGIN.getDatabase().isindb(name);
@@ -257,7 +257,7 @@ public final class CoinsAPI {
      * @return true if the player exists in the database or false if not.
      */
     public static boolean isindb(@Nonnull UUID uuid) {
-        if (getCoins(uuid) > -1) { // If the player is in the cache it should be in the database.
+        if (PLUGIN.getCache().getCoins(uuid).isPresent()) { // If the player is in the cache it should be in the database.
             return true;
         }
         return PLUGIN.getDatabase().isindb(uuid);

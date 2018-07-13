@@ -59,6 +59,7 @@ public class RedisCache implements CacheProvider {
                 jedis.incrByFloat("coins:" + uuid, coins);
             } else {
                 jedis.setex("coins:" + uuid, 1800, Double.toString(coins));
+                plugin.getDatabase().updatePlayer(uuid, plugin.getName(uuid, false));
             }
         } catch (JedisException ex) {
             plugin.log("An error has occurred adding user '" + uuid + "' to cache.");

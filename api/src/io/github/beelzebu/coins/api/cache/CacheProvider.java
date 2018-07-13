@@ -31,8 +31,8 @@ public interface CacheProvider {
     /**
      * Get the coins of this player from the cache.
      *
-     * @param uuid
-     * @return
+     * @param uuid player to lookup in the cache.
+     * @return optional wich may or may not contain the coins.
      */
     Optional<Double> getCoins(UUID uuid);
 

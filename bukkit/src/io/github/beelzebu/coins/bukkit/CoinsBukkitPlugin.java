@@ -27,7 +27,7 @@ import io.github.beelzebu.coins.bukkit.utils.leaderheads.LeaderHeadsHook;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.CoinsPlaceholders;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.MultipliersPlaceholders;
 import io.github.beelzebu.coins.common.plugin.CommonCoinsPlugin;
-import java.util.Arrays;
+import java.util.stream.Stream;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -63,7 +63,7 @@ public class CoinsBukkitPlugin extends CommonCoinsPlugin {
         Bukkit.getPluginManager().registerEvents(new Listener() {
             @EventHandler
             public void onPluginEnable(PluginEnableEvent e) {
-                if (Arrays.asList("Vault", "PlaceholderAPI", "LeaderHeads").stream().anyMatch(plugin -> plugin.equals(e.getPlugin().getName()))) {
+                if (Stream.of("Vault", "PlaceholderAPI", "LeaderHeads").anyMatch(hook -> e.getPlugin().getName().equalsIgnoreCase(hook))) {
                     hookOptionalDependencies();
                 }
             }
@@ -73,7 +73,7 @@ public class CoinsBukkitPlugin extends CommonCoinsPlugin {
     @Override
     public void disable() {
         super.disable();
-        if (getConfig().getBoolean("Vault.Use", false)) {
+        if (getConfig().getBoolean("Vault.Use", false) && vault) {
             new CoinsEconomy((CoinsBukkitMain) getBootstrap()).shutdown();
         }
         ((CoinsBukkitMain) getBootstrap()).getCommandManager().unregisterCommand();
@@ -83,7 +83,7 @@ public class CoinsBukkitPlugin extends CommonCoinsPlugin {
     private void hookOptionalDependencies() {
         // Hook vault
         if (getConfig().getBoolean("Vault.Use", false)) {
-            if (Bukkit.getPluginManager().isPluginEnabled("Vault") && !vault) {
+            if (Bukkit.getPluginManager().getPlugin("Vault") != null && !vault) {
                 log("Vault found, hooking into it.");
                 new CoinsEconomy((CoinsBukkitMain) getBootstrap()).setup();
                 vault = true;

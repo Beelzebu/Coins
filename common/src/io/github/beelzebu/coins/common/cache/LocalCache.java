@@ -74,6 +74,9 @@ public final class LocalCache implements CacheProvider {
 
     @Override
     public void updatePlayer(UUID uuid, double coins) {
+        if (!Optional.ofNullable(players.getIfPresent(uuid)).isPresent()) {
+            plugin.getDatabase().updatePlayer(uuid, plugin.getName(uuid, false));
+        }
         players.put(uuid, coins);
     }
 
