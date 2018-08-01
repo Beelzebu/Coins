@@ -96,9 +96,6 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
 
     @Override
     public void load() {
-        EnumSet<Dependency> dependencies = EnumSet.of(Dependency.CAFFEINE);
-        log("Loading main dependencies: " + dependencies);
-        getDependencyManager().loadDependencies(dependencies);
         fileManager.copyFiles();
     }
 
@@ -117,6 +114,9 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
             messagingService = new RedisMessaging();
         } else {
             messagingService = new DummyMessaging();
+        }
+        if (messagingService.getType() != MessagingService.REDIS) {
+            getDependencyManager().loadDependencies(EnumSet.of(Dependency.CAFFEINE));
         }
         try {
             if (!getMultipliersFile().exists()) {
