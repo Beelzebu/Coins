@@ -58,45 +58,43 @@ public class CoinsCommand extends Command {
             sender.sendMessage(plugin.getString("Errors.No permissions", lang));
             return true;
         }
-        plugin.getBootstrap().runAsync(() -> {
-            if (args.length == 0) {
-                if (sender instanceof Player) {
-                    sender.sendMessage(plugin.getString("Coins.Own coins", lang).replaceAll("%coins%", CoinsAPI.getCoinsString(sender.getName())));
-                } else {
-                    sender.sendMessage(plugin.getString("Errors.Console", ""));
-                }
-            } else if (args[0].equalsIgnoreCase("execute")) {
-                execute(sender, args, lang);
-            } else if ((args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("ayuda")) && args.length == 1) {
-                help(sender, args, lang);
-            } else if ((args[0].equalsIgnoreCase("pay") || args[0].equalsIgnoreCase("p") || args[0].equalsIgnoreCase("pagar"))) {
-                pay(sender, args, lang);
-            } else if ((args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("dar"))) {
-                give(sender, args, lang);
-            } else if ((args[0].equalsIgnoreCase("take") || args[0].equalsIgnoreCase("quitar"))) {
-                take(sender, args, lang);
-            } else if ((args[0].equalsIgnoreCase("reset"))) {
-                reset(sender, args, lang);
-            } else if ((args[0].equalsIgnoreCase("set"))) {
-                set(sender, args, lang);
-            } else if (args[0].equalsIgnoreCase("multiplier") || args[0].equalsIgnoreCase("multipliers")) {
-                multiplier(sender, args, lang);
-            } else if (args[0].equalsIgnoreCase("top") && args.length == 1) {
-                top(sender, args, lang);
-            } else if (args[0].equalsIgnoreCase("import")) {
-                importer(sender, args, lang);
-            } else if (args[0].equalsIgnoreCase("importdb")) {
-                importDB(sender, args, lang);
-            } else if (args[0].equalsIgnoreCase("reload")) {
-                reload(sender);
-            } else if (args[0].equalsIgnoreCase("about")) {
-                about(sender);
-            } else if (args.length == 1 && CoinsAPI.isindb(args[0])) {
-                target(sender, args, lang);
+        if (args.length == 0) {
+            if (sender instanceof Player) {
+                sender.sendMessage(plugin.getString("Coins.Own coins", lang).replaceAll("%coins%", CoinsAPI.getCoinsString(sender.getName())));
             } else {
-                sender.sendMessage(plugin.getString("Errors.Unknown command", lang));
+                sender.sendMessage(plugin.getString("Errors.Console", ""));
             }
-        });
+        } else if (args[0].equalsIgnoreCase("execute")) {
+            execute(sender, args, lang);
+        } else if ((args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("ayuda")) && args.length == 1) {
+            help(sender, args, lang);
+        } else if ((args[0].equalsIgnoreCase("pay") || args[0].equalsIgnoreCase("p") || args[0].equalsIgnoreCase("pagar"))) {
+            pay(sender, args, lang);
+        } else if ((args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("dar"))) {
+            give(sender, args, lang);
+        } else if ((args[0].equalsIgnoreCase("take") || args[0].equalsIgnoreCase("quitar"))) {
+            take(sender, args, lang);
+        } else if ((args[0].equalsIgnoreCase("reset"))) {
+            reset(sender, args, lang);
+        } else if ((args[0].equalsIgnoreCase("set"))) {
+            set(sender, args, lang);
+        } else if (args[0].equalsIgnoreCase("multiplier") || args[0].equalsIgnoreCase("multipliers")) {
+            multiplier(sender, args, lang);
+        } else if (args[0].equalsIgnoreCase("top") && args.length == 1) {
+            top(sender, args, lang);
+        } else if (args[0].equalsIgnoreCase("import")) {
+            importer(sender, args, lang);
+        } else if (args[0].equalsIgnoreCase("importdb")) {
+            importDB(sender, args, lang);
+        } else if (args[0].equalsIgnoreCase("reload")) {
+            reload(sender);
+        } else if (args[0].equalsIgnoreCase("about")) {
+            about(sender);
+        } else if (args.length == 1 && CoinsAPI.isindb(args[0])) {
+            target(sender, args, lang);
+        } else {
+            sender.sendMessage(plugin.getString("Errors.Unknown command", lang));
+        }
         return true;
     }
 
