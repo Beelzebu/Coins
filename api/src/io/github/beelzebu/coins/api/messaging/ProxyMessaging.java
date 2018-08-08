@@ -23,7 +23,7 @@ package io.github.beelzebu.coins.api.messaging;
  */
 public abstract class ProxyMessaging extends AbstractMessagingService {
 
-    protected static final String CHANNEL = "Coins";
+    protected static final String CHANNEL = "coins:updates";
 
     @Override
     public final MessagingService getType() {
