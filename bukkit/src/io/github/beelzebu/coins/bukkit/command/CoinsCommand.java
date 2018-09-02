@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -18,42 +18,37 @@
  */
 package io.github.beelzebu.coins.bukkit.command;
 
-import com.google.common.collect.Lists;
 import io.github.beelzebu.coins.api.CoinsAPI;
-import io.github.beelzebu.coins.api.MultiplierType;
 import io.github.beelzebu.coins.api.executor.Executor;
 import io.github.beelzebu.coins.api.executor.ExecutorManager;
-import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.storage.StorageType;
 import io.github.beelzebu.coins.api.utils.StringUtils;
 import io.github.beelzebu.coins.bukkit.CoinsBukkitMain;
-import io.github.beelzebu.coins.bukkit.menus.PaginatedMenu;
 import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
+import io.github.beelzebu.coins.bukkit.utils.CompatUtils;
 import io.github.beelzebu.coins.common.importer.ImportManager;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Map;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 /**
  * @author Beelzebu
  */
-public class CoinsCommand extends Command {
+public class CoinsCommand extends AbstractCoinsCommand {
 
-    private final CoinsPlugin plugin;
     private final DecimalFormat df = new DecimalFormat("#.#");
 
-    CoinsCommand(String command, CoinsPlugin plugin) {
+    CoinsCommand(String command) {
         super(command);
-        this.plugin = plugin;
     }
 
     @Override
     public boolean execute(CommandSender sender, String alias, String[] args) {
-        String lang = sender instanceof Player ? ((Player) sender).spigot().getLocale().split("_")[0] : "";
+        String lang = sender instanceof Player ? CompatUtils.getLocale((Player) sender).split("_")[0] : "";
         if (!sender.hasPermission(getPermission())) {
             sender.sendMessage(plugin.getString("Errors.No permissions", lang));
             return true;
@@ -66,26 +61,24 @@ public class CoinsCommand extends Command {
             }
         } else if (args[0].equalsIgnoreCase("execute")) {
             execute(sender, args, lang);
-        } else if ((args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("ayuda")) && args.length == 1) {
-            help(sender, args, lang);
-        } else if ((args[0].equalsIgnoreCase("pay") || args[0].equalsIgnoreCase("p") || args[0].equalsIgnoreCase("pagar"))) {
+        } else if (args[0].equalsIgnoreCase("help") && args.length == 1) {
+            help(sender, lang);
+        } else if (args[0].equalsIgnoreCase("pay") || args[0].equalsIgnoreCase("p")) {
             pay(sender, args, lang);
-        } else if ((args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("dar"))) {
+        } else if (args[0].equalsIgnoreCase("give")) {
             give(sender, args, lang);
-        } else if ((args[0].equalsIgnoreCase("take") || args[0].equalsIgnoreCase("quitar"))) {
+        } else if (args[0].equalsIgnoreCase("take")) {
             take(sender, args, lang);
-        } else if ((args[0].equalsIgnoreCase("reset"))) {
+        } else if (args[0].equalsIgnoreCase("reset")) {
             reset(sender, args, lang);
-        } else if ((args[0].equalsIgnoreCase("set"))) {
+        } else if (args[0].equalsIgnoreCase("set")) {
             set(sender, args, lang);
-        } else if (args[0].equalsIgnoreCase("multiplier") || args[0].equalsIgnoreCase("multipliers")) {
-            multiplier(sender, args, lang);
         } else if (args[0].equalsIgnoreCase("top") && args.length == 1) {
-            top(sender, args, lang);
+            top(sender, lang);
         } else if (args[0].equalsIgnoreCase("import")) {
-            importer(sender, args, lang);
+            importer(sender, args);
         } else if (args[0].equalsIgnoreCase("importdb")) {
-            importDB(sender, args, lang);
+            importDB(sender, args);
         } else if (args[0].equalsIgnoreCase("reload")) {
             reload(sender);
         } else if (args[0].equalsIgnoreCase("about")) {
@@ -98,7 +91,7 @@ public class CoinsCommand extends Command {
         return true;
     }
 
-    private void help(CommandSender sender, String[] args, String lang) {
+    private void help(CommandSender sender, String lang) {
         plugin.getMessages(lang).getStringList("Help.User").forEach(line -> sender.sendMessage(StringUtils.rep(line)));
         if (sender.hasPermission(getPermission() + ".admin.help")) {
             plugin.getMessages(lang).getStringList("Help.Admin").forEach(line -> sender.sendMessage(StringUtils.rep(line)));
@@ -134,8 +127,8 @@ public class CoinsCommand extends Command {
                                 sender.sendMessage(plugin.getString("Coins.Pay", lang).replaceAll("%coins%", new DecimalFormat("#.#").format(coins)).replaceAll("%target%", target.getName()));
                             }
                             CoinsAPI.addCoins(args[1], coins, false);
-                            if (!plugin.getString("Coins.Pay target", target.spigot().getLocale()).equals("")) {
-                                target.sendMessage(plugin.getString("Coins.Pay target", target.spigot().getLocale()).replaceAll("%coins%", df.format(coins)).replaceAll("%from%", sender.getName()));
+                            if (!plugin.getString("Coins.Pay target", CompatUtils.getLocale(target)).equals("")) {
+                                target.sendMessage(plugin.getString("Coins.Pay target", CompatUtils.getLocale(target)).replaceAll("%coins%", df.format(coins)).replaceAll("%from%", sender.getName()));
                             }
                         } else {
                             sender.sendMessage(plugin.getString("Errors.Unknown player", lang));
@@ -159,7 +152,7 @@ public class CoinsCommand extends Command {
             sender.sendMessage(plugin.getString("Errors.No permissions", lang));
             return;
         }
-        if (args.length < 3 || args.length >= 4 || (args.length >= 3 && !isNumber(args[2]))) {
+        if (args.length != 3 && args.length != 4 && !isNumber(args[2])) {
             sender.sendMessage(plugin.getString("Help.Give Usage", lang));
             return;
         }
@@ -168,21 +161,20 @@ public class CoinsCommand extends Command {
             return;
         }
         String multiplier = "";
-        boolean multiply = false;
+        boolean multiply = args.length == 4 && getBoolean(args[3].toLowerCase());
         if (args.length == 3 || args.length == 4) {
             double coins = Double.parseDouble(args[2]);
-            if (plugin.getBootstrap().isOnline(plugin.getUniqueId(args[1], false)) && args.length == 4 && args[3].equalsIgnoreCase("true")) {
-                multiply = true;
+            if (plugin.getBootstrap().isOnline(plugin.getUniqueId(args[1], false)) && multiply) {
                 Player target = Bukkit.getPlayer(args[1]);
                 int amount = !CoinsAPI.getMultipliers().isEmpty() ? CoinsAPI.getMultipliers().stream().mapToInt(m -> m.getData().getAmount()).sum() : 1;
                 if (amount > 1) {
-                    multiplier = plugin.getString("Multipliers.Format", target.spigot().getLocale()).replaceAll("%multiplier%", df.format(amount)).replaceAll("%enabler%", CoinsAPI.getMultipliers().stream().findFirst().get().getData().getEnablerName());
+                    multiplier = plugin.getString("Multipliers.Format", CompatUtils.getLocale(target)).replaceAll("%multiplier%", df.format(amount)).replaceAll("%enabler%", CoinsAPI.getMultipliers().stream().findFirst().get().getData().getEnablerName());
                 }
             }
             if (plugin.getBootstrap().isOnline(plugin.getUniqueId(args[1], false))) {
                 Player target = Bukkit.getPlayer(plugin.getUniqueId(args[1], false));
-                if (!plugin.getString("Coins.Give target", target.spigot().getLocale()).equals("")) {
-                    target.sendMessage(plugin.getString("Coins.Give target", target.spigot().getLocale()).replaceAll("%coins%", df.format(coins)).replaceAll("%multiplier_format%", multiplier));
+                if (!plugin.getString("Coins.Give target", CompatUtils.getLocale(target)).equals("")) {
+                    target.sendMessage(plugin.getString("Coins.Give target", CompatUtils.getLocale(target)).replaceAll("%coins%", df.format(coins)).replaceAll("%multiplier_format%", multiplier));
                 }
             }
             CoinsAPI.addCoins(args[1], coins, multiply);
@@ -220,8 +212,8 @@ public class CoinsCommand extends Command {
                 sender.sendMessage(plugin.getString("Coins.Take", lang).replaceAll("%coins%", df.format(coins)).replaceAll("%newcoins%", df.format(finalCoins)).replaceAll("%target%", args[1]));
             }
             if (target != null) {
-                if (!plugin.getString("Coins.Take target", target.spigot().getLocale()).equals("")) {
-                    target.sendMessage(plugin.getString("Coins.Take target", target.spigot().getLocale()).replaceAll("%coins%", df.format(finalCoins)));
+                if (!plugin.getString("Coins.Take target", CompatUtils.getLocale(target)).equals("")) {
+                    target.sendMessage(plugin.getString("Coins.Take target", CompatUtils.getLocale(target)).replaceAll("%coins%", df.format(finalCoins)));
                 }
             }
         }
@@ -249,8 +241,8 @@ public class CoinsCommand extends Command {
                 sender.sendMessage(plugin.getString("Coins.Reset", lang).replaceAll("%target%", args[1]));
             }
         }
-        if (target != null && !plugin.getString("Coins.Reset target", target.spigot().getLocale()).equals("")) {
-            target.sendMessage(plugin.getString("Coins.Reset target", target.spigot().getLocale()));
+        if (target != null && !plugin.getString("Coins.Reset target", CompatUtils.getLocale(target)).equals("")) {
+            target.sendMessage(plugin.getString("Coins.Reset target", CompatUtils.getLocale(target)));
         }
     }
 
@@ -276,14 +268,14 @@ public class CoinsCommand extends Command {
                     return;
                 }
                 Player target = Bukkit.getPlayer(args[1]);
-                if (target != null && !plugin.getString("Coins.Set target", target.spigot().getLocale()).equals("")) {
-                    target.sendMessage(plugin.getString("Coins.Set target", target.spigot().getLocale()).replaceAll("%coins%", args[2]));
+                if (target != null && !plugin.getString("Coins.Set target", CompatUtils.getLocale(target)).equals("")) {
+                    target.sendMessage(plugin.getString("Coins.Set target", CompatUtils.getLocale(target)).replaceAll("%coins%", args[2]));
                 }
             }
         }
     }
 
-    private void top(CommandSender sender, String[] args, String lang) {
+    private void top(CommandSender sender, String lang) {
         if (!sender.hasPermission(getPermission() + ".top")) {
             sender.sendMessage(plugin.getString("Errors.No permissions", lang));
             return;
@@ -293,52 +285,6 @@ public class CoinsCommand extends Command {
         for (Map.Entry<String, Double> ent : CoinsAPI.getTopPlayers(10).entrySet()) {
             i++;
             sender.sendMessage(plugin.getString("Coins.Top.List", lang).replaceAll("%top%", String.valueOf(i)).replaceAll("%player%", ent.getKey()).replaceAll("%coins%", df.format(ent.getValue())));
-        }
-    }
-
-    /**
-     * TODO List:
-     * <ul>
-     * <li>add a command to get all multipliers for a player</li>
-     * <li>add a command to enable any multiplier by the ID</li>
-     * <li>add an argument to change multiplier type</li>
-     * <li>add a command to edit existing multipliers</li>
-     * <li>update messages files to match new command</li>
-     * </ul>
-     */
-    private void multiplier(CommandSender sender, String[] args, String lang) {
-        if (sender.hasPermission(getPermission() + ".admin.multiplier") && args.length >= 2) {
-            if (args[1].equalsIgnoreCase("help")) {
-                plugin.getMessages(lang).getStringList("Help.Multiplier").forEach(line -> {
-                    sender.sendMessage(StringUtils.rep(line));
-                });
-            }
-            if (args[1].equalsIgnoreCase("create")) {
-                if (args.length >= 5 && CoinsAPI.isindb(args[2])) {
-                    if (!isNumber(args[3]) || !isNumber(args[4])) {
-                        sender.sendMessage(plugin.getString("Help.Multiplier Create", lang));
-                    }
-                    int multiplier = Integer.parseInt(args[3]);
-                    int minutes = Integer.parseInt(args[4]);
-                    plugin.getDatabase().createMultiplier(plugin.getUniqueId(args[2], false), multiplier, minutes, ((args.length == 6 && !args[5].equals("")) ? args[5] : plugin.getConfig().getServerName()), MultiplierType.SERVER);
-                    sender.sendMessage(plugin.getString("Multipliers.Created", lang).replaceAll("%player%", args[2]));
-                } else {
-                    sender.sendMessage(plugin.getString("Help.Multiplier Create", lang));
-                }
-            }
-            if (args[1].equalsIgnoreCase("get")) {
-                sender.sendMessage(CoinsAPI.getMultipliers().stream().findFirst().get().getMultiplierTimeFormatted());
-            }
-            return;
-        }
-        if (args.length == 1) {
-            if (sender instanceof Player) {
-                PaginatedMenu.createPaginatedGUI((Player) sender, Lists.newLinkedList(CoinsAPI.getAllMultipliersFor(((Player) sender).getUniqueId()))).open((Player) sender);
-            } else {
-                sender.sendMessage(plugin.getString("Errors.Console", lang));
-            }
-        } else {
-            sender.sendMessage(plugin.getString("Help.Multiplier Usage", lang));
         }
     }
 
@@ -377,8 +323,8 @@ public class CoinsCommand extends Command {
         }
     }
 
-    private void importer(CommandSender sender, String[] args, String lang) {
-        if (sender instanceof Player) {
+    private void importer(CommandSender sender, String[] args) {
+        if (!(sender instanceof ConsoleCommandSender)) {
             sender.sendMessage(StringUtils.rep("%prefix% &cThis command must be executed from the console."));
             return;
         }
@@ -402,8 +348,8 @@ public class CoinsCommand extends Command {
         }
     }
 
-    private void importDB(CommandSender sender, String[] args, String lang) {
-        if (sender instanceof Player) {
+    private void importDB(CommandSender sender, String[] args) {
+        if (!(sender instanceof ConsoleCommandSender)) {
             sender.sendMessage(StringUtils.rep("%prefix% &cThis command must be executed from the console."));
             return;
         }
@@ -461,14 +407,10 @@ public class CoinsCommand extends Command {
         sender.sendMessage("");
     }
 
-    private boolean isNumber(String number) {
-        if (number == null) {
-            return false;
-        }
+    private boolean getBoolean(String string) {
         try {
-            Double.parseDouble(number);
-            return true;
-        } catch (NumberFormatException ex) {
+            return Boolean.parseBoolean(string);
+        } catch (Exception ex) {
             return false;
         }
     }

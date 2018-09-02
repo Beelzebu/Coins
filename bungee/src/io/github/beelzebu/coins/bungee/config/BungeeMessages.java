@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -55,13 +55,12 @@ public class BungeeMessages extends AbstractConfigFile {
         load(langFile);
     }
 
-    private net.md_5.bungee.config.Configuration load(File file) {
+    private void load(File file) {
         langFile = file;
         try {
             messages = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
         } catch (IOException ex) {
             Logger.getLogger(BungeeConfig.class.getName()).log(Level.WARNING, "An unexpected error has occurred reloading the messages file. {0}", ex.getMessage());
         }
-        return messages;
     }
 }

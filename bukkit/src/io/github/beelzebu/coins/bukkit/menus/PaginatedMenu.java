@@ -1,7 +1,7 @@
-/**
+/*
  * This file is part of Coins
  *
- * Copyright (C) 2018 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -20,9 +20,13 @@ package io.github.beelzebu.coins.bukkit.menus;
 
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.Multiplier;
+import io.github.beelzebu.coins.api.config.AbstractConfigFile;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.utils.StringUtils;
+import io.github.beelzebu.coins.bukkit.utils.CompatUtils;
 import io.github.beelzebu.coins.bukkit.utils.ItemBuilder;
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -31,6 +35,7 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 /**
  * @author Beelzebu
@@ -39,36 +44,32 @@ import org.bukkit.inventory.ItemStack;
 public class PaginatedMenu {
 
     private static final CoinsPlugin PLUGIN = CoinsAPI.getPlugin();
+    private static final AbstractConfigFile MULTIPLIERS_CONFIG = PLUGIN.getBootstrap().getFileAsConfig(new File(PLUGIN.getBootstrap().getDataFolder(), "multipliers.yml"));
 
-    public static CoinsMenu createPaginatedGUI(Player player, List<Multiplier> contents) {
-        return nextPage(player, contents, contents.size() > 53, 0);
+    public static CoinsMenu createPaginatedGUI(Player player, boolean global) {
+        List<Multiplier> contents = new ArrayList<>(global ? CoinsAPI.getMultipliersFor(player.getUniqueId()) : CoinsAPI.getMultipliersFor(player.getUniqueId(), PLUGIN.getConfig().getServerName()));
+        return nextPage(player, contents, global, contents.size() >= 36, 0, null);
     }
 
-    private static CoinsMenu nextPage(Player player, List<Multiplier> contents, boolean hasNext, int start) {
-        CoinsMenu menu = new MultipliersMenu(player, PLUGIN.getString("Multipliers.Menu.Title", player.spigot().getLocale()), contents, start);
+    private static CoinsMenu nextPage(Player player, List<Multiplier> contents, boolean global, boolean hasNext, int start, CoinsMenu prevPage) {
+        CoinsMenu menu = new MultipliersMenu(player, PLUGIN.getString("Menus.Multipliers." + (global ? "Global" : "Local") + ".Title", CompatUtils.getLocale(player)), contents, start, global);
         if (hasNext) {
             // TODO: add a option to configure this
-            menu.setItem(53, ItemBuilder.newBuilder(Material.ARROW).setDisplayName("next").build(), p -> nextPage(p, contents, hasNext, start + 36).open(p));
+            menu.setItem(53, menu.getItem(MULTIPLIERS_CONFIG, "Menus.Multipliers." + (global ? "Global" : "Local") + ".Next", player), p -> nextPage(p, contents, global, true, start + 36, menu).open(p));
+        }
+        if (prevPage != null) {
+            menu.setItem(45, menu.getItem(MULTIPLIERS_CONFIG, "Menus.Multipliers." + (global ? "Global" : "Local") + ".Next", player), prevPage::open);
         }
         return menu;
     }
 
-    private static ItemStack getItemFor(Player player, Multiplier multiplier) {
-        return ItemBuilder.newBuilder(Material.POTION).setDisplayName(StringUtils.rep(PLUGIN.getString("Multipliers.Menu.Multipliers.Name", player.spigot().getLocale()), multiplier)).setLore(StringUtils.rep(PLUGIN.getMessages(player.spigot().getLocale()).getStringList("Multipliers.Menu.Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build();
-    }
-
-    private static void handleSound(Player p) {
-        try { // try to play the sound for 1.9
-            p.playSound(p.getLocation(), Sound.valueOf(PLUGIN.getConfig().getString("Multipliers.GUI.Close.Sound")), 10, PLUGIN.getConfig().getInt("Multipliers.GUI.Close.Pitch", 1));
-        } catch (IllegalArgumentException ex) { // may be is 1.8
-            try {
-                p.playSound(p.getLocation(), Sound.valueOf("CLICK"), 10, PLUGIN.getConfig().getInt("Multipliers.GUI.Close.Pitch", 1));
-            } catch (IllegalArgumentException ignore) { // the sound just doesn't exists.
-            }
+    private static void handleCloseSound(String path, Player p) {
+        try {
+            p.playSound(p.getLocation(), Sound.valueOf(MULTIPLIERS_CONFIG.getString(path + ".Sound")), 10, MULTIPLIERS_CONFIG.getInt(path + ".Pitch", 1));
+        } catch (IllegalArgumentException ex) {
             PLUGIN.log("Seems that you're using an invalid sound, please edit the config and set the sound that corresponds for the version of your server.");
-            PLUGIN.log("If you're using 1.8 please check http://docs.codelanx.com/Bukkit/1.8/org/bukkit/Sound.html\n"
-                    + "If you're using 1.9+ use https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html\n"
-                    + "If need more help, please open an issue in https://github.com/Beelzebu/Coins/issues");
+            PLUGIN.log("Please check https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html\nIf need more help, please open an issue in https://github.com/Beelzebu/Coins/issues");
+        } catch (NullPointerException ignore) {
         }
         p.closeInventory();
     }
@@ -78,29 +79,41 @@ public class PaginatedMenu {
         private final Player player;
         private final List<Multiplier> contents;
         private final int start;
+        private final String path;
 
-        MultipliersMenu(Player player, String title, List<Multiplier> contents, int start) {
+        MultipliersMenu(Player player, String title, List<Multiplier> contents, int start, boolean global) {
             super(54, title);
             this.player = player;
             this.contents = contents;
             this.start = start;
+            path = "Menus.Multipliers." + (global ? "Global" : "Local");
             setItems();
         }
 
         @Override
         protected void setItems() {
             for (int i = 36; i < 45; i++) {
-                setItem(i, ItemBuilder.newBuilder(Material.STAINED_GLASS_PANE).setData(2).setDisplayName("&f").build());
+                setItem(i, ItemBuilder.newBuilder(CompatUtils.getItem(CompatUtils.MaterialItem.MAGENTA_STAINED_GLASS_PANE)).setDisplayName("&f").build());
             }
-            setItem(49, getItem(plugin.getConfig(), "Multipliers.GUI.Close"), PaginatedMenu::handleSound);
+            setItem(49, getItem(MULTIPLIERS_CONFIG, path + ".Close"), p -> handleCloseSound(path + ".Close", p));
             if (contents.size() <= 0) {
-                setItem(22, ItemBuilder.newBuilder(Material.POTION).setDisplayName(plugin.getString("Multipliers.Menu.No Multipliers.Name", player.spigot().getLocale())).setLore(StringUtils.rep(plugin.getMessages(player.spigot().getLocale()).getStringList("Multipliers.Menu.No Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build());
+                setItem(22, ItemBuilder.newBuilder(Material.POTION).setDisplayName(plugin.getString("Multipliers.Menu.No Multipliers.Name", CompatUtils.getLocale(player))).setLore(StringUtils.rep(plugin.getMessages(CompatUtils.getLocale(player)).getStringList("Multipliers.Menu.No Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build());
             } else {
                 for (int i = 0; i <= (contents.size() - 1 < 35 ? contents.size() - 1 : 35); i++) {
                     Multiplier multiplier = contents.get(start + i);
-                    setItem(i, getItemFor(player, multiplier), p -> new ConfirmMenu(p, plugin.getString("Multipliers.Menu.Confirm.Title", p.spigot().getLocale()), multiplier).open(p));
+                    setItem(i, getMultiplier(player, multiplier), p -> new ConfirmMenu(p, plugin.getString("Multipliers.Menu.Confirm.Title", CompatUtils.getLocale(p)), multiplier).open(p));
                 }
             }
+        }
+
+        private ItemStack getMultiplier(Player player, Multiplier multiplier) {
+            String path = this.path + ".Multiplier";
+            ItemStack is = super.getItem(MULTIPLIERS_CONFIG, path, player);
+            ItemMeta meta = is.getItemMeta();
+            meta.setDisplayName(StringUtils.rep(meta.getDisplayName(), multiplier));
+            meta.setLore(StringUtils.rep(meta.getLore(), multiplier));
+            is.setItemMeta(meta);
+            return is;
         }
     }
 }

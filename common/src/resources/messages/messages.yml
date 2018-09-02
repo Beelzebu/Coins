@@ -1,15 +1,15 @@
 # Coins messages file.
-# If you need support or find a bug open a issuse in
+# If you need support or find a bug open a issue in
 # the official github repo https://github.com/Beelzebu/Coins/issuses/
 
 # The version of this file, is used to auto update this file, don't change it
 # unless you know what you do.
-version: 10
+version: 11
 
 Help:
   User:
   - '&8&m+-------------------------------------------------+'
-  - '%prefix% Avaliable commands:'
+  - '%prefix% Available commands:'
   - ' '
   - ' &a/coins help &f- &7Show this help message.'
   - ' &a/coins &f- &7Show your coins.'
@@ -50,7 +50,7 @@ Help:
 Errors:
   No permissions: '%prefix% &cYou don''t have permissions.'
   Unknown command: '%prefix% &cUnknown command, try &f/coins help &cto see all avalable commands.'
-  Unknown player: '%prefix% &cThe player %target% can''t be found in the database.'
+  Unknown player: '%prefix% &cThe player %target% can''t be found in the storageProvider.'
   Console: '%prefix% &cYou need to be a Player.'
   No Negative: '%prefix% &cYou can''t set negative coins!'
   No Zero: '%prefix% &cThe amount can''t be zero.'
@@ -65,7 +65,7 @@ Coins:
   Pay: '%prefix% You paid &f%coins%&7 coins to &f%target%&7.'
   Pay target: '%prefix% &f%from%&7 paid you &f%coins%&7 coins.'
   Give: '%prefix% You gave &f%coins%&7 coins to &f%target%&7.'
-  Give target: '%prefix% You recived &f%coins%&7. %multiplier_format%'
+  Give target: '%prefix% You received &f%coins%&7. %multiplier_format%'
   Take: '%prefix% You removed &f%coins%&7 from &f%target%&7, new balance: &f%newcoins%&7.'
   Take target: '%prefix% Your coins has been modified to &f%coins%&7.'
   Set: '%prefix% The coins of %target% has been set to &f%coins%&7.'
@@ -98,7 +98,7 @@ Multipliers:
     Enabler:
       Message: '&8➠ Multiplier enabled by &a%enabler%'
       Anyone: '&8➠ No multiplier active :('
-  Created: '%prefix% You sucessfull created a multiplier for %player%.'
+  Created: '%prefix% You successfully created a multiplier for %player%.'
   Set:
   - '%prefix% A multiplier with the following data was set for %server%'
   - '  &7Enabler: &c%enabler%'
@@ -107,3 +107,67 @@ Multipliers:
   No Multipliers: '%prefix% You don''t have any multiplier.'
   Already active: '%prefix% There is an active multiplier already, your multiplier was queued and will be enabled when the active multiplier finish.'
   Format: '&8(&bx%multiplier%&8) &aMultiplier enabled by &c%enabler%&a!'
+Menus:
+  Main:
+    Title: '&8Multipliers Menu'
+    Items:
+      'global':
+        Name: '&3Global multipliers'
+        Lore:
+        - ''
+        - '&7Click to see your global multipliers'
+      'local':
+        Name: '&3Local multipliers'
+        Lore:
+        - ''
+        - '&7Click to see your multipliers for this server'
+      'custom':
+        Name: '&6Custom item'
+        Lore:
+        - ''
+        - '&7This is a custom item, is an example to'
+        - '&7show you how add items that can execute'
+        - '&7commands from the console or as the player.'
+        - '&7You can edit these names and descriptions'
+        - '&7in the messages.yml file, and translate it'
+        - '&7to any other language in the respective file'
+  Multipliers:
+    Global:
+      Multiplier:
+        Name: '&6Multiplier &cx%amount%'
+        Lore:
+        - ''
+        - '&7Amount: &c%amount%'
+        - '&7Server: &c%server%'
+        - '&7Minutes: &c%minutes%'
+        - ''
+        - '&7ID: &c#%id%'
+      Close:
+        Name: '&6Close inventory'
+        Lore:
+        - ''
+        - '&7Click to close this inventory'
+      Next:
+        Name: '&aNext page'
+        Lore:
+        - ''
+        - '&7Click to visit the next page'
+    Local:
+      Multiplier:
+        Name: '&6Multiplier &cx%amount%'
+        Lore:
+        - ''
+        - '&7Amount: &c%amount%'
+        - '&7Minutes: &c%minutes%'
+        - ''
+        - '&7ID: &c#%id%'
+      Close:
+        Name: '&6Close inventory'
+        Lore:
+        - ''
+        - '&7Click to close this inventory'
+      Next:
+        Name: '&aNext page'
+        Lore:
+        - ''
+        - '&7Click to visit the next page'

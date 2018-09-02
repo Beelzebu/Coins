@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -20,6 +20,7 @@ package io.github.beelzebu.coins.bukkit.command;
 
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import org.bukkit.Bukkit;
@@ -74,9 +75,12 @@ public class CommandManager {
     }
 
     public void registerCommand() {
-        cmd = new CoinsCommand(plugin.getConfig().getString("General.Command.Name", "coins"), plugin).setDescription(plugin.getConfig().getString("General.Command.Description", "Base command of the Coins plugin")).setAliases(plugin.getConfig().getStringList("General.Command.Coins.Aliases")).setUsage(plugin.getConfig().getString("General.Command.Usage", "/coins"));
-        cmd.setPermission(plugin.getConfig().getString("General.Command.Permission", "coins.use"));
+        cmd = new CoinsCommand(plugin.getConfig().getString("General.Command.Coins.Name", "coins")).setDescription(plugin.getConfig().getString("General.Command.Coins.Description", "Base command of the Coins plugin")).setAliases(plugin.getConfig().getStringList("General.Command.Coins.Aliases", new ArrayList<>())).setUsage(plugin.getConfig().getString("General.Command.Coins.Usage", "/coins"));
+        cmd.setPermission(plugin.getConfig().getString("General.Command.Coins.Permission", "coins.use"));
         registerCommand((Plugin) plugin.getBootstrap(), cmd);
+        Command multiplier = new MultipliersCommand(plugin.getConfig().getString("General.Command.Multiplier.Name", "multiplier")).setDescription(plugin.getConfig().getString("General.Command.Multiplier.Description", "Command to manage coins multipliers")).setAliases(plugin.getConfig().getStringList("General.Command.Multiplier.Aliases", new ArrayList<>())).setUsage(plugin.getConfig().getString("General.Command.Multiplier.Usage", "/multiplier"));
+        multiplier.setPermission(plugin.getConfig().getString("General.Command.Multiplier.Permission", "coins.multiplier"));
+        registerCommand((Plugin) plugin.getBootstrap(), multiplier);
     }
 
     public void unregisterCommand() {

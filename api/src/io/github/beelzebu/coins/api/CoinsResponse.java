@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -35,6 +35,6 @@ public class CoinsResponse {
     public enum CoinsResponseType {
         SUCCESS,
         FAILED,
-        NOT_IMPLEMENTED;
+        NOT_IMPLEMENTED
     }
 }

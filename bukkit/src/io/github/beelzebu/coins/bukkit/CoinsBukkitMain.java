@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -37,6 +37,7 @@ import java.util.UUID;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
@@ -145,9 +146,7 @@ public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
     public List<String> getPermissions(UUID uuid) {
         List<String> permissions = new ArrayList<>();
         if (isOnline(uuid)) {
-            Bukkit.getPlayer(uuid).getEffectivePermissions().forEach(perm -> {
-                permissions.add(perm.getPermission());
-            });
+            Bukkit.getPlayer(uuid).getEffectivePermissions().stream().map(PermissionAttachmentInfo::getPermission).forEach(permissions::add);
         }
         return permissions;
     }

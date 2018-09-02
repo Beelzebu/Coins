@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -25,5 +25,5 @@ public enum StorageType {
 
     MYSQL,
     MARIADB,
-    SQLITE;
+    SQLITE
 }

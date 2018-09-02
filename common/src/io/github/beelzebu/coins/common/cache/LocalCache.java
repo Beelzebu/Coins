@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -75,7 +75,7 @@ public final class LocalCache implements CacheProvider {
     @Override
     public void updatePlayer(UUID uuid, double coins) {
         if (!Optional.ofNullable(players.getIfPresent(uuid)).isPresent()) {
-            plugin.getDatabase().updatePlayer(uuid, plugin.getName(uuid, false));
+            plugin.getStorageProvider().updatePlayer(uuid, plugin.getName(uuid, false));
         }
         players.put(uuid, coins);
     }
@@ -98,7 +98,7 @@ public final class LocalCache implements CacheProvider {
     @Override
     public void addMultiplier(Multiplier multiplier) {
         multipliers.put(multiplier.getId(), multiplier); // put the multiplier in the cache
-        // store it in a local storage to load them again without querying database if the server is restarted
+        // store it in a local storage to load them again without querying storageProvider if the server is restarted
         try {
             if (!plugin.getMultipliersFile().exists()) {
                 plugin.getMultipliersFile().createNewFile();

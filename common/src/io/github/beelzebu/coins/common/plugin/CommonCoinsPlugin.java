@@ -1,7 +1,7 @@
-/**
+/*
  * This file is part of Coins
  *
- * Copyright (C) 2018 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -56,9 +56,11 @@ import java.nio.file.Files;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
@@ -68,6 +70,7 @@ import java.util.logging.Logger;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author Beelzebu
@@ -84,8 +87,11 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
     private final DependencyManager dependencyManager = new DependencyManager(this, new DependencyRegistry(this));
     protected AbstractMessagingService messagingService;
     protected boolean logEnabled = false;
+    @Setter
     protected StorageType storageType;
-    private StorageProvider database;
+    @Setter
+    private StorageProvider storageProvider;
+    @Setter
     private CacheProvider cache;
 
     public CommonCoinsPlugin(CoinsBootstrap bootstrap) {
@@ -96,7 +102,12 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
 
     @Override
     public void load() {
-        fileManager.copyFiles();
+        try {
+            fileManager.copyFiles();
+        } catch (IOException ex) {
+            log("An exception has occurred copying default files.");
+            debug(ex);
+        }
     }
 
     @Override
@@ -139,13 +150,13 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         }
         if (storageType.equals(StorageType.SQLITE) && getConfig().getInt("Database Version", 1) < 2) {
             try {
-                Files.move(new File(bootstrap.getDataFolder(), "database.db").toPath(), new File(bootstrap.getDataFolder(), "database.old.db").toPath());
+                Files.move(new File(bootstrap.getDataFolder(), "storageProvider.db").toPath(), new File(bootstrap.getDataFolder(), "storageProvider.old.db").toPath());
             } catch (IOException ex) {
-                log("An error has occurred moving the old database");
+                log("An error has occurred moving the old storageProvider");
                 debug(ex.getMessage());
             }
         }
-        getDatabase().setup();
+        getStorageProvider().setup();
         messagingService.start();
         motd(true);
         getMessagingService().getMultipliers();
@@ -155,7 +166,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
 
     @Override
     public void disable() {
-        getDatabase().shutdown();
+        getStorageProvider().shutdown();
         messagingService.stop();
         motd(false);
     }
@@ -171,18 +182,17 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
     }
 
     @Override
-    public final StorageProvider getDatabase() {
-        if (database != null) {
-            return database;
+    public final StorageProvider getStorageProvider() {
+        if (storageProvider != null) {
+            return storageProvider;
         }
         switch (storageType) {
             case MARIADB:
             case MYSQL:
-                return database = new MySQL(bootstrap.getPlugin());
+                return storageProvider = new MySQL(bootstrap.getPlugin());
             case SQLITE:
-                return database = new SQLite(bootstrap.getPlugin());
             default:
-                return null;
+                return storageProvider = new SQLite(bootstrap.getPlugin());
         }
     }
 
@@ -203,13 +213,12 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
 
     @Override
     public final String getString(String path, String locale) {
-        try {
-            return StringUtils.rep(getMessages(locale).getString(path));
-        } catch (NullPointerException ex) {
-            bootstrap.log("The string " + path + " does not exists in the messages_" + locale.split("_")[0] + ".yml file.");
-            debug(ex);
-            return StringUtils.rep(getMessages("").getString(path, ""));
-        }
+        return StringUtils.rep(getMessages(locale).getString(path, StringUtils.rep(getMessages("").getString(path, ""))));
+    }
+
+    @Override
+    public final List<String> getStringList(String path, String locale) {
+        return StringUtils.rep(getMessages(locale).getStringList(path, StringUtils.rep(getMessages("").getStringList(path, Collections.emptyList()))));
     }
 
     @Override
@@ -235,7 +244,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
     public final void debug(Exception ex) {
         debug("Unknown Exception:");
         debug("   Error message: " + ex.getMessage());
-        debug("   Stacktrace: " + getStackTrace(ex));
+        debug("   Stacktrace: \n" + getStackTrace(ex));
     }
 
     @Override
@@ -244,7 +253,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         debug("   Database state: " + ex.getSQLState());
         debug("   Error code: " + ex.getErrorCode());
         debug("   Error message: " + ex.getMessage());
-        debug("   Stacktrace: " + getStackTrace(ex));
+        debug("   Stacktrace: \n" + getStackTrace(ex));
     }
 
     @Override
@@ -252,7 +261,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         if (!fromdb && bootstrap.getUUID(name) != null) {
             return bootstrap.getUUID(name);
         }
-        return getDatabase().getUUID(name.toLowerCase());
+        return getStorageProvider().getUUID(name.toLowerCase());
     }
 
     @Override
@@ -260,7 +269,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         if (!fromdb && bootstrap.getName(uniqueId) != null) {
             return bootstrap.getName(uniqueId);
         }
-        return getDatabase().getName(uniqueId);
+        return getStorageProvider().getName(uniqueId);
     }
 
     private void motd(boolean enable) {
@@ -290,6 +299,10 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
             }
             debug("Using \"" + getCache().getClass().getSimpleName() + "\" for cache");
             bootstrap.runAsync(() -> { // run update check async, so it doesn't delay the startup
+                if (bootstrap.getVersion().contains("SNAPSHOT")) {
+                    log("You're using a development version, be careful!");
+                    return;
+                }
                 String upt = "You have the newest version";
                 String response = getFromURL("https://api.spigotmc.org/legacy/update.php?resource=48536");
                 if (response == null) {

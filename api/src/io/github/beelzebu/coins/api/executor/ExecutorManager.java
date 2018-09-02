@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -34,7 +34,7 @@ public final class ExecutorManager {
 
     public static void addExecutor(Executor ex) {
         synchronized (EXECUTORS) {
-            if (!EXECUTORS.stream().anyMatch(executor -> ex.getId().equals(executor.getId()))) {
+            if (EXECUTORS.stream().noneMatch(executor -> ex.getId().equals(executor.getId()))) {
                 EXECUTORS.add(ex);
             }
         }

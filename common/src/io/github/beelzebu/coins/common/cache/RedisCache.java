@@ -1,7 +1,7 @@
-/**
+/*
  * This file is part of Coins
  *
- * Copyright (C) 2018 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -59,7 +59,7 @@ public class RedisCache implements CacheProvider {
                 jedis.incrByFloat("coins:" + uuid, coins);
             } else {
                 jedis.setex("coins:" + uuid, 1800, Double.toString(coins));
-                plugin.getDatabase().updatePlayer(uuid, plugin.getName(uuid, false));
+                plugin.getStorageProvider().updatePlayer(uuid, plugin.getName(uuid, false));
             }
         } catch (JedisException ex) {
             plugin.log("An error has occurred adding user '" + uuid + "' to cache.");

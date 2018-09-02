@@ -1,7 +1,7 @@
 /*
  * This file is part of Coins
  *
- * Copyright (C) 2018 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -32,7 +32,7 @@ public interface CacheProvider {
      * Get the coins of this player from the cache.
      *
      * @param uuid player to lookup in the cache.
-     * @return optional wich may or may not contain the coins.
+     * @return optional which may or may not contain the coins.
      */
     Optional<Double> getCoins(UUID uuid);
 

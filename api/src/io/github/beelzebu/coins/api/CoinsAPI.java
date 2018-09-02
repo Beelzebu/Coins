@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -44,7 +44,7 @@ public final class CoinsAPI {
      * @return coins of the player
      */
     public static double getCoins(@Nonnull String name) {
-        return PLUGIN.getCache().getCoins(PLUGIN.getUniqueId(name, false)).orElse(PLUGIN.getDatabase().getCoins(PLUGIN.getUniqueId(name, false)));
+        return PLUGIN.getCache().getCoins(PLUGIN.getUniqueId(name, false)).orElse(PLUGIN.getStorageProvider().getCoins(PLUGIN.getUniqueId(name, false)));
     }
 
     /**
@@ -54,7 +54,7 @@ public final class CoinsAPI {
      * @return coins of the player
      */
     public static double getCoins(@Nonnull UUID uuid) {
-        return PLUGIN.getCache().getCoins(uuid).orElse(PLUGIN.getDatabase().getCoins(uuid));
+        return PLUGIN.getCache().getCoins(uuid).orElse(PLUGIN.getStorageProvider().getCoins(uuid));
     }
 
     /**
@@ -68,7 +68,7 @@ public final class CoinsAPI {
         if (coins >= 0) {
             return DF.format(coins);
         } else {
-            return "This player isn't in the database";
+            return "This player isn't in the storageProvider";
         }
     }
 
@@ -83,7 +83,7 @@ public final class CoinsAPI {
         if (coins >= 0) {
             return DF.format(coins);
         } else {
-            return "This player isn't in the database";
+            return "This player isn't in the storageProvider";
         }
     }
 
@@ -111,7 +111,7 @@ public final class CoinsAPI {
      */
     public static CoinsResponse addCoins(@Nonnull UUID uuid, double coins, boolean multiply) {
         if (!isindb(uuid)) {
-            return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the database.");
+            return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the storageProvider.");
         }
         double finalCoins = coins;
         if (multiply && !getMultipliers().isEmpty()) {
@@ -195,9 +195,9 @@ public final class CoinsAPI {
     public static CoinsResponse setCoins(@Nonnull UUID uuid, double coins) {
         if (isindb(uuid)) {
             PLUGIN.getMessagingService().publishUser(uuid, coins);
-            return PLUGIN.getDatabase().setCoins(uuid, coins);
+            return PLUGIN.getStorageProvider().setCoins(uuid, coins);
         } else {
-            return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the database.");
+            return new CoinsResponse(CoinsResponseType.FAILED, "The player " + uuid + " isn't in the storageProvider.");
         }
     }
 
@@ -236,31 +236,37 @@ public final class CoinsAPI {
     }
 
     /**
-     * Get if a player with the specified name exists in the database. Is not
+     * Get if a player with the specified name exists in the storageProvider. Is not
      * recommended check a player by his name because it can change.
      *
-     * @param name The name to look for in the database.
-     * @return true if the player exists in the database or false if not.
+     * @param name The name to look for in the storageProvider.
+     * @return true if the player exists in the storageProvider or false if not.
      */
     public static boolean isindb(@Nonnull String name) {
         UUID uuid = PLUGIN.getUniqueId(name, false);
-        if (PLUGIN.getCache().getCoins(uuid != null ? uuid : UUID.randomUUID()).isPresent()) { // If the player is in the cache it should be in the database.
+        if (PLUGIN.getCache().getCoins(uuid != null ? uuid : UUID.randomUUID()).isPresent()) { // If the player is in the cache it should be in the storageProvider.
             return true;
         }
-        return PLUGIN.getDatabase().isindb(name);
+        if (PLUGIN.getBootstrap().isOnline(name)) {
+            createPlayer(name, uuid);
+        }
+        return PLUGIN.getStorageProvider().isindb(name);
     }
 
     /**
-     * Get if a player with the specified uuid exists in the database.
+     * Get if a player with the specified uuid exists in the storageProvider.
      *
-     * @param uuid The uuid to look for in the database.
-     * @return true if the player exists in the database or false if not.
+     * @param uuid The uuid to look for in the storageProvider.
+     * @return true if the player exists in the storageProvider or false if not.
      */
     public static boolean isindb(@Nonnull UUID uuid) {
-        if (PLUGIN.getCache().getCoins(uuid).isPresent()) { // If the player is in the cache it should be in the database.
+        if (PLUGIN.getCache().getCoins(uuid).isPresent()) { // If the player is in the cache it should be in the storageProvider.
             return true;
         }
-        return PLUGIN.getDatabase().isindb(uuid);
+        if (PLUGIN.getBootstrap().isOnline(uuid)) {
+            createPlayer(PLUGIN.getName(uuid, false), uuid);
+        }
+        return PLUGIN.getStorageProvider().isindb(uuid);
     }
 
     /**
@@ -271,28 +277,28 @@ public final class CoinsAPI {
      * @return The ordered top list of players and his balance.
      */
     public static LinkedHashMap<String, Double> getTopPlayers(int top) {
-        return PLUGIN.getDatabase().getTopPlayers(top);
+        return PLUGIN.getStorageProvider().getTopPlayers(top);
     }
 
     /**
-     * Register a user in the database with the default starting balance.
+     * Register a user in the storageProvider with the default starting balance.
      *
-     * @param nick The name of the user that will be registered.
+     * @param name The name of the user that will be registered.
      * @param uuid The uuid of the user.
      */
-    public static void createPlayer(@Nonnull String nick, UUID uuid) {
-        createPlayer(nick, uuid, PLUGIN.getConfig().getDouble("General.Starting Coins", 0));
+    public static void createPlayer(@Nonnull String name, UUID uuid) {
+        createPlayer(name, uuid, PLUGIN.getConfig().getDouble("General.Starting Coins", 0));
     }
 
     /**
-     * Register a user in the database with the specified balance.
+     * Register a user in the storageProvider with the specified balance.
      *
      * @param nick    The name of the user that will be registered.
      * @param uuid    The uuid of the user.
      * @param balance The balance of the user.
      */
-    public static void createPlayer(@Nonnull String nick, UUID uuid, double balance) {
-        PLUGIN.getDatabase().createPlayer(uuid, nick, balance);
+    public static void createPlayer(@Nonnull String name, UUID uuid, double balance) {
+        PLUGIN.getStorageProvider().createPlayer(uuid, name, balance);
     }
 
     /**
@@ -315,44 +321,44 @@ public final class CoinsAPI {
     }
 
     /**
-     * Get a multiplier from the database by his ID and add it to the cache.
+     * Get a multiplier from the storageProvider by his ID and add it to the cache.
      *
      * @param id The ID of the multiplier.
      * @return The multiplier from the Cache.
      */
     public static Multiplier getMultiplier(int id) {
-        return PLUGIN.getCache().getMultiplier(id).orElse(PLUGIN.getDatabase().getMultiplier(id));
+        return PLUGIN.getCache().getMultiplier(id).orElse(PLUGIN.getStorageProvider().getMultiplier(id));
     }
 
     /**
-     * Get all multipliers for a player from the database.
+     * Get all multipliers for a player from the storageProvider.
      *
-     * @param uuid player to get the multipliers from the database.
+     * @param uuid player to get the multipliers from the storageProvider.
      * @return all multipliers that this player have.
      */
     public static Set<Multiplier> getAllMultipliersFor(@Nonnull UUID uuid) {
-        return PLUGIN.getDatabase().getMultipliers(uuid);
+        return PLUGIN.getStorageProvider().getMultipliers(uuid);
     }
 
     /**
      * Get all the multipliers for a player in the current server.
      *
-     * @param uuid player to get multipliers from the database.
+     * @param uuid player to get multipliers from the storageProvider.
      * @return multipliers of the player in this server.
      */
     public static Set<Multiplier> getMultipliersFor(@Nonnull UUID uuid) {
-        return PLUGIN.getDatabase().getMultipliers(uuid, PLUGIN.getConfig().getServerName());
+        return PLUGIN.getStorageProvider().getMultipliers(uuid, PLUGIN.getConfig().getServerName());
     }
 
     /**
      * Get all multipliers for a player in the specified server.
      *
-     * @param uuid   player to get multipliers from the database.
+     * @param uuid   player to get multipliers from the storageProvider.
      * @param server where we should get the multipliers.
      * @return multipliers of the player in that server.
      */
     public static Set<Multiplier> getMultipliersFor(@Nonnull UUID uuid, @Nonnull String server) {
-        return PLUGIN.getDatabase().getMultipliers(uuid, server);
+        return PLUGIN.getStorageProvider().getMultipliers(uuid, server);
     }
 
     public static CoinsPlugin getPlugin() {

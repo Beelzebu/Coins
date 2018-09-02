@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -20,6 +20,7 @@ package io.github.beelzebu.coins.bukkit.utils.placeholders;
 
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import io.github.beelzebu.coins.bukkit.utils.CompatUtils;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
@@ -65,9 +66,9 @@ public class MultipliersPlaceholders extends PlaceholderExpansion {
             if (placeholder.startsWith("enabler_")) {
                 String enabler = !CoinsAPI.getMultipliers(server).isEmpty() ? CoinsAPI.getMultipliers(server).stream().findFirst().get().getData().getEnablerName() : "";
                 if ("".equals(enabler)) {
-                    return plugin.getString("Multipliers.Placeholders.Enabler.Anyone", p.spigot().getLocale());
+                    return plugin.getString("Multipliers.Placeholders.Enabler.Anyone", CompatUtils.getLocale(p));
                 } else {
-                    return plugin.getString("Multipliers.Placeholders.Enabler.Message", p.spigot().getLocale()).replaceAll("%enabler%", enabler);
+                    return plugin.getString("Multipliers.Placeholders.Enabler.Message", CompatUtils.getLocale(p)).replaceAll("%enabler%", enabler);
                 }
             }
             if (placeholder.startsWith("amount_")) {

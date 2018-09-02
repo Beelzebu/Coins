@@ -1,5 +1,5 @@
 # Multipliers config, in this config you can edit the menus and server name used
-# to store multipliers in the database.
+# to store multipliers in the storageProvider.
 
 # To change names and lores for items check messages files ;)
 
@@ -8,3 +8,86 @@
 Server name: default
 
 Menus:
+  Main: # The main multipliers menu allow custom items
+    Size: 27
+    Items:
+      'global':
+        Slot: 11
+        # You can define the name and lore here or use the language of the player to set the lore and name adding the
+        # translation in the corresponding messages file, you must follow the same path than here, for this example the
+        # path is: "Menus.Main.Items.global.Name"
+        # so to set the name for this item inside messages.yml you need to add this line in the messages.yml file:
+        # Menus.Main.Items.global.Name: '&3Global multipliers'
+        #Name: '&3Global multipliers'
+        #Lore:
+        #- ''
+        #- '&7Click to see your global multipliers'
+        Material: POTION
+        Amount: 1
+        Damage: 0
+        Commands: []
+        Menu: global
+      'local':
+        Slot: 15
+        Material: EXPERIENCE_BOTTLE
+        Amount: 1
+        Damage: 0
+        Menu: local
+      'custom':
+        Slot: 26
+        Material: PAPER
+        Amount: 16
+        Damage: 0
+        Commands:
+        - 'console: say this is a custom item'
+        - 'player: say I love this server <3'
+  Multipliers:
+    Global:
+      # If you keep these options in false we will only include global (multipliers that are active in every server)
+      # multipliers in this menu, it doesn't matters if the multiplier is personal, as long the multiplier can be used
+      # in every server that has this plugin installed.
+      Include personal: false # If we should include server-specific personal multipliers
+      Include server: false # If we should include server specific multipliers
+      Multiplier: # Item to represent a multiplier inside the menu
+        # As the items above you can set the name and description here or in the messages file
+        #Name: '&6Multiplier &cx%amount%'
+        #Lore:
+        #- ''
+        #- '&7Amount: &c%amount%'
+        #- '&7Server: &c%server%'
+        #- '&7Minutes: &c%minutes%'
+        #- ''
+        #- '&7ID: &c#%id%'
+        Material: 'POTION' # Material for this item following spigot's material enum
+        Amount: 1 # Amount of this item
+        Damage: 0 # Damage for this item
+        PotionType: FIRE_RESISTANCE
+      Close:
+        Material: REDSTONE_BLOCK
+        Amount: 1
+        Damage: 0
+      Next:
+        Material: ARROW
+        Amount: 1
+        Damage: 0
+    Local:
+      Multiplier:
+        #Name: '&6Multiplier &cx%amount%'
+        #Lore:
+        #- ''
+        #- '&7Amount: &c%amount%'
+        #- '&7Minutes: &c%minutes%'
+        #- ''
+        #- '&7ID: &c#%id%'
+        Material: 'POTION'
+        Amount: 1
+        Damage: 0
+        PotionType: AWKWARD
+      Close:
+        Material: REDSTONE_BLOCK
+        Amount: 1
+        Damage: 0
+      Next:
+        Material: ARROW
+        Amount: 1
+        Damage: 0

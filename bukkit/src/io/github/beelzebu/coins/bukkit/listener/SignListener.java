@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -23,6 +23,7 @@ import io.github.beelzebu.coins.api.executor.Executor;
 import io.github.beelzebu.coins.api.executor.ExecutorManager;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.utils.StringUtils;
+import io.github.beelzebu.coins.bukkit.utils.CompatUtils;
 import io.github.beelzebu.coins.bukkit.utils.LocationUtils;
 import java.io.File;
 import java.io.IOException;
@@ -129,13 +130,13 @@ public class SignListener implements Listener {
                 if (signs.getString(id + ".Location").equals(LocationUtils.locationToString(e.getClickedBlock().getLocation()))) {
                     Executor ex = ExecutorManager.getExecutor(signs.getString(id + ".Executor"));
                     if (ex == null) {
-                        p.sendMessage(plugin.getString("Errors.No Execute", p.spigot().getLocale()));
+                        p.sendMessage(plugin.getString("Errors.No Execute", CompatUtils.getLocale(p)));
                     } else {
                         if (ex.getCost() > 0) {
                             if (CoinsAPI.getCoins(p.getUniqueId()) >= ex.getCost()) {
                                 CoinsAPI.takeCoins(p.getName(), ex.getCost());
                             } else {
-                                p.sendMessage(plugin.getString("Errors.No Coins", p.spigot().getLocale()));
+                                p.sendMessage(plugin.getString("Errors.No Coins", CompatUtils.getLocale(p)));
                                 return;
                             }
                         }

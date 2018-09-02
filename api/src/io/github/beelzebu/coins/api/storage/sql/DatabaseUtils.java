@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -64,7 +64,7 @@ public class DatabaseUtils {
             }
             return ps;
         } catch (SQLException ex) {
-            CoinsAPI.getPlugin().log("An internal error has occurred while trying to execute a query in the database, check the logs to get more information.");
+            CoinsAPI.getPlugin().log("An internal error has occurred while trying to execute a query in the storageProvider, check the logs to get more information.");
             CoinsAPI.getPlugin().debug("The error code is: '" + ex.getErrorCode() + "'");
             CoinsAPI.getPlugin().debug("The error message is: '" + ex.getMessage() + "'");
             CoinsAPI.getPlugin().debug("Query: " + String.format(query.getQuery().replace("?", "%s"), parameters));

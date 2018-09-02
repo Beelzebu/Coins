@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -95,7 +95,7 @@ public class FileManager {
                                     "Storage Type: sqlite",
                                     "",
                                     "# Don't touch this setting, this is only for internal usage to auto update the",
-                                    "# database when something changes.",
+                                    "# storageProvider when something changes.",
                                     "Database Version: 1",
                                     "",
                                     "# Settings for messaging service",
@@ -127,7 +127,7 @@ public class FileManager {
                             lines.addAll(index, Arrays.asList(
                                     "  # Don't change this value if you don't know what it does.",
                                     "  Connection Pool: 8",
-                                    "  # MySQL table names without prefix, you can change this to use same database",
+                                    "  # MySQL table names without prefix, you can change this to use same storageProvider",
                                     "  # for all servers and but keep different balances in every server.",
                                     "  Data Table: 'data'",
                                     "  Multipliers Table: 'multipliers'",
@@ -343,7 +343,7 @@ public class FileManager {
         }
     }
 
-    public void copyFiles() {
+    public void copyFiles() throws IOException {
         if (!logsFolder.exists()) {
             if (plugin.getConfig() == null || plugin.getConfig().isDebugFile()) {
                 logsFolder.mkdirs();
@@ -364,22 +364,23 @@ public class FileManager {
                 }
             }
         }
-        messagesFiles.keySet().forEach(filename -> {
+        messagesFiles.keySet().stream().map(filename -> new File(messagesFolder, messagesFiles.get(filename).getName())).filter(file -> !file.exists()).forEach(file -> {
             try {
-                File messageFile = new File(messagesFolder, messagesFiles.get(filename).getName());
-                if (!messageFile.exists()) {
-                    Files.copy(plugin.getBootstrap().getResource(messagesFiles.get(filename).getName()), messageFile.toPath());
-                }
-            } catch (IOException ex) {
-                Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has occurred while saving messages files.", ex);
+                Files.copy(plugin.getBootstrap().getResource(file.getName()), file.toPath());
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
         if (!configFile.exists()) {
-            try {
-                Files.copy(plugin.getBootstrap().getResource(configFile.getName()), configFile.toPath());
-            } catch (IOException ex) {
-                Logger.getLogger(FileManager.class.getName()).log(Level.SEVERE, "An error has occurred while saving the default config.", ex);
-            }
+            Files.copy(plugin.getBootstrap().getResource(configFile.getName()), configFile.toPath());
+        }
+        File multipliersConfig = new File(plugin.getBootstrap().getDataFolder(), "multipliers.yml");
+        if (!multipliersConfig.exists()) {
+            Files.copy(plugin.getBootstrap().getResource(multipliersConfig.getName()), multipliersConfig.toPath());
+        }
+        File executorsConfig = new File(plugin.getBootstrap().getDataFolder(), "executors.yml");
+        if (!executorsConfig.exists()) {
+            Files.copy(plugin.getBootstrap().getResource(executorsConfig.getName()), executorsConfig.toPath());
         }
     }
 
@@ -399,7 +400,7 @@ public class FileManager {
                 while (new File(logsFolder, sdf.format(latestLog.lastModified()) + "-" + filen + ".log.gz").exists()) {
                     filen++;
                 }
-                gzipFile(Files.newInputStream(latestLog.toPath()), logsFolder + File.pathSeparator + sdf.format(latestLog.lastModified()) + "-" + filen + ".log.gz");
+                gzipFile(Files.newInputStream(latestLog.toPath()), logsFolder + File.separator + sdf.format(latestLog.lastModified()) + "-" + filen + ".log.gz");
                 latestLog.delete();
             } catch (IOException ex) {
                 Logger.getLogger(FileManager.class.getName()).log(Level.WARNING, "An unexpected error has occurred while trying to compress the latest log file. {0}", ex.getMessage());
@@ -407,7 +408,7 @@ public class FileManager {
         }
         File[] fList = logsFolder.listFiles();
         // Auto purge for old logs
-        if (fList.length > 0) {
+        if (fList != null && fList.length > 0) {
             for (File file : fList) {
                 if (file.isFile() && file.getName().contains(".gz") && (System.currentTimeMillis() - file.lastModified()) >= plugin.getConfig().getInt("General.Purge.Logs.Days") * 86400000L) {
                     file.delete();

@@ -16,15 +16,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.beelzebu.coins.api.messaging;
+package io.github.beelzebu.coins.bukkit.command;
+
+import io.github.beelzebu.coins.api.CoinsAPI;
+import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import org.bukkit.command.Command;
 
 /**
- * All message types that we send, used to identify messages when we need to
- * handle them.
- *
  * @author Beelzebu
  */
-enum MessageType {
-    USER_UPDATE, GET_EXECUTORS, MULTIPLIER_UPDATE, MULTIPLIER_DISABLE
+public abstract class AbstractCoinsCommand extends Command {
 
+    protected final CoinsPlugin plugin = CoinsAPI.getPlugin();
+
+    AbstractCoinsCommand(String name) {
+        super(name);
+    }
+
+    protected boolean isNumber(String number) {
+        if (number == null) {
+            return false;
+        }
+        try {
+            Double.parseDouble(number);
+            return true;
+        } catch (NumberFormatException ex) {
+            return false;
+        }
+    }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -106,7 +106,7 @@ public final class Multiplier {
         this.queue = queue;
         if (!queue) {
             plugin.getCache().addMultiplier(this);
-            plugin.getDatabase().enableMultiplier(this);
+            plugin.getStorageProvider().enableMultiplier(this);
             plugin.getBootstrap().callMultiplierEnableEvent(this);
         } else {
             plugin.getCache().addQueueMultiplier(this);
@@ -114,11 +114,11 @@ public final class Multiplier {
     }
 
     /**
-     * Disable and then delete this multiplier from the database.
+     * Disable and then delete this multiplier from the storageProvider.
      */
     public void disable() {
         try {
-            plugin.getDatabase().deleteMultiplier(this);
+            plugin.getStorageProvider().deleteMultiplier(this);
             plugin.getCache().removeQueueMultiplier(this);
             plugin.getCache().deleteMultiplier(this);
             plugin.getMessagingService().disableMultiplier(this);

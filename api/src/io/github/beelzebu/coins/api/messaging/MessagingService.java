@@ -1,5 +1,5 @@
-/**
- * This file is part of Coins.
+/*
+ * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
  *
@@ -24,5 +24,5 @@ package io.github.beelzebu.coins.api.messaging;
 public enum MessagingService {
     REDIS,
     BUNGEECORD,
-    NONE;
+    NONE
 }

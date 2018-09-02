@@ -4,3 +4,4 @@ main: ${project.groupId}.coins.bukkit.CoinsBukkitMain
 version: ${project.version}
 author: Beelzebu
 website: https://www.spigotmc.org/resources/48536/
+api-version: 1.13

@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -284,13 +284,13 @@ public class CoinsEconomy implements Economy {
     public boolean createPlayerAccount(String string) {
         UUID uuid = plugin.getPlugin().getUniqueId(string, false);
         CoinsAPI.createPlayer(string, uuid != null ? uuid : UUID.randomUUID());
-        return !CoinsAPI.getCoinsString(string).equals("This player isn't in the database");
+        return !CoinsAPI.getCoinsString(string).equals("This player isn't in the storageProvider");
     }
 
     @Override
     public boolean createPlayerAccount(OfflinePlayer op) {
         CoinsAPI.createPlayer(op.getName(), op.getUniqueId());
-        return !CoinsAPI.getCoinsString(op.getName()).equals("This player isn't in the database");
+        return !CoinsAPI.getCoinsString(op.getName()).equals("This player isn't in the storageProvider");
     }
 
     @Override
@@ -298,12 +298,12 @@ public class CoinsEconomy implements Economy {
     public boolean createPlayerAccount(String string, String string1) {
         UUID uuid = plugin.getPlugin().getUniqueId(string, false);
         CoinsAPI.createPlayer(string, uuid != null ? uuid : UUID.randomUUID());
-        return !CoinsAPI.getCoinsString(string).equals("This player isn't in the database");
+        return !CoinsAPI.getCoinsString(string).equals("This player isn't in the storageProvider");
     }
 
     @Override
     public boolean createPlayerAccount(OfflinePlayer op, String string) {
         CoinsAPI.createPlayer(op.getName(), op.getUniqueId());
-        return !CoinsAPI.getCoinsString(op.getName()).equals("This player isn't in the database");
+        return !CoinsAPI.getCoinsString(op.getName()).equals("This player isn't in the storageProvider");
     }
 }

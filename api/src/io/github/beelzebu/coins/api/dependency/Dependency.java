@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -33,7 +33,7 @@ public enum Dependency {
     MARIADB_DRIVER("org{}mariadb{}jdbc", "mariadb-java-client", "2.2.3", Relocation.of("mariadb", "org{}mariadb{}jdbc")),
     MYSQL_DRIVER("mysql", "mysql-connector-java", "5.1.46", Relocation.of("mysql", "com{}mysql")),
     SQLITE_DRIVER("org.xerial", "sqlite-jdbc", "3.21.0"),
-    HIKARI("com{}zaxxer", "HikariCP", "3.1.0", Relocation.of("hikari", "com{}zaxxer{}hikari")),
+    HIKARI("com{}zaxxer", "HikariCP", "3.2.0", Relocation.of("hikari", "com{}zaxxer{}hikari")),
     SLF4J_SIMPLE("org.slf4j", "slf4j-simple", "1.7.25"),
     SLF4J_API("org.slf4j", "slf4j-api", "1.7.25"),
     JEDIS("redis.clients", "jedis", "2.9.0", Relocation.allOf(Relocation.of("jedis", "redis{}clients{}jedis"), Relocation.of("jedisutil", "redis{}clients{}util"), Relocation.of("commonspool2", "org{}apache{}commons{}pool2"))),

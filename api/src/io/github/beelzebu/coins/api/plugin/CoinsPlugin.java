@@ -1,7 +1,7 @@
-/**
+/*
  * This file is part of Coins
  *
- * Copyright (C) 2018 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -27,6 +27,7 @@ import io.github.beelzebu.coins.api.storage.StorageProvider;
 import io.github.beelzebu.coins.api.storage.StorageType;
 import java.io.File;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -44,9 +45,15 @@ public interface CoinsPlugin {
 
     CacheProvider getCache();
 
-    StorageProvider getDatabase();
+    void setCache(CacheProvider cacheProvider);
+
+    StorageProvider getStorageProvider();
+
+    void setStorageProvider(StorageProvider storageProvider);
 
     StorageType getStorageType();
+
+    void setStorageType(StorageType storageType);
 
     AbstractMessagingService getMessagingService();
 
@@ -73,6 +80,8 @@ public interface CoinsPlugin {
     AbstractConfigFile getMessages(String lang);
 
     String getString(String path, String locale);
+
+    List<String> getStringList(String path, String locale);
 
     void reloadMessages();
 }

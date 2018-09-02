@@ -1,5 +1,5 @@
-/**
- * This file is part of Coins.
+/*
+ * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
  *

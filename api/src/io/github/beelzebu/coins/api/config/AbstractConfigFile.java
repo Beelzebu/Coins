@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -19,6 +19,7 @@
 package io.github.beelzebu.coins.api.config;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.AccessLevel;
@@ -39,7 +40,7 @@ public abstract class AbstractConfigFile {
     }
 
     public List<String> getStringList(String path) {
-        return get(path) != null ? (List<String>) get(path) : null;
+        return get(path) != null ? (List<String>) get(path) : new ArrayList<>();
     }
 
     public boolean getBoolean(String path) {
@@ -63,7 +64,7 @@ public abstract class AbstractConfigFile {
     }
 
     public List<String> getStringList(String path, List<String> def) {
-        return getStringList(path) != null ? getStringList(path) : def;
+        return get(path) != null ? getStringList(path) : def;
     }
 
     public boolean getBoolean(String path, boolean def) {

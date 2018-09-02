@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -55,7 +55,7 @@ public class ImportManager {
         switch (storage) {
             case MYSQL:
                 if (plugin.getStorageType().equals(StorageType.MYSQL)) {
-                    plugin.log("You can't migrate information from the same database that you are using.");
+                    plugin.log("You can't migrate information from the same storageProvider that you are using.");
                     return;
                 }
                 SQLDatabase mysql = new MySQL(plugin);
@@ -79,13 +79,13 @@ public class ImportManager {
                     });
                     plugin.log("The migration was completed, check the plugin logs for more information.");
                 } else {
-                    plugin.log("There are no users to migrate in the database.");
+                    plugin.log("There are no users to migrate in the storageProvider.");
                 }
                 mysql.shutdown();
                 break;
             case SQLITE:
                 if (plugin.getStorageType().equals(StorageType.SQLITE)) {
-                    plugin.log("You can't migrate information from the same database that you are using.");
+                    plugin.log("You can't migrate information from the same storageProvider that you are using.");
                     return;
                 }
                 SQLDatabase sqlite = new SQLite(plugin);
@@ -109,7 +109,7 @@ public class ImportManager {
                     });
                     plugin.log("The migration was completed, check the plugin logs for more information.");
                 } else {
-                    plugin.log("There are no users to migrate in the database.");
+                    plugin.log("There are no users to migrate in the storageProvider.");
                 }
                 sqlite.shutdown();
                 break;
@@ -119,6 +119,6 @@ public class ImportManager {
     }
 
     public enum PluginToImport {
-        PLAYER_POINTS;
+        PLAYER_POINTS
     }
 }

@@ -1,7 +1,7 @@
-/**
+/*
  * This file is part of Coins
  *
- * Copyright (C) 2018 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
@@ -18,11 +18,10 @@
  */
 package io.github.beelzebu.coins.bukkit.utils;
 
-import io.github.beelzebu.coins.api.CoinsAPI;
-import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.utils.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -40,16 +39,17 @@ import org.bukkit.inventory.meta.ItemMeta;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class ItemBuilder {
 
-    private final CoinsPlugin plugin = CoinsAPI.getPlugin();
     private final Material material;
-    private short data = 0;
     private String displayName;
     private List<String> lore;
     private Set<ItemFlag> flags;
-    private ItemMeta meta;
 
     public static ItemBuilder newBuilder(Material material) {
         return new ItemBuilder(material);
+    }
+
+    public static ItemBuilder newBuilder(ItemStack itemStack) {
+        return new ItemBuilder(itemStack.getType()).setDisplayName(itemStack.getItemMeta().getDisplayName()).setLore(itemStack.getItemMeta().getLore()).addItemFlag(itemStack.getItemMeta().getItemFlags());
     }
 
     public ItemBuilder setDisplayName(String displayName) {
@@ -88,10 +88,6 @@ public class ItemBuilder {
         return this;
     }
 
-    public ItemBuilder setData(int data) {
-        this.data = (short) data;
-        return this;
-    }
 
     public ItemBuilder addItemFlag(ItemFlag flag) {
         if (flags == null) {
@@ -101,9 +97,17 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder addItemFlag(Collection<? extends ItemFlag> flags) {
+        if (this.flags == null) {
+            this.flags = new HashSet<>();
+        }
+        this.flags.addAll(flags);
+        return this;
+    }
+
     public ItemStack build() {
-        ItemStack item = new ItemStack(material, 1, data);
-        meta = item.getItemMeta();
+        ItemStack item = new ItemStack(material, 1);
+        ItemMeta meta = item.getItemMeta();
         if (displayName != null) {
             meta.setDisplayName(StringUtils.rep(displayName));
         }

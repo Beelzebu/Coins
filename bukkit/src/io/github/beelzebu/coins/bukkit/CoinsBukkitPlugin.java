@@ -1,20 +1,20 @@
-/**
- * bootstrap file is part of Coins
+/*
+ * This file is part of Coins
  *
- * Copyright (C) 2018 Beelzebu
+ * Copyright © 2018 Beelzebu
  *
- * bootstrap program is free software: you can redistribute it and/or modify it under
+ * This program is free software: you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
- * bootstrap program is distributed in the hope that it will be useful, but WITHOUT
+ * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
  * details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with bootstrap program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package io.github.beelzebu.coins.bukkit;
 
@@ -22,7 +22,9 @@ import io.github.beelzebu.coins.bukkit.listener.CommandListener;
 import io.github.beelzebu.coins.bukkit.listener.GUIListener;
 import io.github.beelzebu.coins.bukkit.listener.LoginListener;
 import io.github.beelzebu.coins.bukkit.listener.SignListener;
+import io.github.beelzebu.coins.bukkit.menus.CoinsMenu;
 import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
+import io.github.beelzebu.coins.bukkit.utils.CompatUtils;
 import io.github.beelzebu.coins.bukkit.utils.leaderheads.LeaderHeadsHook;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.CoinsPlaceholders;
 import io.github.beelzebu.coins.bukkit.utils.placeholders.MultipliersPlaceholders;
@@ -52,6 +54,7 @@ public class CoinsBukkitPlugin extends CommonCoinsPlugin {
 
     @Override
     public void enable() {
+        CompatUtils.setup();
         super.enable();
         // Create the command
         ((CoinsBukkitMain) getBootstrap()).getCommandManager().registerCommand();
@@ -76,6 +79,7 @@ public class CoinsBukkitPlugin extends CommonCoinsPlugin {
         if (getConfig().getBoolean("Vault.Use", false) && vault) {
             new CoinsEconomy((CoinsBukkitMain) getBootstrap()).shutdown();
         }
+        CoinsMenu.getInventoriesByUUID().values().forEach(CoinsMenu::delete);
         ((CoinsBukkitMain) getBootstrap()).getCommandManager().unregisterCommand();
         Bukkit.getScheduler().cancelTasks((CoinsBukkitMain) getBootstrap());
     }

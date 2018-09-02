@@ -1,19 +1,19 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
  *
  * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU Affero Generalpublic abstract License as published by the Free
+ * the terms of the GNU Affero General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero Generalpublic abstract License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
  * details.
  *
- * You should have received a copy of the GNU Affero Generalpublic abstract License
+ * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package io.github.beelzebu.coins.api.messaging;
@@ -174,7 +174,7 @@ public abstract class AbstractMessagingService {
     }
 
     protected final void handleMessage(JsonObject message) {
-        plugin.debug("&6Messaging Log: &7Recived a message from another server, message is: " + message);
+        plugin.debug("&6Messaging Log: &7Received a message from another server, message is: " + message);
         UUID messageid = UUID.fromString(message.get("messageid").getAsString());
         if (messages.contains(messageid)) { // the message was sent from this server so don't read it
             plugin.debug("&6Messaging Log: &7Message was sent from this server, ignoring.");
@@ -186,7 +186,7 @@ public abstract class AbstractMessagingService {
             case USER_UPDATE: {
                 UUID uuid = UUID.fromString(message.get("uuid").getAsString());
                 double coins = message.get("coins").getAsDouble();
-                plugin.getDatabase().setCoins(uuid, coins);
+                plugin.getStorageProvider().setCoins(uuid, coins);
                 plugin.getCache().updatePlayer(uuid, coins);
             }
             break;
@@ -211,8 +211,8 @@ public abstract class AbstractMessagingService {
             case MULTIPLIER_DISABLE: {
                 Multiplier multiplier = Multiplier.fromJson(message.get("multiplier").getAsString());
                 plugin.getCache().deleteMultiplier(multiplier); // remove from the local cache and storage
-                if (plugin.getStorageType().equals(StorageType.SQLITE)) {// may be it wasn't removed from this database
-                    plugin.getDatabase().deleteMultiplier(multiplier);
+                if (plugin.getStorageType().equals(StorageType.SQLITE)) {// may be it wasn't removed from this storageProvider
+                    plugin.getStorageProvider().deleteMultiplier(multiplier);
                 }
             }
             break;

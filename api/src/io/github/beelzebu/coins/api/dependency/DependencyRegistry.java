@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -36,8 +36,7 @@ public final class DependencyRegistry {
     private final Map<StorageType, List<Dependency>> STORAGE_DEPENDENCIES = ImmutableMap.<StorageType, List<Dependency>>builder().put(StorageType.MARIADB, ImmutableList.of(Dependency.MARIADB_DRIVER, Dependency.SLF4J_API, Dependency.SLF4J_SIMPLE, Dependency.HIKARI)).put(StorageType.MYSQL, ImmutableList.of(Dependency.MYSQL_DRIVER, Dependency.SLF4J_API, Dependency.SLF4J_SIMPLE, Dependency.HIKARI)).put(StorageType.SQLITE, ImmutableList.of(Dependency.SQLITE_DRIVER, Dependency.SLF4J_API, Dependency.SLF4J_SIMPLE, Dependency.HIKARI)).build();
 
     public Set<Dependency> resolveStorageDependencies(StorageType storageType) {
-        Set<Dependency> dependencies = new LinkedHashSet<>();
-        dependencies.addAll(STORAGE_DEPENDENCIES.get(storageType));
+        Set<Dependency> dependencies = new LinkedHashSet<>(STORAGE_DEPENDENCIES.get(storageType));
         if (plugin.getConfig().getMessagingService().equals(MessagingService.REDIS)) {
             LinkedHashSet<Dependency> jedis = new LinkedHashSet<>();
             jedis.add(Dependency.COMMONS_POOL_2);

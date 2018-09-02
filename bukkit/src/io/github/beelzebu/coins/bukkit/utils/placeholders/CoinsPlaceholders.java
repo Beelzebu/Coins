@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of Coins
  *
  * Copyright © 2018 Beelzebu
@@ -64,9 +64,9 @@ public class CoinsPlaceholders extends PlaceholderExpansion {
             int top_n = Integer.parseInt(placeholder.toLowerCase().replace("top_", ""));
             Map<String, Double> top = CoinsAPI.getTopPlayers(top_n);
             for (int i = 0; i < top_n; i++) {
-                top.remove(top.entrySet().stream().findFirst().orElse(null).getKey());
+                top.remove(top.entrySet().stream().findFirst().get().getKey());
             }
-            return top.entrySet().stream().findFirst().orElse(null).getKey();
+            return top.entrySet().stream().findFirst().get().getKey();
 
         }
         switch (placeholder.toLowerCase()) {
