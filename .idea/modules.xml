@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/api/coins-api.iml" filepath="$PROJECT_DIR$/api/coins-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bukkit/coins-bukkit.iml" filepath="$PROJECT_DIR$/bukkit/coins-bukkit.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bungee/coins-bungee.iml" filepath="$PROJECT_DIR$/bungee/coins-bungee.iml" />
+      <module fileurl="file://$PROJECT_DIR$/common/coins-common.iml" filepath="$PROJECT_DIR$/common/coins-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/coins-parent.iml" filepath="$PROJECT_DIR$/coins-parent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/universal/coins-universal.iml" filepath="$PROJECT_DIR$/universal/coins-universal.iml" />
+    </modules>
+  </component>
+</project>

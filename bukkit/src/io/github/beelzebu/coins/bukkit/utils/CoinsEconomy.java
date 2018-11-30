@@ -36,6 +36,8 @@ import org.bukkit.plugin.ServicePriority;
  */
 public class CoinsEconomy implements Economy {
 
+    // TODO: use translated messages when possible.
+
     private final CoinsBukkitMain plugin;
 
     public CoinsEconomy(CoinsBukkitMain main) {
@@ -284,13 +286,13 @@ public class CoinsEconomy implements Economy {
     public boolean createPlayerAccount(String string) {
         UUID uuid = plugin.getPlugin().getUniqueId(string, false);
         CoinsAPI.createPlayer(string, uuid != null ? uuid : UUID.randomUUID());
-        return !CoinsAPI.getCoinsString(string).equals("This player isn't in the storageProvider");
+        return !CoinsAPI.getCoinsString(string).equals(plugin.getPlugin().getString("Errors.Unknown player2", ""));
     }
 
     @Override
     public boolean createPlayerAccount(OfflinePlayer op) {
         CoinsAPI.createPlayer(op.getName(), op.getUniqueId());
-        return !CoinsAPI.getCoinsString(op.getName()).equals("This player isn't in the storageProvider");
+        return !CoinsAPI.getCoinsString(op.getName()).equals(plugin.getPlugin().getString("Errors.Unknown player2", ""));
     }
 
     @Override
@@ -298,12 +300,12 @@ public class CoinsEconomy implements Economy {
     public boolean createPlayerAccount(String string, String string1) {
         UUID uuid = plugin.getPlugin().getUniqueId(string, false);
         CoinsAPI.createPlayer(string, uuid != null ? uuid : UUID.randomUUID());
-        return !CoinsAPI.getCoinsString(string).equals("This player isn't in the storageProvider");
+        return !CoinsAPI.getCoinsString(string).equals(plugin.getPlugin().getString("Errors.Unknown player2", ""));
     }
 
     @Override
     public boolean createPlayerAccount(OfflinePlayer op, String string) {
         CoinsAPI.createPlayer(op.getName(), op.getUniqueId());
-        return !CoinsAPI.getCoinsString(op.getName()).equals("This player isn't in the storageProvider");
+        return !CoinsAPI.getCoinsString(op.getName()).equals(plugin.getPlugin().getString("Errors.Unknown player2", ""));
     }
 }

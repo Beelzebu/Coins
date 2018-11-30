@@ -26,28 +26,22 @@ import io.github.beelzebu.coins.common.storage.MySQL;
 import io.github.beelzebu.coins.common.storage.SQLite;
 import java.util.Map;
 import java.util.UUID;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Beelzebu
  */
+@RequiredArgsConstructor
 public class ImportManager {
 
     private final CoinsPlugin plugin = CoinsAPI.getPlugin();
-    @Setter
-    private Importer importer = null;
+    private final Importer importer;
 
     public void importFrom(PluginToImport plugin) {
-        switch (plugin) {
-            case PLAYER_POINTS:
-                if (importer != null) {
-                    importer.importFromPlayerPoints();
-                } else {
-                    this.plugin.log("Seems that the importer is not deffined yet.");
-                }
-                break;
-            default:
-                break;
+        if (importer != null) {
+            importer.importFrom(plugin);
+        } else {
+            this.plugin.log("Seems that the importer is not defined yet.");
         }
     }
 
@@ -63,13 +57,13 @@ public class ImportManager {
                 Map<String, Double> mysqlData = mysql.getAllPlayers();
                 if (!mysqlData.isEmpty()) {
                     plugin.log("Starting the migration from MySQL, this may take a moment.");
-                    mysqlData.entrySet().forEach(entry -> {
+                    mysqlData.forEach((key, value) -> {
                         String nick = null;
                         UUID uuid = null;
                         try {
-                            nick = entry.getKey().split(",")[0];
-                            uuid = UUID.fromString(entry.getKey().split(",")[1]);
-                            double balance = entry.getValue();
+                            nick = key.split(",")[0];
+                            uuid = UUID.fromString(key.split(",")[1]);
+                            double balance = value;
                             CoinsAPI.createPlayer(nick, uuid, balance);
                             plugin.debug("Migrated the data for: " + uuid);
                         } catch (Exception ex) {
@@ -93,13 +87,13 @@ public class ImportManager {
                 Map<String, Double> sqliteData = sqlite.getAllPlayers();
                 if (!sqliteData.isEmpty()) {
                     plugin.log("Starting the migration from SQLite, this may take a moment.");
-                    sqliteData.entrySet().forEach(entry -> {
+                    sqliteData.forEach((key, value) -> {
                         String nick = null;
                         UUID uuid = null;
                         try {
-                            nick = entry.getKey().split(",")[0];
-                            uuid = UUID.fromString(entry.getKey().split(",")[1]);
-                            double balance = entry.getValue();
+                            nick = key.split(",")[0];
+                            uuid = UUID.fromString(key.split(",")[1]);
+                            double balance = value;
                             CoinsAPI.createPlayer(nick, uuid, balance);
                             plugin.debug("Migrated the data for: " + uuid);
                         } catch (Exception ex) {
@@ -116,9 +110,5 @@ public class ImportManager {
             default:
                 break;
         }
-    }
-
-    public enum PluginToImport {
-        PLAYER_POINTS
     }
 }

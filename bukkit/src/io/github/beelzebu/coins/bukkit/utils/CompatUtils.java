@@ -21,10 +21,16 @@ package io.github.beelzebu.coins.bukkit.utils;
 import io.github.beelzebu.coins.api.CoinsAPI;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
+import lombok.NonNull;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
@@ -89,6 +95,34 @@ public final class CompatUtils {
             meta.setBasePotionData(new PotionData(type));
         } else {
             meta.setMainEffect(type.getEffectType()); // it was deprecated in 1.13
+        }
+    }
+
+    public static Enchantment getEnchantment(@NonNull String string) {
+        if (is1_13) {
+            Optional<Enchantment> enchantmentOptional = Stream.of(Enchantment.values()).filter(enchantment -> enchantment.getKey().getKey().equalsIgnoreCase(string)).findFirst();
+            if (enchantmentOptional.isPresent()) {
+                return enchantmentOptional.get();
+            }
+        } else {
+            if (Enchantment.getByName(string.toUpperCase()) != null) {
+                return Enchantment.getByName(string.toUpperCase());
+            }
+        }
+        return null;
+    }
+
+    public static ItemStack setDamage(ItemStack itemStack, int damage) {
+        if (is1_13) {
+            if (itemStack.getItemMeta() instanceof Damageable) {
+                Damageable meta = (Damageable) itemStack.getItemMeta();
+                meta.setDamage(damage);
+                itemStack.setItemMeta((ItemMeta) meta);
+            }
+            return itemStack;
+        } else {
+            itemStack.setDurability((short) damage);
+            return itemStack;
         }
     }
 

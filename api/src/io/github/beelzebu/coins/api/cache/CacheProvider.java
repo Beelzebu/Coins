@@ -32,6 +32,7 @@ public interface CacheProvider {
      * Get the coins of this player from the cache.
      *
      * @param uuid player to lookup in the cache.
+     *
      * @return optional which may or may not contain the coins.
      */
     Optional<Double> getCoins(UUID uuid);
@@ -47,8 +48,8 @@ public interface CacheProvider {
     void addMultiplier(Multiplier multiplier);
 
     /**
-     * Remove a multiplier from the cache and enabled multipliers storage
-     * (multipliers.json file in plugin's data folder)
+     * Remove a multiplier from the cache and enabled multipliers storage (multipliers.json file in plugin's data
+     * folder)
      *
      * @param multiplier what multiplier we should delete.
      */

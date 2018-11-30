@@ -19,17 +19,24 @@
 package io.github.beelzebu.coins.bukkit.command;
 
 import io.github.beelzebu.coins.api.CoinsAPI;
+import io.github.beelzebu.coins.api.CoinsResponse;
+import io.github.beelzebu.coins.api.Multiplier;
+import io.github.beelzebu.coins.api.MultiplierType;
 import io.github.beelzebu.coins.api.executor.Executor;
 import io.github.beelzebu.coins.api.executor.ExecutorManager;
 import io.github.beelzebu.coins.api.storage.StorageType;
 import io.github.beelzebu.coins.api.utils.StringUtils;
 import io.github.beelzebu.coins.bukkit.CoinsBukkitMain;
+import io.github.beelzebu.coins.bukkit.importer.BukkitImporter;
 import io.github.beelzebu.coins.bukkit.utils.CoinsEconomy;
 import io.github.beelzebu.coins.bukkit.utils.CompatUtils;
 import io.github.beelzebu.coins.common.importer.ImportManager;
+import io.github.beelzebu.coins.common.importer.PluginToImport;
 import java.text.DecimalFormat;
 import java.util.Arrays;
-import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -49,9 +56,14 @@ public class CoinsCommand extends AbstractCoinsCommand {
     @Override
     public boolean execute(CommandSender sender, String alias, String[] args) {
         String lang = sender instanceof Player ? CompatUtils.getLocale((Player) sender).split("_")[0] : "";
+        execute(sender, args, lang);
+        return true;
+    }
+
+    private void execute(CommandSender sender, String[] args, String lang) {
         if (!sender.hasPermission(getPermission())) {
             sender.sendMessage(plugin.getString("Errors.No permissions", lang));
-            return true;
+            return;
         }
         if (args.length == 0) {
             if (sender instanceof Player) {
@@ -60,7 +72,7 @@ public class CoinsCommand extends AbstractCoinsCommand {
                 sender.sendMessage(plugin.getString("Errors.Console", ""));
             }
         } else if (args[0].equalsIgnoreCase("execute")) {
-            execute(sender, args, lang);
+            executor(sender, args, lang);
         } else if (args[0].equalsIgnoreCase("help") && args.length == 1) {
             help(sender, lang);
         } else if (args[0].equalsIgnoreCase("pay") || args[0].equalsIgnoreCase("p")) {
@@ -88,7 +100,6 @@ public class CoinsCommand extends AbstractCoinsCommand {
         } else {
             sender.sendMessage(plugin.getString("Errors.Unknown command", lang));
         }
-        return true;
     }
 
     private void help(CommandSender sender, String lang) {
@@ -116,29 +127,25 @@ public class CoinsCommand extends AbstractCoinsCommand {
             return;
         }
         if (sender instanceof Player && args.length == 3 && !args[1].equalsIgnoreCase(sender.getName())) {
-            Player target = Bukkit.getPlayer(args[1]);
             if (CoinsAPI.isindb(args[1])) {
                 double coins = Double.parseDouble(args[2]);
                 if (coins > 0) {
-                    if (CoinsAPI.getCoins(((Player) sender).getUniqueId()) >= coins) {
-                        if (target != null) {
-                            CoinsAPI.takeCoins(sender.getName(), coins);
-                            if (!plugin.getString("Coins.Pay", lang).equals("")) {
-                                sender.sendMessage(plugin.getString("Coins.Pay", lang).replaceAll("%coins%", new DecimalFormat("#.#").format(coins)).replaceAll("%target%", target.getName()));
-                            }
-                            CoinsAPI.addCoins(args[1], coins, false);
-                            if (!plugin.getString("Coins.Pay target", CompatUtils.getLocale(target)).equals("")) {
-                                target.sendMessage(plugin.getString("Coins.Pay target", CompatUtils.getLocale(target)).replaceAll("%coins%", df.format(coins)).replaceAll("%from%", sender.getName()));
-                            }
-                        } else {
-                            sender.sendMessage(plugin.getString("Errors.Unknown player", lang));
+                    CoinsResponse response = CoinsAPI.payCoins(((Player) sender).getUniqueId(), CoinsAPI.getPlugin().getUniqueId(args[1], false), coins);
+                    response.ifSuccess(r -> {
+                        Player target = Bukkit.getPlayer(args[1]);
+                        if (!plugin.getString("Coins.Pay", lang).equals("")) {
+                            sender.sendMessage(plugin.getString("Coins.Pay", lang).replaceAll("%coins%", new DecimalFormat("#.#").format(coins)).replaceAll("%target%", target != null ? target.getName() : args[1]));
                         }
-                    } else {
-                        sender.sendMessage(plugin.getString("Errors.No Coins", lang));
-                    }
+                        if (target != null && !plugin.getString("Coins.Pay target", CompatUtils.getLocale(target)).equals("")) {
+                            target.sendMessage(plugin.getString("Coins.Pay target", CompatUtils.getLocale(target)).replaceAll("%coins%", df.format(coins)).replaceAll("%from%", sender.getName()));
+                        }
+                    });
+                    response.ifFailed(r -> sender.sendMessage(plugin.getString("Errors.No Coins", lang)));
                 } else {
                     sender.sendMessage(plugin.getString("Errors.No Zero", lang));
                 }
+            } else {
+                sender.sendMessage(plugin.getString("Errors.Unknown player", lang));
             }
             return;
         }
@@ -152,7 +159,7 @@ public class CoinsCommand extends AbstractCoinsCommand {
             sender.sendMessage(plugin.getString("Errors.No permissions", lang));
             return;
         }
-        if (args.length != 3 && args.length != 4 && !isNumber(args[2])) {
+        if ((args.length != 3 && args.length != 4) || !isNumber(args[2])) {
             sender.sendMessage(plugin.getString("Help.Give Usage", lang));
             return;
         }
@@ -162,27 +169,31 @@ public class CoinsCommand extends AbstractCoinsCommand {
         }
         String multiplier = "";
         boolean multiply = args.length == 4 && getBoolean(args[3].toLowerCase());
-        if (args.length == 3 || args.length == 4) {
-            double coins = Double.parseDouble(args[2]);
-            if (plugin.getBootstrap().isOnline(plugin.getUniqueId(args[1], false)) && multiply) {
-                Player target = Bukkit.getPlayer(args[1]);
-                int amount = !CoinsAPI.getMultipliers().isEmpty() ? CoinsAPI.getMultipliers().stream().mapToInt(m -> m.getData().getAmount()).sum() : 1;
-                if (amount > 1) {
-                    multiplier = plugin.getString("Multipliers.Format", CompatUtils.getLocale(target)).replaceAll("%multiplier%", df.format(amount)).replaceAll("%enabler%", CoinsAPI.getMultipliers().stream().findFirst().get().getData().getEnablerName());
+        double coins = Double.parseDouble(args[2]);
+        if (plugin.getBootstrap().isOnline(plugin.getUniqueId(args[1], false)) && multiply) {
+            Player target = Bukkit.getPlayer(args[1]);
+            Optional<Multiplier> multiplierOptional = CoinsAPI.getMultipliers().stream().filter(multiplier1 -> multiplier1.getType() == MultiplierType.SERVER && multiplier1.getData().getEnablerUUID() != null && multiplier1.getData().getEnablerName() != null).findFirst();
+            if (multiplierOptional.isPresent()) {
+                multiplier = plugin.getString("Multipliers.Format", CompatUtils.getLocale(target)).replaceAll("%multiplier%", df.format(multiplierOptional.get().getData().getAmount())).replaceAll("%enabler%", multiplierOptional.get().getData().getEnablerName());
+            }
+        }
+        CoinsResponse response = CoinsAPI.addCoins(args[1], coins, multiply);
+        switch (response.getResponse()) {
+            case SUCCESS:
+                if (!plugin.getString("Coins.Give", lang).equals("")) {
+                    sender.sendMessage(plugin.getString("Coins.Give", lang).replaceAll("%coins%", df.format(coins)).replaceAll("%target%", args[1]));
                 }
-            }
-            if (plugin.getBootstrap().isOnline(plugin.getUniqueId(args[1], false))) {
-                Player target = Bukkit.getPlayer(plugin.getUniqueId(args[1], false));
-                if (!plugin.getString("Coins.Give target", CompatUtils.getLocale(target)).equals("")) {
-                    target.sendMessage(plugin.getString("Coins.Give target", CompatUtils.getLocale(target)).replaceAll("%coins%", df.format(coins)).replaceAll("%multiplier_format%", multiplier));
+                if (plugin.getBootstrap().isOnline(plugin.getUniqueId(args[1], false))) {
+                    Player target = Bukkit.getPlayer(plugin.getUniqueId(args[1], false));
+                    if (!plugin.getString("Coins.Give target", CompatUtils.getLocale(target)).equals("")) {
+                        target.sendMessage(plugin.getString("Coins.Give target", CompatUtils.getLocale(target)).replaceAll("%coins%", df.format(coins)).replaceAll("%multiplier_format%", multiplier));
+                    }
                 }
-            }
-            CoinsAPI.addCoins(args[1], coins, multiply);
-            if (!plugin.getString("Coins.Give", lang).equals("")) {
-                sender.sendMessage(plugin.getString("Coins.Give", lang).replaceAll("%coins%", df.format(coins)).replaceAll("%target%", args[1]));
-            }
-        } else {
-            sender.sendMessage(plugin.getString("Errors.Unknown command", lang));
+                break;
+            case FAILED:
+            case NOT_IMPLEMENTED:
+                sender.sendMessage(response.getMessage());
+                break;
         }
     }
 
@@ -208,13 +219,20 @@ public class CoinsCommand extends AbstractCoinsCommand {
         double finalCoins = currentCoins - coins;
         if (args.length == 3) {
             Player target = Bukkit.getPlayer(args[1]);
-            if (!plugin.getString("Coins.Take", lang).equals("")) {
-                sender.sendMessage(plugin.getString("Coins.Take", lang).replaceAll("%coins%", df.format(coins)).replaceAll("%newcoins%", df.format(finalCoins)).replaceAll("%target%", args[1]));
-            }
-            if (target != null) {
-                if (!plugin.getString("Coins.Take target", CompatUtils.getLocale(target)).equals("")) {
-                    target.sendMessage(plugin.getString("Coins.Take target", CompatUtils.getLocale(target)).replaceAll("%coins%", df.format(finalCoins)));
-                }
+            CoinsResponse response = CoinsAPI.takeCoins(args[1], coins);
+            switch (response.getResponse()) {
+                case SUCCESS:
+                    if (!plugin.getString("Coins.Take", lang).equals("")) {
+                        sender.sendMessage(plugin.getString("Coins.Take", lang).replaceAll("%coins%", df.format(coins)).replaceAll("%newcoins%", df.format(finalCoins)).replaceAll("%target%", args[1]));
+                    }
+                    if (target != null && !plugin.getString("Coins.Take target", CompatUtils.getLocale(target)).equals("")) {
+                        target.sendMessage(plugin.getString("Coins.Take target", CompatUtils.getLocale(target)).replaceAll("%coins%", df.format(finalCoins)));
+                    }
+                    break;
+                case FAILED:
+                case NOT_IMPLEMENTED:
+                    sender.sendMessage(response.getMessage());
+                    break;
             }
         }
     }
@@ -228,21 +246,24 @@ public class CoinsCommand extends AbstractCoinsCommand {
             sender.sendMessage(plugin.getString("Help.Reset Usage", lang));
             return;
         }
-        if (CoinsAPI.isindb(args[1])) {
-            CoinsAPI.resetCoins(args[1]);
-        } else {
+        if (!CoinsAPI.isindb(args[1])) {
             sender.sendMessage(plugin.getString("Errors.Unknown player", lang).replaceAll("%target%", args[1]));
             return;
         }
-
-        Player target = Bukkit.getPlayer(args[1]);
-        if (!plugin.getString("Coins.Reset", lang).equals("")) {
-            if (!plugin.getString("Coins.Reset", lang).equals("")) {
-                sender.sendMessage(plugin.getString("Coins.Reset", lang).replaceAll("%target%", args[1]));
-            }
-        }
-        if (target != null && !plugin.getString("Coins.Reset target", CompatUtils.getLocale(target)).equals("")) {
-            target.sendMessage(plugin.getString("Coins.Reset target", CompatUtils.getLocale(target)));
+        CoinsResponse response = CoinsAPI.resetCoins(args[1]);
+        switch (response.getResponse()) {
+            case SUCCESS:
+                Player target = Bukkit.getPlayer(args[1]);
+                if (!plugin.getString("Coins.Reset", lang).equals("")) {
+                    sender.sendMessage(plugin.getString("Coins.Reset", lang).replaceAll("%target%", args[1]));
+                }
+                if (target != null && !plugin.getString("Coins.Reset target", CompatUtils.getLocale(target)).equals("")) {
+                    target.sendMessage(plugin.getString("Coins.Reset target", CompatUtils.getLocale(target)));
+                }
+                break;
+            case FAILED:
+            case NOT_IMPLEMENTED:
+                sender.sendMessage(response.getMessage());
         }
     }
 
@@ -280,15 +301,15 @@ public class CoinsCommand extends AbstractCoinsCommand {
             sender.sendMessage(plugin.getString("Errors.No permissions", lang));
             return;
         }
-        int i = 0;
+        AtomicInteger i = new AtomicInteger(0);
         sender.sendMessage(plugin.getString("Coins.Top.Header", lang));
-        for (Map.Entry<String, Double> ent : CoinsAPI.getTopPlayers(10).entrySet()) {
-            i++;
-            sender.sendMessage(plugin.getString("Coins.Top.List", lang).replaceAll("%top%", String.valueOf(i)).replaceAll("%player%", ent.getKey()).replaceAll("%coins%", df.format(ent.getValue())));
-        }
+        Stream.of(CoinsAPI.getTopPlayers(10)).forEachOrdered(coinsTopEntry -> sender.sendMessage(plugin.getString("Coins.Top.List", lang)
+                .replace("%top%", Integer.toString(i.addAndGet(1)))
+                .replace("%player%", Bukkit.getPlayer(coinsTopEntry.getUniqueId()) != null ? Bukkit.getPlayer(coinsTopEntry.getUniqueId()).getName() : coinsTopEntry.getName())
+                .replace("%coins%", df.format(coinsTopEntry.getCoins()))));
     }
 
-    private void execute(CommandSender sender, String[] args, String lang) {
+    private void executor(CommandSender sender, String[] args, String lang) {
         if (sender instanceof Player) {
             Executor ex = ExecutorManager.getExecutor(args[1]);
             if (ex == null) {
@@ -330,8 +351,8 @@ public class CoinsCommand extends AbstractCoinsCommand {
         }
         if (args.length == 2) {
             boolean worked = false;
-            ImportManager importManager = new ImportManager();
-            for (ImportManager.PluginToImport pluginToImport : ImportManager.PluginToImport.values()) {
+            ImportManager importManager = new ImportManager(new BukkitImporter());
+            for (PluginToImport pluginToImport : PluginToImport.values()) {
                 if (pluginToImport.toString().equals(args[1].toUpperCase())) {
                     worked = true;
                     importManager.importFrom(pluginToImport);
@@ -340,11 +361,11 @@ public class CoinsCommand extends AbstractCoinsCommand {
             }
             if (!worked) {
                 sender.sendMessage(StringUtils.rep("%prefix% You specified an invalid plugin to import, possible values:"));
-                sender.sendMessage(Arrays.toString(ImportManager.PluginToImport.values()));
+                sender.sendMessage(Arrays.toString(PluginToImport.values()));
             }
         } else {
             sender.sendMessage(StringUtils.rep("%prefix% Command usage: /coins import <plugin>"));
-            sender.sendMessage(StringUtils.rep("&cCurrently supported plugins to import: " + Arrays.toString(ImportManager.PluginToImport.values())));
+            sender.sendMessage(StringUtils.rep("&cCurrently supported plugins to import: " + Arrays.toString(PluginToImport.values())));
         }
     }
 
@@ -355,7 +376,7 @@ public class CoinsCommand extends AbstractCoinsCommand {
         }
         if (args.length == 2) {
             boolean worked = false;
-            ImportManager importManager = new ImportManager();
+            ImportManager importManager = new ImportManager(new BukkitImporter());
             for (StorageType storage : StorageType.values()) {
                 if (storage.toString().equals(args[1].toUpperCase())) {
                     worked = true;
@@ -397,14 +418,15 @@ public class CoinsCommand extends AbstractCoinsCommand {
         sender.sendMessage(StringUtils.rep("%prefix% Coins plugin by Beelzebu, plugin info:"));
         sender.sendMessage("");
         sender.sendMessage(StringUtils.rep(" &cVersion:&7 " + plugin.getBootstrap().getVersion()));
-        sender.sendMessage(StringUtils.rep(" &cExecutors:&7 " + ExecutorManager.getExecutors().size()));
-        sender.sendMessage(StringUtils.rep(" &cStorage Type:&7 " + plugin.getStorageType()));
-        sender.sendMessage(StringUtils.rep(" &cMultipliers in cache:&7 " + plugin.getCache().getMultipliers()));
-        sender.sendMessage(StringUtils.rep(" &cPlayers in cache:&7 " + plugin.getCache().getPlayers().size()));
-        sender.sendMessage("");
+        if (sender.hasPermission("coins.admin.info") || sender.getName().equals("Beelzebu")) {
+            sender.sendMessage(StringUtils.rep(" &cExecutors:&7 " + ExecutorManager.getExecutors().size()));
+            sender.sendMessage(StringUtils.rep(" &cStorage Type:&7 " + plugin.getStorageType()));
+            sender.sendMessage(StringUtils.rep(" &cMultipliers in cache:&7 " + plugin.getCache().getMultipliers()));
+            sender.sendMessage(StringUtils.rep(" &cPlayers in cache:&7 " + plugin.getCache().getPlayers().size()));
+            sender.sendMessage("");
+        }
         sender.sendMessage(StringUtils.rep(" &cSource Code:&7 https://github.com/Beelzebu/Coins"));
         sender.sendMessage(StringUtils.rep(" &cLicense:&7 GNU AGPL v3 (&ahttp://www.gnu.org/licenses/#AGPL&7)"));
-        sender.sendMessage("");
     }
 
     private boolean getBoolean(String string) {

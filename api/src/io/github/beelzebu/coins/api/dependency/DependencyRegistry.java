@@ -20,7 +20,7 @@ package io.github.beelzebu.coins.api.dependency;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.github.beelzebu.coins.api.messaging.MessagingService;
+import io.github.beelzebu.coins.api.messaging.MessagingServiceType;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.storage.StorageType;
 import java.util.LinkedHashSet;
@@ -37,7 +37,7 @@ public final class DependencyRegistry {
 
     public Set<Dependency> resolveStorageDependencies(StorageType storageType) {
         Set<Dependency> dependencies = new LinkedHashSet<>(STORAGE_DEPENDENCIES.get(storageType));
-        if (plugin.getConfig().getMessagingService().equals(MessagingService.REDIS)) {
+        if (plugin.getConfig().getMessagingService().equals(MessagingServiceType.REDIS)) {
             LinkedHashSet<Dependency> jedis = new LinkedHashSet<>();
             jedis.add(Dependency.COMMONS_POOL_2);
             jedis.add(Dependency.JEDIS);

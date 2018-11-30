@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.twanl.tokens:Tokens:1.0-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/twanl/tokens/Tokens/1.0-SNAPSHOT/Tokens-1.0-20181130.135835-1.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/twanl/tokens/Tokens/1.0-SNAPSHOT/Tokens-1.0-20181130.135835-1-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/twanl/tokens/Tokens/1.0-SNAPSHOT/Tokens-1.0-20181130.135835-1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

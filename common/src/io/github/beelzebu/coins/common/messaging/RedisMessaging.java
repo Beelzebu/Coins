@@ -20,10 +20,11 @@ package io.github.beelzebu.coins.common.messaging;
 
 import com.google.gson.JsonObject;
 import io.github.beelzebu.coins.api.messaging.AbstractMessagingService;
-import io.github.beelzebu.coins.api.messaging.MessagingService;
-import lombok.AccessLevel;
+import io.github.beelzebu.coins.api.messaging.MessagingServiceType;
+import java.util.Objects;
+import java.util.UUID;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -45,17 +46,17 @@ public class RedisMessaging extends AbstractMessagingService {
         String host = plugin.getConfig().getString("Redis.Host", "localhost");
         int port = plugin.getConfig().getInt("Redis.Port", 6379);
         String password = plugin.getConfig().getString("Redis.Password");
-        if (password != null && !"".equals(password)) {
+        if (Objects.nonNull(password) && !Objects.equals(password, "")) {
             pool = new JedisPool(config, host, port, 0, password);
         } else {
             pool = new JedisPool(config, host, port);
         }
-        plugin.getBootstrap().runAsync(psl = new PubSubListener());
+        plugin.getBootstrap().runAsync(psl = new PubSubListener(new JedisPubSubHandler()));
     }
 
     @Override
-    public MessagingService getType() {
-        return MessagingService.REDIS;
+    public MessagingServiceType getType() {
+        return MessagingServiceType.REDIS;
     }
 
     @Override
@@ -63,6 +64,12 @@ public class RedisMessaging extends AbstractMessagingService {
         psl.poison();
         pool.close();
         pool.destroy();
+        pool = null;
+    }
+
+    @Override
+    public void publishUser(UUID uuid, double coins) {
+        plugin.getCache().updatePlayer(uuid, coins);
     }
 
     @Override
@@ -72,17 +79,16 @@ public class RedisMessaging extends AbstractMessagingService {
         }
     }
 
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    @AllArgsConstructor
     private class PubSubListener implements Runnable {
 
-        private JedisPubSub jpsh = new JedisPubSubHandler();
+        private final JedisPubSub jpsh;
 
         @Override
         public void run() {
             boolean broken = false;
             try (Jedis rsc = pool.getResource()) {
                 try {
-                    jpsh = new JedisPubSubHandler();
                     rsc.subscribe(jpsh, "coins-messaging");
                 } catch (Exception e) {
                     plugin.log("PubSub error, attempting to recover.");
@@ -98,20 +104,11 @@ public class RedisMessaging extends AbstractMessagingService {
             }
         }
 
-        public void addChannel(String... channel) {
-            jpsh.subscribe(channel);
-        }
-
-        public void removeChannel(String... channel) {
-            jpsh.unsubscribe(channel);
-        }
-
-        public void poison() {
+        void poison() {
             jpsh.unsubscribe();
         }
     }
 
-    @NoArgsConstructor(access = AccessLevel.PRIVATE)
     private class JedisPubSubHandler extends JedisPubSub {
 
         @Override

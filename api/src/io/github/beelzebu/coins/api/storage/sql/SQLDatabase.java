@@ -21,6 +21,7 @@ package io.github.beelzebu.coins.api.storage.sql;
 import com.zaxxer.hikari.HikariDataSource;
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.CoinsResponse;
+import io.github.beelzebu.coins.api.CoinsTopEntry;
 import io.github.beelzebu.coins.api.Multiplier;
 import io.github.beelzebu.coins.api.MultiplierBuilder;
 import io.github.beelzebu.coins.api.MultiplierData;
@@ -32,6 +33,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -87,7 +89,6 @@ public abstract class SQLDatabase implements StorageProvider {
                 coins = plugin.getConfig().getDouble("General.Starting Coins", 0);
                 createPlayer(uuid, plugin.getName(uuid, false).toLowerCase(), coins);
             }
-            plugin.getCache().updatePlayer(uuid, coins);
         } catch (SQLException ex) {
             plugin.log("An internal error has occurred creating the data for player: " + uuid);
             plugin.debug(ex);
@@ -102,12 +103,11 @@ public abstract class SQLDatabase implements StorageProvider {
             if (CoinsAPI.getCoins(uuid) > -1 || CoinsAPI.isindb(uuid)) {
                 DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_COINS_ONLINE, amount, uuid).executeUpdate();
                 response = new CoinsResponse(CoinsResponse.CoinsResponseType.SUCCESS, "");
-                plugin.getCache().updatePlayer(uuid, amount);
             } else {
-                response = new CoinsResponse(CoinsResponse.CoinsResponseType.FAILED, "This user isn't in the storageProvider or the cache.");
+                response = new CoinsResponse(CoinsResponse.CoinsResponseType.FAILED, "This user isn't in the database or the cache.");
             }
         } catch (SQLException ex) {
-            response = new CoinsResponse(CoinsResponse.CoinsResponseType.FAILED, "An exception as occurred with the storageProvider.");
+            response = new CoinsResponse(CoinsResponse.CoinsResponseType.FAILED, "An exception as occurred with the database.");
             plugin.log("An internal error has occurred setting coins to the player: " + uuid);
             plugin.debug(ex);
         }
@@ -116,12 +116,22 @@ public abstract class SQLDatabase implements StorageProvider {
 
     @Override
     public final boolean isindb(UUID uuid) {
-        try (Connection c = getConnection(); PreparedStatement ps = DatabaseUtils.prepareStatement(c, SQLQuery.SEARCH_USER_ONLINE, uuid); ResultSet res = ps.executeQuery()) {
+        try (Connection c = getConnection()) {
+            return _isindb(c, uuid);
+        } catch (SQLException ex) {
+            plugin.log("An internal error has occurred cheking if the player: " + uuid + " exists in the database.");
+            plugin.debug(ex);
+        }
+        return false;
+    }
+
+    private boolean _isindb(Connection c, UUID uuid) {
+        try (PreparedStatement ps = DatabaseUtils.prepareStatement(c, SQLQuery.SEARCH_USER_ONLINE, uuid); ResultSet res = ps.executeQuery()) {
             if (res.next()) {
                 return res.getString("uuid") != null;
             }
         } catch (SQLException ex) {
-            plugin.log("An internal error has occurred cheking if the player: " + uuid + " exists in the storageProvider.");
+            plugin.log("An internal error has occurred cheking if the player: " + uuid + " exists in the database.");
             plugin.debug(ex);
         }
         return false;
@@ -129,12 +139,22 @@ public abstract class SQLDatabase implements StorageProvider {
 
     @Override
     public final boolean isindb(String name) {
-        try (Connection c = getConnection(); PreparedStatement ps = DatabaseUtils.prepareStatement(c, SQLQuery.SEARCH_USER_OFFLINE, name); ResultSet res = ps.executeQuery()) {
+        try (Connection c = getConnection()) {
+            return _isindb(c, name);
+        } catch (SQLException ex) {
+            plugin.log("An internal error has occurred cheking if the player: " + name + " exists in the database.");
+            plugin.debug(ex);
+        }
+        return false;
+    }
+
+    private boolean _isindb(Connection c, String name) {
+        try (PreparedStatement ps = DatabaseUtils.prepareStatement(c, SQLQuery.SEARCH_USER_OFFLINE, name); ResultSet res = ps.executeQuery()) {
             if (res.next()) {
                 return res.getString("nick") != null;
             }
         } catch (SQLException ex) {
-            plugin.log("An internal error has occurred cheking if the player: " + name + " exists in the storageProvider.");
+            plugin.log("An internal error has occurred cheking if the player: " + name + " exists in the database.");
             plugin.debug(ex);
         }
         return false;
@@ -142,15 +162,18 @@ public abstract class SQLDatabase implements StorageProvider {
 
     @Override
     public final void createPlayer(@Nonnull UUID uuid, @Nonnull String name, double balance) {
-        if (isindb(uuid)) {
-            return;
-        }
-        try (Connection c = getConnection(); PreparedStatement ps = DatabaseUtils.prepareStatement(c, SQLQuery.CREATE_USER, uuid, name, balance, System.currentTimeMillis())) {
-            plugin.debug("Creating data for player: " + name + " in the storageProvider.");
-            ps.executeUpdate();
-            plugin.debug("An entry in the storageProvider was created for: " + name);
+        try (Connection c = getConnection()) {
+            if (_isindb(c, uuid) || _isindb(c, name)) {
+                updatePlayer(uuid, name);
+                return;
+            }
+            try (PreparedStatement ps = DatabaseUtils.prepareStatement(c, SQLQuery.CREATE_USER, uuid, name, balance, System.currentTimeMillis())) {
+                plugin.debug("Creating data for player: " + name + " in the database.");
+                ps.executeUpdate();
+                plugin.debug("An entry in the database was created for: " + name);
+            }
         } catch (SQLException ex) {
-            plugin.log("An internal error has occurred while creating the player " + name + " in the storageProvider, check the logs for more info.");
+            plugin.log("An internal error has occurred while creating the player " + name + " in the database, check the logs for more info.");
             plugin.debug(ex);
         }
     }
@@ -158,21 +181,21 @@ public abstract class SQLDatabase implements StorageProvider {
     @Override
     public void updatePlayer(@Nonnull UUID uuid, @Nonnull String name) {
         try (Connection c = getConnection()) {
-            if (plugin.getConfig().isOnline() && CoinsAPI.isindb(uuid)) {
+            if (plugin.getConfig().isOnline() && (CoinsAPI.getPlugin().getCache().getCoins(uuid).isPresent() || _isindb(c, uuid))) {
                 try (PreparedStatement ps = DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_USER_ONLINE, name, System.currentTimeMillis(), uuid)) {
                     ps.executeUpdate();
                     plugin.debug("Updated the name for '" + uuid + "' (" + name + ")");
                 }
-            } else if (!plugin.getConfig().isOnline() && CoinsAPI.isindb(name)) {
+            } else if (!plugin.getConfig().isOnline() && (CoinsAPI.getPlugin().getCache().getCoins(uuid).isPresent() || _isindb(c, uuid))) {
                 try (PreparedStatement ps = DatabaseUtils.prepareStatement(c, SQLQuery.UPDATE_USER_OFFLINE, uuid, System.currentTimeMillis(), name)) {
                     ps.executeUpdate();
                     plugin.debug("Updated the UUID for '" + name + "' (" + uuid + ")");
                 }
             } else if (plugin.getBootstrap().isOnline(name) && !CoinsAPI.isindb(name)) {
-                plugin.debug(name + " isn't in the storageProvider, but is online and a plugin is requesting his balance.");
+                plugin.debug(name + " isn't in the database, but is online and a plugin is requesting his balance.");
                 CoinsAPI.createPlayer(name, uuid);
             } else {
-                plugin.debug("Tried to update a player that isn't in the storageProvider and is offline.");
+                plugin.debug("Tried to update a player that isn't in the database and is offline.");
             }
         } catch (SQLException ex) {
             plugin.log("An internal error has occurred updating the data for player '" + name + "', check the logs for more info.");
@@ -181,19 +204,20 @@ public abstract class SQLDatabase implements StorageProvider {
     }
 
     @Override
-    public LinkedHashMap<String, Double> getTopPlayers(int top) {
-        LinkedHashMap<String, Double> topplayers = new LinkedHashMap<>();
+    public LinkedHashSet<CoinsTopEntry> getTopPlayers(int top) {
+        LinkedHashSet<CoinsTopEntry> topplayers = new LinkedHashSet<>();
         try (Connection c = getConnection(); PreparedStatement ps = DatabaseUtils.prepareStatement(c, SQLQuery.SELECT_TOP, top); ResultSet res = ps.executeQuery()) {
             while (res.next()) {
-                String playername = res.getString("nick");
+                UUID uuid = UUID.fromString(res.getString("uuid"));
+                String nick = res.getString("nick");
                 double coins = res.getDouble("balance");
-                topplayers.put(playername, coins);
+                topplayers.add(new CoinsTopEntry(uuid, nick, coins));
             }
         } catch (SQLException ex) {
             plugin.log("An internal error has occurred generating the toplist");
             plugin.debug(ex);
         }
-        return DatabaseUtils.sortByValue(topplayers);
+        return topplayers;
     }
 
     @Override
@@ -223,11 +247,14 @@ public abstract class SQLDatabase implements StorageProvider {
     }
 
     @Override
-    public void createMultiplier(UUID uuid, int amount, int minutes, String server, MultiplierType type) {
+    public void saveMultiplier(Multiplier multiplier) {
+        // UUID uuid, int amount, int minutes, String server, MultiplierType type
         try (Connection c = getConnection()) {
-            DatabaseUtils.prepareStatement(c, SQLQuery.CREATE_MULTIPLIER, server, uuid, type, amount, minutes, 0, false, false).executeUpdate();
+            DatabaseUtils.prepareStatement(Statement.RETURN_GENERATED_KEYS, c, SQLQuery.CREATE_MULTIPLIER, multiplier.getServer(), multiplier.getData().getEnablerUUID(), multiplier.getType(), multiplier.getData().getAmount(), multiplier.getData().getMinutes(), multiplier.isEnabled(), multiplier.isQueue());
+            MultiplierBuilder.setId(multiplier, c.createStatement().executeQuery("LAST_INSERT_ID()").getInt(1));
         } catch (SQLException ex) {
-            plugin.log("Something was wrong when creating a multiplier for " + plugin.getName(uuid, false));
+            plugin.log("Something was wrong when creating a multiplier for " + plugin.getName(multiplier.getData().getEnablerUUID(), false));
+            plugin.debug(multiplier.toJson().toString());
             plugin.debug(ex);
         }
     }
@@ -239,7 +266,7 @@ public abstract class SQLDatabase implements StorageProvider {
                 return MultiplierBuilder.newBuilder(res.getString("server"), MultiplierType.valueOf(res.getString("type")), new MultiplierData(UUID.fromString(res.getString("uuid")), plugin.getName(UUID.fromString(res.getString("uuid")), false), res.getInt("amount"), res.getInt("minutes"))).setID(res.getInt("id")).setEnabled(res.getBoolean("enabled")).setQueue(res.getBoolean("queue")).build(false);
             }
         } catch (SQLException ex) {
-            plugin.log("An error has occurred getting the multiplier with the id #" + id + " from the storageProvider.");
+            plugin.log("An error has occurred getting the multiplier with the id #" + id + " from the database.");
             plugin.debug(ex);
         }
         return null;
@@ -315,7 +342,7 @@ public abstract class SQLDatabase implements StorageProvider {
                 data.put(res.getString("nick") + "," + res.getString("uuid"), res.getDouble("balance"));
             }
         } catch (SQLException ex) {
-            plugin.log("An error has occurred getting all the players from the storageProvider, check the logs for more info.");
+            plugin.log("An error has occurred getting all the players from the database, check the logs for more info.");
             plugin.debug(ex);
         }
         return data;

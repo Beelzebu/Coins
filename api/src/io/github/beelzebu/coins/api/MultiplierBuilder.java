@@ -18,7 +18,7 @@
  */
 package io.github.beelzebu.coins.api;
 
-import com.google.common.base.Preconditions;
+import java.util.Objects;
 
 /**
  * Class to build multipliers.
@@ -32,15 +32,15 @@ public final class MultiplierBuilder {
     private final String server;
     private final MultiplierType type;
     private final MultiplierData data;
-    private final long endtime = 0L;
+    private long endTime = 0L;
     private int id = -1;
     private boolean enabled = false;
     private boolean queue = false;
 
     private MultiplierBuilder(String server, MultiplierType type, MultiplierData data) {
-        Preconditions.checkNotNull(server, "Server can't be null.");
-        Preconditions.checkNotNull(type, "MultiplierType can't be null.");
-        Preconditions.checkNotNull(data, "MultiplierData can't be null.");
+        Objects.requireNonNull(server, "Server can't be null.");
+        Objects.requireNonNull(type, "MultiplierType can't be null.");
+        Objects.requireNonNull(data, "MultiplierData can't be null.");
         this.server = server;
         this.type = type;
         this.data = data;
@@ -50,8 +50,18 @@ public final class MultiplierBuilder {
         return new MultiplierBuilder(server, type, data);
     }
 
+    public static Multiplier setId(Multiplier multiplier, int id) {
+        multiplier.setId(id);
+        return multiplier;
+    }
+
     public MultiplierBuilder setID(int id) {
         this.id = id;
+        return this;
+    }
+
+    public MultiplierBuilder setEndTime(long endTime) {
+        this.endTime = endTime;
         return this;
     }
 
@@ -86,7 +96,7 @@ public final class MultiplierBuilder {
         multiplier.setQueue(queue);
         multiplier.getData().setEnablerName(data.getEnablerName());
         multiplier.getData().setEnablerUUID(data.getEnablerUUID());
-        multiplier.setEndTime(endtime);
+        multiplier.setEndTime(endTime);
         if (enabled && callenable) {
             multiplier.enable(data.getEnablerUUID(), data.getEnablerName(), queue);
         }

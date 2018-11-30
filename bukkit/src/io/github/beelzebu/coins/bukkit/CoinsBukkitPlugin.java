@@ -56,6 +56,7 @@ public class CoinsBukkitPlugin extends CommonCoinsPlugin {
     public void enable() {
         CompatUtils.setup();
         super.enable();
+        hookOptionalDependencies();
         // Create the command
         ((CoinsBukkitMain) getBootstrap()).getCommandManager().registerCommand();
         // Register listeners
@@ -65,7 +66,7 @@ public class CoinsBukkitPlugin extends CommonCoinsPlugin {
         Bukkit.getPluginManager().registerEvents(new SignListener(this), (CoinsBukkitMain) getBootstrap());
         Bukkit.getPluginManager().registerEvents(new Listener() {
             @EventHandler
-            public void onPluginEnable(PluginEnableEvent e) {
+            public void onPluginEnable(PluginEnableEvent e) { // keep trying to hook with optional dependencies
                 if (Stream.of("Vault", "PlaceholderAPI", "LeaderHeads").anyMatch(hook -> e.getPlugin().getName().equalsIgnoreCase(hook))) {
                     hookOptionalDependencies();
                 }
@@ -87,10 +88,12 @@ public class CoinsBukkitPlugin extends CommonCoinsPlugin {
     private void hookOptionalDependencies() {
         // Hook vault
         if (getConfig().getBoolean("Vault.Use", false)) {
-            if (Bukkit.getPluginManager().getPlugin("Vault") != null && !vault) {
-                log("Vault found, hooking into it.");
-                new CoinsEconomy((CoinsBukkitMain) getBootstrap()).setup();
-                vault = true;
+            if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
+                if (!vault) {
+                    log("Vault found, hooking into it.");
+                    new CoinsEconomy((CoinsBukkitMain) getBootstrap()).setup();
+                    vault = true;
+                }
             } else {
                 log("You enabled Vault in the config, but the plugin Vault can't be found.");
             }

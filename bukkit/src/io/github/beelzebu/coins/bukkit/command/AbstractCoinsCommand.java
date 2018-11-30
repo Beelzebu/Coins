@@ -20,6 +20,7 @@ package io.github.beelzebu.coins.bukkit.command;
 
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
+import java.math.BigDecimal;
 import org.bukkit.command.Command;
 
 /**
@@ -38,10 +39,12 @@ public abstract class AbstractCoinsCommand extends Command {
             return false;
         }
         try {
-            Double.parseDouble(number);
-            return true;
-        } catch (NumberFormatException ex) {
-            return false;
+            BigDecimal bd = new BigDecimal(number);
+            if (bd.compareTo(new BigDecimal(Double.MAX_VALUE)) <= 0 && !Double.isNaN(Double.parseDouble(number)) && !Double.isInfinite(Double.parseDouble(number))) {
+                return true;
+            }
+        } catch (NumberFormatException ignore) {
         }
+        return false;
     }
 }

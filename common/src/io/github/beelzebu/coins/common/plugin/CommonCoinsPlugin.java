@@ -32,7 +32,7 @@ import io.github.beelzebu.coins.api.dependency.DependencyRegistry;
 import io.github.beelzebu.coins.api.executor.Executor;
 import io.github.beelzebu.coins.api.executor.ExecutorManager;
 import io.github.beelzebu.coins.api.messaging.AbstractMessagingService;
-import io.github.beelzebu.coins.api.messaging.MessagingService;
+import io.github.beelzebu.coins.api.messaging.MessagingServiceType;
 import io.github.beelzebu.coins.api.plugin.CoinsBootstrap;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.storage.StorageProvider;
@@ -85,6 +85,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
     private final HashMap<String, AbstractConfigFile> messagesMap = new HashMap<>();
     private final Gson gson = new Gson();
     private final DependencyManager dependencyManager = new DependencyManager(this, new DependencyRegistry(this));
+    @Setter
     protected AbstractMessagingService messagingService;
     protected boolean logEnabled = false;
     @Setter
@@ -119,14 +120,14 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         // identify storage type and start messaging service before start things
         storageType = getConfig().getStorageType();
         getDependencyManager().loadStorageDependencies(storageType);
-        if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingService.BUNGEECORD.toString())) {
+        if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingServiceType.BUNGEECORD.toString())) {
             messagingService = bootstrap.getBungeeMessaging();
-        } else if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingService.REDIS.toString())) {
+        } else if (getConfig().getString("Messaging Service").equalsIgnoreCase(MessagingServiceType.REDIS.toString())) {
             messagingService = new RedisMessaging();
         } else {
             messagingService = new DummyMessaging();
         }
-        if (messagingService.getType() != MessagingService.REDIS) {
+        if (messagingService.getType() != MessagingServiceType.REDIS) {
             getDependencyManager().loadDependencies(EnumSet.of(Dependency.CAFFEINE));
         }
         try {
@@ -150,9 +151,9 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         }
         if (storageType.equals(StorageType.SQLITE) && getConfig().getInt("Database Version", 1) < 2) {
             try {
-                Files.move(new File(bootstrap.getDataFolder(), "storageProvider.db").toPath(), new File(bootstrap.getDataFolder(), "storageProvider.old.db").toPath());
+                Files.move(new File(bootstrap.getDataFolder(), "database.db").toPath(), new File(bootstrap.getDataFolder(), "database.old.db").toPath());
             } catch (IOException ex) {
-                log("An error has occurred moving the old storageProvider");
+                log("An error has occurred moving the old database");
                 debug(ex.getMessage());
             }
         }
@@ -173,12 +174,13 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
 
     @Override
     public final void loadExecutors() {
-        getConfig().getConfigurationSection("Command executor").forEach(id -> ExecutorManager.addExecutor(new Executor(id, getConfig().getString("Command executor." + id + ".Displayname", id), getConfig().getDouble("Command executor." + id + ".Cost", 0), getConfig().getStringList("Command executor." + id + ".Command"))));
+        AbstractConfigFile executorsConfig = bootstrap.getFileAsConfig(new File(bootstrap.getDataFolder(), "executors.yml"));
+        executorsConfig.getConfigurationSection("Executors").forEach(id -> ExecutorManager.addExecutor(new Executor(id, executorsConfig.getString("Command executor." + id + ".Displayname", id), executorsConfig.getDouble("Command executor." + id + ".Cost", 0), executorsConfig.getStringList("Command executor." + id + ".Command"))));
     }
 
     @Override
     public final File getMultipliersFile() {
-        return new File(bootstrap.getDataFolder(), "multipliers.json");
+        return new File(bootstrap.getDataFolder(), "multipliers.dat");
     }
 
     @Override
@@ -198,7 +200,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
 
     @Override
     public final CacheProvider getCache() {
-        return cache == null ? cache = messagingService.getType().equals(MessagingService.REDIS) ? new RedisCache() : new LocalCache() : cache;
+        return cache == null ? cache = messagingService.getType().equals(MessagingServiceType.REDIS) ? new RedisCache() : new LocalCache() : cache;
     }
 
     @Override
@@ -242,9 +244,13 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
 
     @Override
     public final void debug(Exception ex) {
-        debug("Unknown Exception:");
-        debug("   Error message: " + ex.getMessage());
-        debug("   Stacktrace: \n" + getStackTrace(ex));
+        if (ex instanceof SQLException) {
+            debug((SQLException) ex);
+        } else {
+            debug("Unknown Exception:");
+            debug("   Error message: " + ex.getMessage());
+            debug("   Stacktrace: \n" + getStackTrace(ex));
+        }
     }
 
     @Override
@@ -294,7 +300,7 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
                 debug("Logging to file is disabled, all debug messages will be sent to the console.");
             }
             debug("Using \"" + storageType.toString().toLowerCase() + "\" for storage.");
-            if (!messagingService.getType().equals(MessagingService.NONE)) {
+            if (!messagingService.getType().equals(MessagingServiceType.NONE)) {
                 debug("Using \"" + messagingService.getType().toString().toLowerCase() + "\" as messaging service.");
             }
             debug("Using \"" + getCache().getClass().getSimpleName() + "\" for cache");
@@ -315,7 +321,8 @@ public abstract class CommonCoinsPlugin implements CoinsPlugin {
         }
     }
 
-    private String getStackTrace(Exception ex) {
+    @Override
+    public String getStackTrace(Exception ex) {
         try (StringWriter stringWriter = new StringWriter(); PrintWriter printWriter = new PrintWriter(stringWriter)) {
             ex.printStackTrace(printWriter);
             return stringWriter.toString();

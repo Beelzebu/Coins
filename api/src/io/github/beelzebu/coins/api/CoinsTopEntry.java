@@ -16,13 +16,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.beelzebu.coins.api.messaging;
+package io.github.beelzebu.coins.api;
+
+import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * @author Beelzebu
  */
-public enum MessagingService {
-    REDIS,
-    BUNGEECORD,
-    NONE
+@Getter
+@AllArgsConstructor
+public class CoinsTopEntry {
+
+    private final UUID uniqueId;
+    private final String name;
+    private final double coins;
 }

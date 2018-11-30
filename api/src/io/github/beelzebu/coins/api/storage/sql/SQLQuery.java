@@ -78,7 +78,7 @@ public enum SQLQuery {
      */
     UPDATE_USER_OFFLINE("UPDATE `" + ((SQLDatabase) CoinsAPI.getPlugin().getStorageProvider()).getDataTable() + "` SET uuid = ?, lastlogin = ? WHERE nick = ?;"),
     /**
-     * Create a user in the storageProvider.
+     * Create a user in the database.
      * <br></br>
      * <strong>Params:</strong>
      * <ul>
@@ -90,7 +90,7 @@ public enum SQLQuery {
      */
     CREATE_USER("INSERT INTO `" + ((SQLDatabase) CoinsAPI.getPlugin().getStorageProvider()).getDataTable() + "` (`id`, `uuid`, `nick`, `balance`, `lastlogin`) VALUES (null, ?, ?, ?, ?);"),
     /**
-     * Create a multiplier in the storageProvider.
+     * Create a multiplier in the database.
      * <br></br>
      * <strong>Params:</strong>
      * <ul>
@@ -107,7 +107,7 @@ public enum SQLQuery {
      */
     CREATE_MULTIPLIER("INSERT INTO `" + ((SQLDatabase) CoinsAPI.getPlugin().getStorageProvider()).getMultipliersTable() + "` (`id`, `server`, `uuid`, `type`, `amount`, `minutes`, `endtime`, `queue`, `enabled`) VALUES (null, ?, ?, ?, ?, ?, ?, ?, ?);"),
     /**
-     * Select top users from the storageProvider.
+     * Select top users from the database.
      * <br></br>
      * <strong>Params:</strong>
      * <ul>
@@ -115,12 +115,59 @@ public enum SQLQuery {
      * </ul>
      */
     SELECT_TOP("SELECT * FROM `" + ((SQLDatabase) CoinsAPI.getPlugin().getStorageProvider()).getDataTable() + "` ORDER BY balance DESC LIMIT ?;"),
+    /**
+     * Deletes a multiplier by his ID.
+     * <br></br>
+     * <strong>Params:</strong>
+     * <ul>
+     * <li> Multiplier ID</li>
+     * </ul>
+     */
     DELETE_MULTIPLIER("DELETE FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getStorageProvider()).getMultipliersTable() + " WHERE id = ?;"),
-    ENABLE_MULTIPLIER("UPDATE " + ((SQLDatabase) CoinsAPI.getPlugin().getStorageProvider()).getMultipliersTable() + " SET enabled = true WHERE id = ;"),
+    /**
+     * Enables a multiplier by his ID.
+     * <br></br>
+     * <strong>Params:</strong>
+     * <ul>
+     * <li> Multiplier ID</li>
+     * </ul>
+     */
+    ENABLE_MULTIPLIER("UPDATE " + ((SQLDatabase) CoinsAPI.getPlugin().getStorageProvider()).getMultipliersTable() + " SET enabled = true WHERE id = ?;"),
+    /**
+     * Select all multipliers from the database.
+     */
     SELECT_ALL_MULTIPLIERS("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getStorageProvider()).getMultipliersTable()),
+    /**
+     * Select all multipliers from a player that can be enabled.
+     * <br></br>
+     * <strong>Params:</strong>
+     * <ul>
+     * <li> UUID of the player</li>
+     * </ul>
+     */
     SELECT_ALL_MULTIPLIERS_PLAYER("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getStorageProvider()).getMultipliersTable() + " WHERE uuid = ? AND enabled = false AND queue = false;"),
+    /**
+     * Select all multipliers from a player that can be enabled for a specific server.
+     * <br></br>
+     * <strong>Params:</strong>
+     * <ul>
+     * <li> UUID of the player</li>
+     * <li> Server name</li>
+     * </ul>
+     */
     SELECT_ALL_MULTIPLIERS_SERVER("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getStorageProvider()).getMultipliersTable() + " WHERE uuid = ? AND enabled = false AND queue = false AND server = ?;"),
+    /**
+     * Select a multiplier from the database by his id.
+     * <br></br>
+     * <strong>Params:</strong>
+     * <ul>
+     * <li> Multiplier ID</li>
+     * </ul>
+     */
     SELECT_MULTIPLIER("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getStorageProvider()).getMultipliersTable() + " WHERE id = ?;"),
+    /**
+     * Select all players from the database.
+     */
     SELECT_ALL_PLAYERS("SELECT * FROM " + ((SQLDatabase) CoinsAPI.getPlugin().getStorageProvider()).getDataTable() + ";");
 
     @Getter

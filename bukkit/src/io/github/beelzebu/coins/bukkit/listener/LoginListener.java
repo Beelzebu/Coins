@@ -19,7 +19,7 @@
 package io.github.beelzebu.coins.bukkit.listener;
 
 import io.github.beelzebu.coins.api.CoinsAPI;
-import io.github.beelzebu.coins.api.messaging.MessagingService;
+import io.github.beelzebu.coins.api.messaging.MessagingServiceType;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.event.EventHandler;
@@ -53,7 +53,7 @@ public class LoginListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent e) {
-        if (!plugin.getMessagingService().getType().equals(MessagingService.REDIS)) {
+        if (!plugin.getMessagingService().getType().equals(MessagingServiceType.REDIS)) {
             plugin.getCache().removePlayer(e.getPlayer().getUniqueId());
         }
     }

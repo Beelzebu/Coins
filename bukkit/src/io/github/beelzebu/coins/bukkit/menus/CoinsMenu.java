@@ -18,7 +18,6 @@
  */
 package io.github.beelzebu.coins.bukkit.menus;
 
-import com.google.common.base.Preconditions;
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.config.AbstractConfigFile;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
@@ -28,12 +27,15 @@ import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import net.md_5.bungee.api.chat.TranslatableComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -111,8 +113,8 @@ public abstract class CoinsMenu {
     }
 
     public ItemStack getItem(AbstractConfigFile config, String path, Player player) {
-        Preconditions.checkNotNull(config, "Config can't be null");
-        Preconditions.checkNotNull(path, "Item path can't be null");
+        Objects.requireNonNull(config, "Config can't be null");
+        Objects.requireNonNull(path, "Item path can't be null");
         Material mat;
         try {
             mat = Material.valueOf(config.getString(path + ".Material").toUpperCase());
@@ -121,6 +123,9 @@ public abstract class CoinsMenu {
             mat = Material.STONE;
         }
         ItemStack is = new ItemStack(mat);
+        if (config.getInt(path + ".Damage") >= 0) {
+            is = CompatUtils.setDamage(is, config.getInt(path + ".Damage"));
+        }
         ItemMeta meta = is.getItemMeta();
         if (config.getString(path + ".Name") != null) {
             meta.setDisplayName(StringUtils.rep(config.getString(path + ".Name")));
@@ -131,10 +136,20 @@ public abstract class CoinsMenu {
         if (config.getInt(path + ".Amount") >= 1) {
             is.setAmount(config.getInt(path + ".Amount"));
         }
-        if (config.getInt(path + ".Damage") >= 0) {
-            is.setDurability((short) config.getInt(path + ".Damage"));
+        if (config.getBoolean(path + ".HideFlags")) {
+            meta.addItemFlags(ItemFlag.values());
         }
-        if (config.getBoolean(path + "HideFlags")) {
+        if (!config.getStringList(path + ".Enchantments").isEmpty()) {
+            config.getStringList(path + ".Enchantments").forEach(enchantmentFormatted -> {
+                String enchantmentString = enchantmentFormatted.split(":")[0];
+                int level = enchantmentFormatted.split(":").length == 2 && isNumber(enchantmentFormatted.split(":")[1]) ? Integer.parseInt(enchantmentFormatted.split(":")[1]) : 1;
+                Enchantment enchantment = CompatUtils.getEnchantment(enchantmentString);
+                if (enchantment != null) {
+                    meta.addEnchant(enchantment, level >= 1 ? level : 1, true);
+                } else {
+                    plugin.log("\"" + enchantmentString + "\" is not a valid Enchantment, please see https://hub.spigotmc.org/javadocs/spigot/org/bukkit/enchantments/Enchantment.html");
+                }
+            });
         }
         if (config.getString(path + ".PotionType") != null && is.getType().equals(Material.POTION)) {
             try {
@@ -158,6 +173,18 @@ public abstract class CoinsMenu {
 
     protected void setItems() {
         // NOOP
+    }
+
+    protected boolean isNumber(String string) {
+        if (string == null) {
+            return false;
+        }
+        try {
+            Double.parseDouble(string);
+            return true;
+        } catch (NumberFormatException ex) {
+            return false;
+        }
     }
 
     public interface GUIAction {

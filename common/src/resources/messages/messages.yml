@@ -4,7 +4,7 @@
 
 # The version of this file, is used to auto update this file, don't change it
 # unless you know what you do.
-version: 11
+version: 12
 
 Help:
   User:
@@ -50,12 +50,14 @@ Help:
 Errors:
   No permissions: '%prefix% &cYou don''t have permissions.'
   Unknown command: '%prefix% &cUnknown command, try &f/coins help &cto see all avalable commands.'
-  Unknown player: '%prefix% &cThe player %target% can''t be found in the storageProvider.'
+  Unknown player: '%prefix% &cThe player %target% can''t be found in the database.'
+  Unknown player2: '%prefix% &cThis player doesn''t exists in the database.'
   Console: '%prefix% &cYou need to be a Player.'
   No Negative: '%prefix% &cYou can''t set negative coins!'
   No Zero: '%prefix% &cThe amount can''t be zero.'
-  No Coins: '%prefix% &cYou don''t have that coins.'
+  No Coins: '%prefix% &cYou don''t have enough coins.'
   No Execute: '%prefix% &cCan''t find a command to execute with this id.'
+  Max value exceeded: '%prefix% &cMax value exceeded.'
 Coins:
   Top:
     Header: '&8&m+-------------------&8- &c&lCoins TOP &8&m--------------------+'

@@ -28,6 +28,5 @@ public interface Importer {
 
     CoinsPlugin plugin = CoinsAPI.getPlugin();
 
-    void importFromPlayerPoints();
-
+    void importFrom(PluginToImport pluginToImport);
 }

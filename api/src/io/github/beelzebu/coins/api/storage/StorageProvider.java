@@ -19,9 +19,10 @@
 package io.github.beelzebu.coins.api.storage;
 
 import io.github.beelzebu.coins.api.CoinsResponse;
+import io.github.beelzebu.coins.api.CoinsTopEntry;
 import io.github.beelzebu.coins.api.Multiplier;
-import io.github.beelzebu.coins.api.MultiplierType;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nonnull;
@@ -51,9 +52,9 @@ public interface StorageProvider {
 
     boolean isindb(String name);
 
-    LinkedHashMap<String, Double> getTopPlayers(int top);
+    LinkedHashSet<CoinsTopEntry> getTopPlayers(int top);
 
-    void createMultiplier(UUID uuid, int amount, int minutes, String server, MultiplierType type);
+    void saveMultiplier(Multiplier multiplier);
 
     Multiplier getMultiplier(int id);
 

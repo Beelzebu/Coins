@@ -64,12 +64,14 @@ public class PaginatedMenu {
     }
 
     private static void handleCloseSound(String path, Player p) {
-        try {
-            p.playSound(p.getLocation(), Sound.valueOf(MULTIPLIERS_CONFIG.getString(path + ".Sound")), 10, MULTIPLIERS_CONFIG.getInt(path + ".Pitch", 1));
-        } catch (IllegalArgumentException ex) {
-            PLUGIN.log("Seems that you're using an invalid sound, please edit the config and set the sound that corresponds for the version of your server.");
-            PLUGIN.log("Please check https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html\nIf need more help, please open an issue in https://github.com/Beelzebu/Coins/issues");
-        } catch (NullPointerException ignore) {
+        String sound = MULTIPLIERS_CONFIG.getString(path + ".Sound");
+        if (sound != null) {
+            try {
+                p.playSound(p.getLocation(), Sound.valueOf(sound), 10, MULTIPLIERS_CONFIG.getInt(path + ".Pitch", 1));
+            } catch (IllegalArgumentException ex) {
+                PLUGIN.log("Seems that you're using an invalid sound, please edit the config and set the sound that corresponds for the version of your server.");
+                PLUGIN.log("Please check https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html\nIf need more help, please open an issue in https://github.com/Beelzebu/Coins/issues");
+            }
         }
         p.closeInventory();
     }
@@ -95,20 +97,20 @@ public class PaginatedMenu {
             for (int i = 36; i < 45; i++) {
                 setItem(i, ItemBuilder.newBuilder(CompatUtils.getItem(CompatUtils.MaterialItem.MAGENTA_STAINED_GLASS_PANE)).setDisplayName("&f").build());
             }
-            setItem(49, getItem(MULTIPLIERS_CONFIG, path + ".Close"), p -> handleCloseSound(path + ".Close", p));
+            setItem(49, getItem(PaginatedMenu.MULTIPLIERS_CONFIG, path + ".Close"), p -> PaginatedMenu.handleCloseSound(path + ".Close", p));
             if (contents.size() <= 0) {
                 setItem(22, ItemBuilder.newBuilder(Material.POTION).setDisplayName(plugin.getString("Multipliers.Menu.No Multipliers.Name", CompatUtils.getLocale(player))).setLore(StringUtils.rep(plugin.getMessages(CompatUtils.getLocale(player)).getStringList("Multipliers.Menu.No Multipliers.Lore"))).addItemFlag(ItemFlag.HIDE_POTION_EFFECTS).build());
             } else {
                 for (int i = 0; i <= (contents.size() - 1 < 35 ? contents.size() - 1 : 35); i++) {
                     Multiplier multiplier = contents.get(start + i);
-                    setItem(i, getMultiplier(player, multiplier), p -> new ConfirmMenu(p, plugin.getString("Multipliers.Menu.Confirm.Title", CompatUtils.getLocale(p)), multiplier).open(p));
+                    setItem(i, getMultiplier(player, multiplier), p -> new ConfirmMenu(plugin.getString("Multipliers.Menu.Confirm.Title", CompatUtils.getLocale(p)), multiplier).open(p));
                 }
             }
         }
 
         private ItemStack getMultiplier(Player player, Multiplier multiplier) {
             String path = this.path + ".Multiplier";
-            ItemStack is = super.getItem(MULTIPLIERS_CONFIG, path, player);
+            ItemStack is = super.getItem(PaginatedMenu.MULTIPLIERS_CONFIG, path, player);
             ItemMeta meta = is.getItemMeta();
             meta.setDisplayName(StringUtils.rep(meta.getDisplayName(), multiplier));
             meta.setLore(StringUtils.rep(meta.getLore(), multiplier));

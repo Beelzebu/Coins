@@ -21,7 +21,6 @@ package io.github.beelzebu.coins.api;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -29,24 +28,26 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@RequiredArgsConstructor
 @AllArgsConstructor
 public class MultiplierData {
 
     /**
      * Get the UUID of who enabled this multiplier
      *
-     * @return UUID of who enabled this multiplier, never should be null unless
-     * specified by other plugin.
+     * @return UUID of who enabled this multiplier, never should be null unless specified by other plugin.
      */
     private UUID enablerUUID = UUID.randomUUID();
     /**
      * Get the username of who enabled this multiplier
      *
-     * @return username of who enabled this multiplier, never should be null
-     * unless specified by other plugin.
+     * @return username of who enabled this multiplier, never should be null unless specified by other plugin.
      */
     private String enablerName = "SERVER";
-    private int amount;
-    private int minutes;
+    private int amount = 1;
+    private int minutes = 60;
+
+    public MultiplierData(int amount, int minutes) {
+        this.amount = amount;
+        this.minutes = minutes;
+    }
 }

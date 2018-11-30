@@ -72,7 +72,7 @@ public final class MySQL extends SQLDatabase {
         try {
             ds = new HikariDataSource(hc);
         } catch (Exception ex) {
-            plugin.log("An exception has occurred while starting connection pool, check your storageProvider credentials.");
+            plugin.log("An exception has occurred while starting connection pool, check your database credentials.");
             plugin.debug(ex);
             plugin.log("We will change your storage type to SQLite.");
             plugin.setStorageType(StorageType.SQLITE);
@@ -109,18 +109,18 @@ public final class MySQL extends SQLDatabase {
             if (plugin.getConfig().getInt("Database Version", 1) < 2) {
                 try {
                     if (c.prepareStatement("SELECT * FROM " + prefix + "Data;").executeQuery().next() && !c.prepareStatement("SELECT * FROM " + dataTable + ";").executeQuery().next()) {
-                        plugin.log("Seems that your storageProvider is outdated, we'll try to update it...");
+                        plugin.log("Seems that your database is outdated, we'll try to update it...");
                         ResultSet res = c.prepareStatement("SELECT * FROM " + prefix + "Data;").executeQuery();
                         while (res.next()) {
                             DatabaseUtils.prepareStatement(c, SQLQuery.CREATE_USER, res.getString("uuid"), res.getString("nick"), res.getDouble("balance"), res.getLong("lastlogin")).executeUpdate();
                             plugin.debug("Migrated the data for " + res.getString("nick") + " (" + res.getString("uuid") + ")");
                         }
-                        plugin.log("Successfully upadated storageProvider to version 2");
+                        plugin.log("Successfully updated database to version 2");
                     }
                     ((CommonCoinsPlugin) CoinsAPI.getPlugin()).getFileManager().updateDatabaseVersion(2);
                 } catch (SQLException ex) {
                     for (int i = 0; i < 5; i++) {
-                        plugin.log("An error has occurred migrating the data from the old storageProvider, check the logs ASAP!");
+                        plugin.log("An error has occurred migrating the data from the old database, check the logs ASAP!");
                     }
                     plugin.debug(ex);
                     return;
@@ -128,7 +128,7 @@ public final class MySQL extends SQLDatabase {
             }
             if (plugin.getConfig().getBoolean("General.Purge.Enabled", true) && plugin.getConfig().getInt("General.Purge.Days") > 0) {
                 st.executeUpdate("DELETE FROM " + dataTable + " WHERE lastlogin < " + (System.currentTimeMillis() - (plugin.getConfig().getInt("General.Purge.Days", 60) * 86400000L)) + ";");
-                plugin.debug("Inactive users were removed from the storageProvider.");
+                plugin.debug("Inactive users were removed from the database.");
             }
         } catch (SQLException ex) {
             plugin.log("Something was wrong creating the default databases. Please check the debug log.");

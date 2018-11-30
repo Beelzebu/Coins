@@ -18,11 +18,11 @@
  */
 package io.github.beelzebu.coins.api;
 
-import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.utils.StringUtils;
+import java.util.Objects;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
@@ -61,7 +61,7 @@ public final class Multiplier {
     }
 
     public static Multiplier fromJson(String multiplier) {
-        Preconditions.checkNotNull(multiplier, "Tried to load a null Multiplier");
+        Objects.requireNonNull(multiplier, "Tried to load a null Multiplier");
         CoinsAPI.getPlugin().debug("Loading multiplier from JSON: " + multiplier);
         try {
             return CoinsAPI.getPlugin().getGson().fromJson(multiplier, Multiplier.class);
@@ -72,8 +72,8 @@ public final class Multiplier {
     }
 
     /**
-     * Enable this multiplier with the default uuid and name from
-     * {@link Multiplier#data#getEnablerUUID()} and {@link Multiplier#data#getEnablerName()}
+     * Enable this multiplier with the default uuid and name from {@link Multiplier#data#getEnablerUUID()} and {@link
+     * Multiplier#data#getEnablerName()}
      *
      * @param queue if the multiplier should be queued or immediately enabled.
      */
@@ -92,6 +92,7 @@ public final class Multiplier {
         if (System.currentTimeMillis() + data.getMinutes() * 60000 > endTime && endTime > 1) {
             return;
         }
+        Objects.requireNonNull(enablerName, "Enabler name can't be null.");
         if (enablerUUID != null) {
             data.setEnablerUUID(enablerUUID);
         } else {

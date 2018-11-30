@@ -12,7 +12,7 @@ Prefix: '&cCoins &6&l>&7'
 # is part of a bungeecord network, only set this to false if:
 # 1) Your server is connected to a bungeecord server and for any reason you don't
 # have ip_forward enabled in the bungeecord config.
-# 2) Your server is connected to the same storageProvider as another server on which users
+# 2) Your server is connected to the same database as another server on which users
 # can have another uuid (that the other server is cracked)
 Online Mode: true
 
@@ -33,7 +33,7 @@ Vault:
 Storage Type: sqlite
 
 # Don't touch this setting, this is only for internal usage to auto update the
-# storageProvider when something changes.
+# database when something changes.
 Database Version: 2
 
 # Settings for messaging service
@@ -58,7 +58,7 @@ MySQL:
   Prefix: 'Coins_'
   # Don't change this value if you don't know what it does.
   Connection Pool: 8
-  # MySQL table names without prefix, you can change this to use same storageProvider
+  # MySQL table names without prefix, you can change this to use same database
   # for all servers and but keep different balances in every server.
   Data Table: 'data'
   Multipliers Table: 'multipliers'
@@ -72,7 +72,7 @@ Redis:
 # Plugin general configurations.
 General:
   # Here you can define the starting coins of a player when is registered in the
-  # storageProvider or his coins are reset with "/coins reset"
+  # database or his coins are reset with "/coins reset"
   Starting Coins: 0
   # Here you can configure the base command of the plugin.
   Command:
@@ -114,7 +114,7 @@ General:
     '4': ''
   # If you want the users to be created when they join to the server, enable this,
   # otherwise the players will be created when his coins are modified or consulted
-  # to the storageProvider for the first time (recommended for big servers).
+  # to the database for the first time (recommended for big servers).
   Create Join: false
 
 # Here you can define a cost to use a specific command.

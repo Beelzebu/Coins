@@ -95,7 +95,7 @@ public class FileManager {
                                     "Storage Type: sqlite",
                                     "",
                                     "# Don't touch this setting, this is only for internal usage to auto update the",
-                                    "# storageProvider when something changes.",
+                                    "# database when something changes.",
                                     "Database Version: 1",
                                     "",
                                     "# Settings for messaging service",
@@ -127,7 +127,7 @@ public class FileManager {
                             lines.addAll(index, Arrays.asList(
                                     "  # Don't change this value if you don't know what it does.",
                                     "  Connection Pool: 8",
-                                    "  # MySQL table names without prefix, you can change this to use same storageProvider",
+                                    "  # MySQL table names without prefix, you can change this to use same database",
                                     "  # for all servers and but keep different balances in every server.",
                                     "  Data Table: 'data'",
                                     "  Multipliers Table: 'multipliers'",

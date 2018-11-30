@@ -18,19 +18,66 @@
  */
 package io.github.beelzebu.coins.api;
 
-import lombok.AllArgsConstructor;
+import java.util.Objects;
+import java.util.function.Consumer;
 import lombok.Getter;
 
 /**
+ * Represents a response from the plugin, it contains three different response types and a message.
+ *
+ * <p>Possible response types</p>
+ *
+ * <ul>
+ * <li>{@link CoinsResponseType#SUCCESS} - The code was executed successfully.</li>
+ * <li>{@link CoinsResponseType#FAILED} - The code failed during the execution.</li>
+ * <li>{@link CoinsResponseType#NOT_IMPLEMENTED} - This feature is not implemented.</li>
+ * </ul>
+ *
  * @author Beelzebu
  */
-@AllArgsConstructor
+@Getter
 public class CoinsResponse {
 
-    @Getter
     private final CoinsResponseType response;
-    @Getter
     private final String message;
+
+    public CoinsResponse(CoinsResponseType response, String message) {
+        this.response = response;
+        this.message = message;
+        if (response.equals(CoinsResponseType.FAILED) && Objects.equals(CoinsAPI.getPlugin().getString(message, ""), "")) {
+            throw new IllegalArgumentException("CoinsResponse not providing a valid error message.");
+        }
+    }
+
+    /**
+     * If the response is success, invoke the specified consumer, otherwise do nothing.
+     *
+     * @param consumer - block to be executed if the response is successful
+     */
+    public void ifSuccess(Consumer<CoinsResponse> consumer) {
+        if (response != null && response == CoinsResponseType.SUCCESS) {
+            consumer.accept(this);
+        }
+    }
+
+    /**
+     * If the response is failed, invoke the specified consumer, otherwise do nothing.
+     *
+     * @param consumer - block to be executed if the response is failed.
+     */
+    public void ifFailed(Consumer<CoinsResponse> consumer) {
+        if (response == null || response == CoinsResponseType.FAILED) {
+            consumer.accept(this);
+        }
+    }
+
+    public String getMessage() {
+        String message = CoinsAPI.getPlugin().getString(this.message, "");
+        if (!Objects.equals(message, "")) {
+            return message;
+        }
+        return this.message;
+    }
 
     public enum CoinsResponseType {
         SUCCESS,

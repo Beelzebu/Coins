@@ -21,7 +21,6 @@ package io.github.beelzebu.coins.common.cache;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonSyntaxException;
 import io.github.beelzebu.coins.api.CoinsAPI;
@@ -74,9 +73,6 @@ public final class LocalCache implements CacheProvider {
 
     @Override
     public void updatePlayer(UUID uuid, double coins) {
-        if (!Optional.ofNullable(players.getIfPresent(uuid)).isPresent()) {
-            plugin.getStorageProvider().updatePlayer(uuid, plugin.getName(uuid, false));
-        }
         players.put(uuid, coins);
     }
 
@@ -98,7 +94,7 @@ public final class LocalCache implements CacheProvider {
     @Override
     public void addMultiplier(Multiplier multiplier) {
         multipliers.put(multiplier.getId(), multiplier); // put the multiplier in the cache
-        // store it in a local storage to load them again without querying storageProvider if the server is restarted
+        // store it in a local storage to load them again without querying the database if the server is restarted
         try {
             if (!plugin.getMultipliersFile().exists()) {
                 plugin.getMultipliersFile().createNewFile();
@@ -130,7 +126,7 @@ public final class LocalCache implements CacheProvider {
 
     @Override
     public void deleteMultiplier(Multiplier multiplier) {
-        Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
+        Objects.requireNonNull(multiplier, "Multiplier can't be null");
         try { // remove it from local multiplier storage
             Iterator<String> lines = Files.readAllLines(plugin.getMultipliersFile().toPath()).iterator();
             while (lines.hasNext()) {
@@ -150,7 +146,7 @@ public final class LocalCache implements CacheProvider {
 
     @Override
     public void updateMultiplier(Multiplier multiplier, boolean callenable) {
-        Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
+        Objects.requireNonNull(multiplier, "Multiplier can't be null");
         if (callenable) {
             multiplier.enable(true);
             plugin.getMessagingService().enableMultiplier(multiplier);

@@ -19,9 +19,9 @@
 package io.github.beelzebu.coins.bukkit.utils.placeholders;
 
 import io.github.beelzebu.coins.api.CoinsAPI;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
-import java.util.Map;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
@@ -29,6 +29,8 @@ import org.bukkit.entity.Player;
  * @author Beelzebu
  */
 public class CoinsPlaceholders extends PlaceholderExpansion {
+
+    private final DecimalFormat decimalFormat = new DecimalFormat("#.#");
 
     @Override
     public String getIdentifier() {
@@ -60,24 +62,24 @@ public class CoinsPlaceholders extends PlaceholderExpansion {
         if (p == null) {
             return "Player needed!";
         }
-        if (placeholder.toLowerCase().matches("top_\\d")) {
-            int top_n = Integer.parseInt(placeholder.toLowerCase().replace("top_", ""));
-            Map<String, Double> top = CoinsAPI.getTopPlayers(top_n);
-            for (int i = 0; i < top_n; i++) {
-                top.remove(top.entrySet().stream().findFirst().get().getKey());
+        if (placeholder.toLowerCase().startsWith("top_") && placeholder.toLowerCase().matches("\\d+$")) {
+            int top = Integer.parseInt(placeholder.toLowerCase().replaceAll("[^\\d+$]", ""));
+            if (placeholder.toLowerCase().matches("^top_name_\\d+$")) {
+                return decimalFormat.format(CoinsAPI.getTopPlayers(top)[top - 1].getName());
             }
-            return top.entrySet().stream().findFirst().get().getKey();
-
+            if (placeholder.toLowerCase().matches("^top_balance_\\d+$")) {
+                return decimalFormat.format(CoinsAPI.getTopPlayers(top)[top - 1].getCoins());
+            }
         }
         switch (placeholder.toLowerCase()) {
             case "amount":
-                String coinsS;
+                String coinsString;
                 try {
-                    coinsS = CoinsAPI.getCoinsString(p.getUniqueId());
+                    coinsString = CoinsAPI.getCoinsString(p.getUniqueId());
                 } catch (NullPointerException ex) {
-                    coinsS = "Loading...";
+                    coinsString = "Loading...";
                 }
-                return coinsS;
+                return coinsString;
             case "amount_formatted":
                 return fix(CoinsAPI.getCoins(p.getUniqueId()));
             default:

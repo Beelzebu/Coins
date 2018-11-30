@@ -134,12 +134,12 @@ public class CoinsBukkitMain extends JavaPlugin implements CoinsBootstrap {
 
     @Override
     public void callCoinsChangeEvent(UUID uuid, double oldCoins, double newCoins) {
-        Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().callEvent(new CoinsChangeEvent(uuid, oldCoins, newCoins)));
+        runAsync(() -> Bukkit.getPluginManager().callEvent(new CoinsChangeEvent(uuid, oldCoins, newCoins)));
     }
 
     @Override
     public void callMultiplierEnableEvent(Multiplier multiplier) {
-        Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().callEvent(new MultiplierEnableEvent(multiplier)));
+        runAsync(() -> Bukkit.getPluginManager().callEvent(new MultiplierEnableEvent(multiplier)));
     }
 
     @Override

@@ -18,7 +18,7 @@
  */
 package io.github.beelzebu.coins.api.config;
 
-import io.github.beelzebu.coins.api.messaging.MessagingService;
+import io.github.beelzebu.coins.api.messaging.MessagingServiceType;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.storage.StorageType;
 import java.io.File;
@@ -43,7 +43,7 @@ public abstract class CoinsConfig extends AbstractConfigFile {
     }
 
     public boolean useBungee() {
-        return plugin.getMessagingService().getType().equals(MessagingService.BUNGEECORD);
+        return plugin.getMessagingService().getType().equals(MessagingServiceType.BUNGEECORD);
     }
 
     public boolean isOnline() {
@@ -72,10 +72,10 @@ public abstract class CoinsConfig extends AbstractConfigFile {
         return type;
     }
 
-    public MessagingService getMessagingService() {
-        MessagingService type = MessagingService.NONE;
+    public MessagingServiceType getMessagingService() {
+        MessagingServiceType type = MessagingServiceType.NONE;
         try {
-            return MessagingService.valueOf(getString("Messaging Service", "none").toUpperCase());
+            return MessagingServiceType.valueOf(getString("Messaging Service", "none").toUpperCase());
         } catch (IllegalArgumentException ex) {
             plugin.log("You have defined a invalid storage type in the config.");
         }

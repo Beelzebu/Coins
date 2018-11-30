@@ -18,7 +18,6 @@
  */
 package io.github.beelzebu.coins.api.messaging;
 
-import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import io.github.beelzebu.coins.api.CoinsAPI;
 import io.github.beelzebu.coins.api.Multiplier;
@@ -27,6 +26,7 @@ import io.github.beelzebu.coins.api.executor.ExecutorManager;
 import io.github.beelzebu.coins.api.plugin.CoinsPlugin;
 import io.github.beelzebu.coins.api.storage.StorageType;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -47,7 +47,7 @@ public abstract class AbstractMessagingService {
      *
      * @return messaging service type defined by implementing classes.
      */
-    public abstract MessagingService getType();
+    public abstract MessagingServiceType getType();
 
     /**
      * Stop and shutdown this messaging service instance.
@@ -60,18 +60,16 @@ public abstract class AbstractMessagingService {
      * @param uuid  user to publish.
      * @param coins coins to publish.
      */
-    public final void publishUser(UUID uuid, double coins) {
-        Preconditions.checkNotNull(uuid, "UUID can't be null");
+    public void publishUser(UUID uuid, double coins) {
+        Objects.requireNonNull(uuid, "UUID can't be null");
         if (coins > -1) {
             try {
                 plugin.getCache().updatePlayer(uuid, coins);
                 plugin.debug("Updated local data for: " + uuid);
-                if (!getType().equals(MessagingService.NONE)) {
-                    JsonObject user = new JsonObject();
-                    user.addProperty("uuid", uuid.toString());
-                    user.addProperty("coins", coins);
-                    sendMessage(user, MessageType.USER_UPDATE);
-                }
+                JsonObject user = new JsonObject();
+                user.addProperty("uuid", uuid.toString());
+                user.addProperty("coins", coins);
+                sendMessage(user, MessageType.USER_UPDATE);
             } catch (Exception ex) {
                 plugin.log("An unexpected error has occurred while updating coins for: " + uuid);
                 plugin.log("Check plugin log files for more information, please report this bug on https://github.com/Beelzebu/Coins/issues");
@@ -86,7 +84,7 @@ public abstract class AbstractMessagingService {
      * @param multiplier -
      */
     public final void updateMultiplier(Multiplier multiplier) {
-        Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
+        Objects.requireNonNull(multiplier, "Multiplier can't be null");
         try {
             plugin.getCache().addMultiplier(multiplier);
             sendMessage(objectWith("multiplier", multiplier.toJson()), MessageType.MULTIPLIER_UPDATE);
@@ -103,7 +101,7 @@ public abstract class AbstractMessagingService {
      * @param multiplier -
      */
     public final void enableMultiplier(Multiplier multiplier) {
-        Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
+        Objects.requireNonNull(multiplier, "Multiplier can't be null");
         try {
             plugin.getCache().addMultiplier(multiplier);
             sendMessage(add(objectWith("multiplier", multiplier.toJson()), "enable", true), MessageType.MULTIPLIER_UPDATE);
@@ -120,7 +118,7 @@ public abstract class AbstractMessagingService {
      * @param multiplier -
      */
     public final void disableMultiplier(Multiplier multiplier) {
-        Preconditions.checkNotNull(multiplier, "Multiplier can't be null");
+        Objects.requireNonNull(multiplier, "Multiplier can't be null");
         try {
             plugin.getCache().addMultiplier(multiplier);
             sendMessage(objectWith("multiplier", multiplier.toJson()), MessageType.MULTIPLIER_DISABLE);
@@ -132,25 +130,23 @@ public abstract class AbstractMessagingService {
     }
 
     /**
-     * Send a request to get all multipliers from other servers using this
-     * messaging service, if this server is spigot will request it to bungeecord
-     * and viceversa.
+     * Send a request to get all multipliers from other servers using this messaging service, if this server is spigot
+     * will request it to bungeecord and viceversa.
      */
     public final void getMultipliers() {
         sendMessage(new JsonObject(), MessageType.MULTIPLIER_UPDATE);
     }
 
     /**
-     * Send a request to get all executors from bungeecord or other bungeecord
-     * instances if you're using more than one bungeecord server.
+     * Send a request to get all executors from bungeecord or other bungeecord instances if you're using more than one
+     * bungeecord server.
      */
     public final void getExecutors() {
         sendMessage(new JsonObject(), MessageType.GET_EXECUTORS);
     }
 
     /**
-     * Sub classes must override this to send the message so we can handle it
-     * before
+     * Sub classes must override this to send the message so we can handle it before
      *
      * @param message JSON message to send
      */
@@ -163,7 +159,7 @@ public abstract class AbstractMessagingService {
      * @param type    message type
      */
     protected final void sendMessage(JsonObject message, MessageType type) {
-        if (getType().equals(MessagingService.NONE)) {
+        if (getType().equals(MessagingServiceType.NONE)) {
             return;
         }
         UUID uuid = UUID.randomUUID();
@@ -174,7 +170,7 @@ public abstract class AbstractMessagingService {
     }
 
     protected final void handleMessage(JsonObject message) {
-        plugin.debug("&6Messaging Log: &7Received a message from another server, message is: " + message);
+        plugin.debug("&6Messaging Log: &7Received a new message: " + message);
         UUID messageid = UUID.fromString(message.get("messageid").getAsString());
         if (messages.contains(messageid)) { // the message was sent from this server so don't read it
             plugin.debug("&6Messaging Log: &7Message was sent from this server, ignoring.");

@@ -23,6 +23,7 @@ import io.github.beelzebu.coins.api.Multiplier;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import net.md_5.bungee.api.ChatColor;
 
 /**
@@ -30,6 +31,7 @@ import net.md_5.bungee.api.ChatColor;
  */
 public final class StringUtils {
 
+    @Nonnull
     public static String rep(String msg) {
         if (msg == null) {
             return "";
@@ -40,24 +42,24 @@ public final class StringUtils {
         return msg.replace('&', ChatColor.COLOR_CHAR);
     }
 
-    public static String rep(String msg, Multiplier multiplier) {
-        String string = msg;
-        if (multiplier != null) {
-            string = msg.replaceAll("%enabler%", multiplier.getData().getEnablerName()).replaceAll("%server%", multiplier.getServer()).replaceAll("%amount%", String.valueOf(multiplier.getData().getAmount())).replaceAll("%minutes%", String.valueOf(multiplier.getData().getMinutes())).replaceAll("%id%", String.valueOf(multiplier.getId()));
-        }
-        return rep(string);
+    @Nonnull
+    public static String rep(@Nonnull String msg, @Nonnull Multiplier multiplier) {
+        return rep(msg.replace("%enabler%", multiplier.getData().getEnablerName()).replace("%server%", multiplier.getServer()).replace("%amount%", String.valueOf(multiplier.getData().getAmount())).replace("%minutes%", String.valueOf(multiplier.getData().getMinutes())).replace("%id%", String.valueOf(multiplier.getId())));
     }
 
-    public static List<String> rep(List<String> msgs) {
-        return msgs.stream().map(StringUtils::rep).collect(Collectors.toList());
+    @Nonnull
+    public static List<String> rep(@Nonnull List<String> lines) {
+        return lines.stream().map(StringUtils::rep).collect(Collectors.toList());
     }
 
-    public static List<String> rep(List<String> msgs, Multiplier multiplierData) {
-        return msgs.stream().map(msg -> rep(msg, multiplierData)).collect(Collectors.toList());
+    @Nonnull
+    public static List<String> rep(@Nonnull List<String> lines, @Nonnull Multiplier multiplierData) {
+        return lines.stream().map(line -> rep(line, multiplierData)).collect(Collectors.toList());
     }
 
-    public static String removeColor(String str) {
-        return ChatColor.stripColor(rep(str)).replaceAll("Debug: ", "");
+    @Nonnull
+    public static String removeColor(@Nonnull String str) {
+        return ChatColor.stripColor(rep(str)).replace("Debug: ", "");
     }
 
     public static String formatTime(long millis) {
@@ -71,10 +73,8 @@ public final class StringUtils {
             b.append(days);
             b.append(", ");
         }
-        b.append(hours == 0 ? "00" : hours < 10 ? "0" + hours : String.valueOf(hours));
-        b.append(":");
-        b.append(minutes == 0 ? "00" : minutes < 10 ? "0" + minutes : String.valueOf(minutes));
-        b.append(":");
+        b.append(hours == 0 ? "00" : hours < 10 ? "0" + hours : String.valueOf(hours)).append(":");
+        b.append(minutes == 0 ? "00" : minutes < 10 ? "0" + minutes : String.valueOf(minutes)).append(":");
         b.append(seconds == 0 ? "00" : seconds < 10 ? "0" + seconds : String.valueOf(seconds));
         return b.toString();
     }

@@ -57,6 +57,8 @@ public interface CoinsPlugin {
 
     AbstractMessagingService getMessagingService();
 
+    void setMessagingService(AbstractMessagingService messagingService);
+
     Gson getGson();
 
     void loadExecutors();
@@ -70,6 +72,8 @@ public interface CoinsPlugin {
     void debug(Exception ex);
 
     void debug(SQLException ex);
+
+    String getStackTrace(Exception e);
 
     UUID getUniqueId(String name, boolean fromdb);
 

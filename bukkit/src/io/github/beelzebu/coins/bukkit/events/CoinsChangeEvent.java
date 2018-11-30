@@ -19,23 +19,24 @@
 package io.github.beelzebu.coins.bukkit.events;
 
 import java.util.UUID;
-import org.bukkit.Bukkit;
+import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerEvent;
 
 /**
  * @author Beelzebu
  */
-public class CoinsChangeEvent extends PlayerEvent {
+public class CoinsChangeEvent extends Event {
 
     private final static HandlerList handlers = new HandlerList();
+    private final UUID player;
     private final double oldCoins;
     private final double newCoins;
 
-    public CoinsChangeEvent(UUID uuid, double oc, double nc) {
-        super(Bukkit.getPlayer(uuid));
-        oldCoins = oc;
-        newCoins = nc;
+    public CoinsChangeEvent(UUID player, double oldCoins, double newCoins) {
+        super(true);
+        this.player = player;
+        this.oldCoins = oldCoins;
+        this.newCoins = newCoins;
     }
 
     public static HandlerList getHandlerList() {
@@ -48,8 +49,16 @@ public class CoinsChangeEvent extends PlayerEvent {
     }
 
     /**
-     * Get the coins that the player involved in this event had before this
-     * change.
+     * Get the UUID of the player involved in this event, player can be offline, that's why we only pass the UUID.
+     *
+     * @return UUID of the player.
+     */
+    public UUID getPlayer() {
+        return player;
+    }
+
+    /**
+     * Get the coins that the player involved in this event had before this change.
      *
      * @return the old coins of the player.
      */
@@ -67,9 +76,8 @@ public class CoinsChangeEvent extends PlayerEvent {
     }
 
     /**
-     * Get the difference between the old coins and the new coins, this value
-     * can be possitive if we added coins to the player or negative if we've
-     * taken coins from him.
+     * Get the difference between the old coins and the new coins, this value can be positive if we added coins to the
+     * player or negative if we've taken coins from him.
      *
      * @return the difference in coins.
      */

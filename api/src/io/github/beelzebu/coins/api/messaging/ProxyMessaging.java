@@ -26,8 +26,8 @@ public abstract class ProxyMessaging extends AbstractMessagingService {
     protected static final String CHANNEL = "coins:updates";
 
     @Override
-    public final MessagingService getType() {
-        return MessagingService.BUNGEECORD;
+    public final MessagingServiceType getType() {
+        return MessagingServiceType.BUNGEECORD;
     }
 
     protected abstract void sendMessage(String message, boolean wait);

@@ -22,6 +22,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <spigot.version>1.13.2-R0.1-SNAPSHOT</spigot.version>
+        <bungeecord.version>1.13-SNAPSHOT</bungeecord.version>
+        <hikari.version>3.1.0</hikari.version>
+        <gson.version>2.8.0</gson.version>
+        <shade.plugin.version>3.2.0</shade.plugin.version>
     </properties>
 
     <licenses>
@@ -46,11 +51,34 @@
         <url>https://github.com/Beelzebu/Coins</url>
     </scm>
 
+    <ciManagement>
+        <system>Jenkins-CI</system>
+        <url>https://ci.nifheim.net/job/Coins/</url>
+    </ciManagement>
+
+    <distributionManagement>
+        <repository>
+            <id>nifheim-repo</id>
+            <url>https://repo.nifheim.net/repository/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>nifheim-repo</id>
+            <url>https://repo.nifheim.net/repository/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>nifheim-repo</id>
+            <url>https://repo.nifheim.net/repository/public/</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.18</version>
+            <version>1.18.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -62,7 +90,6 @@
     </dependencies>
 
     <build>
-        <finalName>${project.name}</finalName>
         <sourceDirectory>src</sourceDirectory>
     </build>
 </project>
